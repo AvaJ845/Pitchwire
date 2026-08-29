@@ -17,71 +17,87 @@ struct StorySummaryView: View {
     private var story: Story? { campaign.story }
 
     var body: some View {
-        Form {
+        ScrollView {
             if let story {
-                Section {
-                    Text(story.summary ?? "")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } header: {
-                    Text("What we understood")
-                }
-
-                Section("The story") {
-                    LabeledContent("Theme", value: story.theme ?? "—")
-                    LabeledContent("Audience", value: story.audience ?? "—")
-                    Picker("Angle", selection: Binding(
-                        get: { story.angle ?? "general news" },
-                        set: { story.angle = $0 }
-                    )) {
-                        ForEach(Self.angles, id: \.self) { Text($0.capitalized).tag($0) }
+                VStack(alignment: .leading, spacing: 16) {
+                    Card {
+                        VStack(alignment: .leading, spacing: 8) {
+                            SectionLabel(title: "What we understood")
+                            Text(story.summary ?? "")
+                                .font(.callout)
+                                .foregroundStyle(Palette.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                    Picker("Region", selection: Binding(
-                        get: { story.region ?? "US" },
-                        set: { story.region = $0 }
-                    )) {
-                        ForEach(Self.regions, id: \.self) { Text($0).tag($0) }
-                    }
-                    LabeledContent("Timing") {
-                        Text(story.urgency == "time-sensitive" ? "Time-sensitive" : "Standard")
-                            .foregroundStyle(story.urgency == "time-sensitive" ? .orange : .secondary)
-                    }
-                }
 
-                Section {
-                    ChipEditor(items: Binding(get: { story.subtopics }, set: { story.subtopics = $0 }),
-                               draft: $newSubtopic,
-                               placeholder: "Add a topic")
-                } header: {
-                    Text("Topics")
-                } footer: {
-                    Text("These drive who we match. Remove anything off, add what's missing.")
-                }
+                    Card {
+                        VStack(alignment: .leading, spacing: 2) {
+                            SummaryRow(label: "Theme", value: story.theme ?? "—")
+                            Divider().overlay(Palette.hairline)
+                            SummaryRow(label: "Audience", value: story.audience ?? "—")
+                            Divider().overlay(Palette.hairline)
+                            MenuRow(label: "Angle",
+                                    selection: Binding(get: { story.angle ?? "general news" }, set: { story.angle = $0; Haptics.select() }),
+                                    options: Self.angles, display: { $0.capitalized })
+                            Divider().overlay(Palette.hairline)
+                            MenuRow(label: "Region",
+                                    selection: Binding(get: { story.region ?? "US" }, set: { story.region = $0; Haptics.select() }),
+                                    options: Self.regions, display: { $0 })
+                            Divider().overlay(Palette.hairline)
+                            SummaryRow(label: "Timing",
+                                       value: story.urgency == "time-sensitive" ? "Time-sensitive" : "Standard",
+                                       valueColor: story.urgency == "time-sensitive" ? Palette.warning : Palette.inkSecondary)
+                        }
+                    }
 
-                if !story.mediaHooks.isEmpty {
-                    Section("Why a journalist would care") {
-                        ForEach(story.mediaHooks, id: \.self) { hook in
-                            Label(hook, systemImage: "quote.opening")
-                                .labelStyle(.titleAndIcon)
+                    Card {
+                        VStack(alignment: .leading, spacing: 10) {
+                            SectionLabel(title: "Topics")
+                            Text("These drive who we match. Remove anything off, add what's missing.")
+                                .font(.caption)
+                                .foregroundStyle(Palette.inkTertiary)
+                            ChipEditor(items: Binding(get: { story.subtopics }, set: { story.subtopics = $0 }),
+                                       draft: $newSubtopic,
+                                       placeholder: "Add a topic")
+                        }
+                    }
+
+                    if !story.mediaHooks.isEmpty {
+                        Card {
+                            VStack(alignment: .leading, spacing: 10) {
+                                SectionLabel(title: "Why a journalist would care")
+                                ForEach(story.mediaHooks, id: \.self) { hook in
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Image(systemName: "quote.opening")
+                                            .font(.caption)
+                                            .foregroundStyle(Palette.accent)
+                                            .padding(.top, 2)
+                                        Text(hook)
+                                            .font(.subheadline)
+                                            .foregroundStyle(Palette.ink)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                .padding(Metrics.gutter)
+                .padding(.bottom, 88)
             } else {
                 ContentUnavailableView("No story", systemImage: "doc.text")
             }
         }
+        .screenBackground()
         .navigationTitle("Your story")
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
             Button {
                 findJournalists()
             } label: {
-                Text("Find journalists")
-                    .frame(maxWidth: .infinity)
+                Label("Find journalists", systemImage: "magnifyingglass")
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .padding()
+            .buttonStyle(.pitchwire)
+            .padding(Metrics.gutter)
             .background(.bar)
         }
         .navigationDestination(isPresented: $showMatches) {
@@ -90,10 +106,50 @@ struct StorySummaryView: View {
     }
 
     private func findJournalists() {
+        Haptics.tap()
         try? modelContext.save()
         MatchRunner.populateTargets(for: campaign, context: modelContext)
         try? modelContext.save()
         showMatches = true
+    }
+}
+
+private struct SummaryRow: View {
+    let label: String
+    let value: String
+    var valueColor: Color = Palette.inkSecondary
+
+    var body: some View {
+        HStack {
+            Text(label).font(.subheadline).foregroundStyle(Palette.ink)
+            Spacer()
+            Text(value).font(.subheadline).foregroundStyle(valueColor)
+        }
+        .padding(.vertical, 10)
+    }
+}
+
+private struct MenuRow: View {
+    let label: String
+    @Binding var selection: String
+    let options: [String]
+    let display: (String) -> String
+
+    var body: some View {
+        Menu {
+            Picker(label, selection: $selection) {
+                ForEach(options, id: \.self) { Text(display($0)).tag($0) }
+            }
+        } label: {
+            HStack {
+                Text(label).font(.subheadline).foregroundStyle(Palette.ink)
+                Spacer()
+                Text(display(selection)).font(.subheadline).foregroundStyle(Palette.accent)
+                Image(systemName: "chevron.up.chevron.down").font(.caption2).foregroundStyle(Palette.inkTertiary)
+            }
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+        }
     }
 }
 
@@ -104,24 +160,25 @@ private struct ChipEditor: View {
     let placeholder: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             if !items.isEmpty {
                 FlowLayout(spacing: 8) {
                     ForEach(items, id: \.self) { item in
                         HStack(spacing: 4) {
                             Text(item)
                             Button {
+                                Haptics.tap()
                                 items.removeAll { $0 == item }
                             } label: {
-                                Image(systemName: "xmark.circle.fill")
+                                Image(systemName: "xmark")
                             }
                             .buttonStyle(.plain)
-                            .foregroundStyle(.secondary)
                         }
-                        .font(.footnote)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(Palette.accent)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(Capsule().fill(Color(.tertiarySystemFill)))
+                        .background(Palette.accentSoft, in: Capsule())
                     }
                 }
             }
@@ -130,22 +187,24 @@ private struct ChipEditor: View {
                     .textInputAutocapitalization(.never)
                     .onSubmit(add)
                 Button("Add", action: add)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Palette.accent)
                     .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
-        .padding(.vertical, 4)
     }
 
     private func add() {
         let value = draft.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !value.isEmpty, !items.contains(value) else { return }
+        Haptics.tap()
         items.append(value)
         draft = ""
     }
 }
 
 /// Minimal wrapping HStack for the chips.
-private struct FlowLayout: Layout {
+struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {

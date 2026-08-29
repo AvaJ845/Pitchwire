@@ -7,13 +7,14 @@ struct RootTabView: View {
                 .tabItem { Label("Home", systemImage: "sparkles") }
 
             CampaignsView()
-                .tabItem { Label("Campaigns", systemImage: "folder") }
+                .tabItem { Label("Campaigns", systemImage: "square.stack.3d.up") }
 
             DraftsView()
-                .tabItem { Label("Drafts", systemImage: "envelope") }
+                .tabItem { Label("Drafts", systemImage: "paperplane") }
 
             ProfileView()
-                .tabItem { Label("Profile", systemImage: "person.circle") }
+                .tabItem { Label("Profile", systemImage: "person.crop.circle") }
         }
+        .tint(Palette.accent)
     }
 }

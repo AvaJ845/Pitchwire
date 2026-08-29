@@ -62,7 +62,7 @@ final class CoreLoopUITests: XCTestCase {
         // Editable draft screen
         XCTAssertTrue(app.navigationBars["Pitch draft"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Subject"].exists)
-        XCTAssertTrue(app.switches["Marked as sent"].exists)
+        XCTAssertTrue(app.buttons["Marked as sent"].exists)
         snap(app, "05-pitch-draft")
     }
 }

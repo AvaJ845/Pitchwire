@@ -27,30 +27,54 @@ struct KeywordMatchingService: MatchingService {
 
             // Base fit from beat overlap, plus a nudge for evidence confidence so a
             // fresh, claimed profile outranks a stale licensed one at equal topic fit.
-            let topicFit = min(1.0, Double(overlap.count) / Double(max(beatKeywords.count, 1)) + 0.2)
+            let topicFit = min(1.0, Double(overlap.count) / Double(max(beatKeywords.count, 1)) + 0.1)
             let confidenceBonus: Double
             switch journalist.evidenceConfidence {
-            case .high: confidenceBonus = 0.12
-            case .moderate: confidenceBonus = 0.04
+            case .high: confidenceBonus = 0.14
+            case .moderate: confidenceBonus = 0.05
             case .exploratory: confidenceBonus = 0.0
             }
             let score = min(1.0, topicFit + confidenceBonus)
-            let tier: ConfidenceTier = score >= 0.75 ? .excellent : (score >= 0.5 ? .strong : .possible)
+            let tier: ConfidenceTier = score >= 0.8 ? .excellent : (score >= 0.55 ? .strong : .possible)
 
-            let matched = overlap.sorted().joined(separator: ", ")
-            var reason = "Covers \(journalist.beatTopics.prefix(3).joined(separator: ", ")) — overlaps on \(matched)."
-            if let basis = journalist.primaryProvenance?.coverageBasis {
-                reason += " \(basis)."
-            }
-            if let pref = journalist.pitchPreference {
-                reason += " Prefers: \(pref)."
-            }
+            let reason = Self.reason(journalist: journalist, tier: tier)
             let explanation = MatchExplanation(reasonText: reason, evidenceBylines: journalist.recentBylineTitles)
 
             return MatchCandidate(journalist: journalist, confidenceTier: tier, confidenceScore: score, explanation: explanation)
         }
 
         return candidates.sorted { $0.confidenceScore > $1.confidenceScore }
+    }
+
+    /// A readable one-liner grounded in the journalist's real beat — the shape a
+    /// quality-tier model would produce, done deterministically for the offline path.
+    /// Kept free of the story's own vocabulary so it never repeats itself.
+    private static func reason(journalist: JournalistProfile, tier: ConfidenceTier) -> String {
+        let beats = journalist.beatTopics.prefix(2).map(displayBeat)
+        let phrase: String
+        switch beats.count {
+        case 0:  phrase = "this area"
+        case 1:  phrase = beats[0]
+        default: phrase = "\(beats[0]) and \(beats[1])"
+        }
+        switch tier {
+        case .excellent:
+            return "Covers \(phrase) — a direct hit for this story."
+        case .strong:
+            return "Covers \(phrase), which this story runs through."
+        case .possible:
+            return "Some overlap with \(phrase) — a lighter fit worth a look."
+        }
+    }
+
+    private static func displayBeat(_ raw: String) -> String {
+        switch raw {
+        case "ai": return "AI"
+        case "apis", "api": return "APIs"
+        case "sdk": return "SDKs"
+        case "ml": return "machine learning"
+        default: return raw
+        }
     }
 
     private static func keywords(from strings: [String]) -> Set<String> {

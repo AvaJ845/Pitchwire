@@ -39,6 +39,12 @@ xcodebuild -scheme BeatMatch -sdk iphonesimulator \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
 ```
 
+## Design
+`Sources/Design/` — `Palette` (brand navy + teal, all tokens light **and** dark), `Components`
+(`Card`, `Monogram`, `ConfidencePill`, `EvidenceDot`, `.pitchwire` button style, `SectionLabel`),
+`Haptics`. Every screen is card-based on `Palette.canvas`, full dark mode, Dynamic-Type-friendly.
+`AccentColor` asset tints the app teal.
+
 ## What you'll see
 Paste a launch story into Home → Analyze → **"What we understood"** (theme, audience, angle,
 timing, editable topic chips) → Find journalists → a confidence-tiered list with a reason and an

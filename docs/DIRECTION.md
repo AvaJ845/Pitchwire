@@ -135,6 +135,23 @@ the user, "even public databases," are not permitted — is the strategic constr
 data layer is shaped around. Recommendation + provenance + consent-aware usage, not mass
 compiled personal data.
 
+## Visual system (`Sources/Design/`)
+
+- **`Palette`** — brand navy + teal (from the app icon), semantic tokens (`canvas`, `surface`,
+  `hairline`, `ink*`), tier colours, evidence colours. Every token is defined light **and** dark.
+  `AccentColor` asset tints the whole app teal.
+- **`Components`** — one `Card` surface, `Monogram` (name-derived tinted initials, no fetched
+  avatars), `Tag` / `ConfidencePill` / `EvidenceDot`, `PitchwireButtonStyle` (`.pitchwire` /
+  `.pitchwireQuiet`), `SectionLabel` (uppercase display, original-case a11y label).
+- **`Haptics`** — success / warning / tap / select, one line per meaningful moment.
+- Every screen: card layout on `Palette.canvas`, Dynamic-Type-friendly (system fonts,
+  `fixedSize(vertical:)` on wrapping text, no fixed heights except text editors), full dark mode.
+- Match list: monogram + confidence pill + evidence dot rows, tiered headers with counts, swipe
+  to shortlist / hide. Journalist detail: sticky "Draft pitch" bar. Pitch draft: segmented
+  short/long, Copy + Share, mark-as-sent with a filled state.
+- Match reasons read as sentences ("Covers AI and product launch — a direct hit for this story"),
+  not keyword dumps — the shape the quality-tier model produces, done deterministically offline.
+
 ## Success metric
 
 **Qualified pitch actions per analyzed story** — user submits a story, gets good matches, and
