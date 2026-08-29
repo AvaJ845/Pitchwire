@@ -46,6 +46,28 @@ dedicated, paid NIM deployment. To widen the free pool without GPUs, add
 `google/gemini-2.0-flash-exp:free`, …), one key, and its infra isn't
 Cloudflare-blocked so z.ai's GLM models become reachable through it too.
 
+### Free models — probed 2026-08-29
+
+| Model | Via | Status |
+|---|---|---|
+| `openai/gpt-oss-120b` | NVIDIA | ✅ in chain (quality) |
+| `openai/gpt-oss-20b` | NVIDIA | ✅ in chain (fast) |
+| `z-ai/glm-5.2:free` | OpenRouter | ✅ in chain — 429s intermittently, recovers |
+| `minimax/minimax-m2.7:free` | OpenRouter | ✅ in chain |
+| `minimax/minimax-m3:free` | OpenRouter | ✅ in chain |
+| `dots-studio/dots-3-note-preview:free` | OpenRouter | ✅ in chain |
+| `inclusionai/ling-3.0-flash-fin:free` | OpenRouter | ✅ works but very verbose |
+| `cohere/north-mini-code:free` | OpenRouter | ✅ works (code model) |
+| `openrouter/free` | OpenRouter | ✅ works but hugely verbose (rotating meta-model) |
+| `google/gemma-4-31b-it:free`, `gemma-4-26b:free` | OpenRouter | ⚠️ 429 (upstream overloaded) |
+| `nvidia/nemotron-3.5-lightning:free`, `-3-super`, `-3-ultra`, `-3-nano` | OpenRouter | ❌ 404 — needs Privacy setting (below) |
+| `poolside/laguna-*:free`, `liquid/lfm-2.5:free` | OpenRouter | ❌ 404 — needs Privacy setting |
+| `thinkingmachines/inkling*:free` | OpenRouter | ❌ 403 — agentic-harness only |
+
+**To unlock the Nemotron / Laguna / Liquid models:** OpenRouter → Settings →
+Privacy → allow "providers that may train on your inputs". Then add those model
+ids to `TASK_MODELS` in `src/worker.js`.
+
 ### Debug
 
 `POST /v1/generate?only=nvidia:openai/gpt-oss-20b` forces one provider and skips

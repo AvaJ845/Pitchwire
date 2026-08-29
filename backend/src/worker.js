@@ -29,23 +29,28 @@
 //             also gives us GLM back. `:free` tier is 50/day (1000/day with
 //             $10+ credit on the account).
 //  - z.ai direct:  Aliyun-blocked from Cloudflare — dormant, kept for a non-CF host.
-const NV_120       = "nvidia:openai/gpt-oss-120b";
-const NV_20        = "nvidia:openai/gpt-oss-20b";
-const OR_GLM       = "openrouter:z-ai/glm-5.2:free";
-const OR_LIGHTNING = "openrouter:nvidia/nemotron-3.5-lightning:free";
-const OR_SUPER     = "openrouter:nvidia/nemotron-3-super-120b-a12b:free";
-const OR_MINIMAX   = "openrouter:minimax/minimax-m2.7:free";
-const GLM_DIRECT   = ["glm-4.7-flash", "glm-4.5-flash"];
+// Confirmed reachable + free (probed 2026-08-29). GLM-5.2 via OpenRouter 429s
+// intermittently but recovers. The OpenRouter NVIDIA-Nemotron / Laguna / Liquid
+// models 404 with "no endpoints matching your data policy" until the account
+// enables Settings → Privacy → allow prompt-training providers — add them here
+// if that gets turned on.
+const NV_120     = "nvidia:openai/gpt-oss-120b";
+const NV_20      = "nvidia:openai/gpt-oss-20b";
+const OR_GLM     = "openrouter:z-ai/glm-5.2:free";
+const OR_MINIMAX = "openrouter:minimax/minimax-m2.7:free";
+const OR_MINIMAX3 = "openrouter:minimax/minimax-m3:free";
+const OR_DOTS    = "openrouter:dots-studio/dots-3-note-preview:free";
+const GLM_DIRECT = ["glm-4.7-flash", "glm-4.5-flash"];   // Aliyun-blocked from Cloudflare; kept for a non-CF host
 const TASK_MODELS = {
   // fast tier — extraction / classification
-  storyAnalysis:    [OR_LIGHTNING, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
-  matchExplanation: [OR_LIGHTNING, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
-  subjectLine:      [OR_LIGHTNING, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
+  storyAnalysis:    [NV_20, OR_MINIMAX3, OR_GLM, NV_120, ...GLM_DIRECT],
+  matchExplanation: [NV_20, OR_MINIMAX3, OR_GLM, NV_120, ...GLM_DIRECT],
+  subjectLine:      [NV_20, OR_MINIMAX3, OR_GLM, NV_120, ...GLM_DIRECT],
   // quality tier — user-facing prose. Add glm-5.3-flash (paid) to the head if
   // free capacity ever becomes the bottleneck.
-  pitchDraft:       [OR_GLM, NV_120, OR_SUPER, OR_MINIMAX, NV_20, ...GLM_DIRECT],
-  pitchRewrite:     [OR_GLM, NV_120, OR_SUPER, OR_MINIMAX, NV_20, ...GLM_DIRECT],
-  followUp:         [OR_GLM, NV_120, OR_SUPER, NV_20, ...GLM_DIRECT],
+  pitchDraft:       [OR_GLM, NV_120, OR_MINIMAX, OR_DOTS, NV_20, ...GLM_DIRECT],
+  pitchRewrite:     [OR_GLM, NV_120, OR_MINIMAX, OR_DOTS, NV_20, ...GLM_DIRECT],
+  followUp:         [OR_GLM, NV_120, OR_MINIMAX, NV_20, ...GLM_DIRECT],
 };
 
 const SYSTEM = {
@@ -169,7 +174,7 @@ async function callModel(model, messages, temperature, env) {
       "User-Agent": "Pitchwire/1.0 (+https://github.com/AvaJ845/Pitchwire)",
       ...extraHeaders,
     },
-    body: JSON.stringify({ model: realModel, messages, temperature, stream: false }),
+    body: JSON.stringify({ model: realModel, messages, temperature, stream: false, max_tokens: 900 }),
   });
   if (!res.ok) {
     const body = (await res.text().catch(() => "")).slice(0, 300);
