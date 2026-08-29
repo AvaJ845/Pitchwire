@@ -74,6 +74,11 @@ BeatMatch/
   `"ai".capitalized` → "Ai" leaking into campaign names and pitch subjects.
 - Added `UITests/CoreLoopUITests.swift` — one smoke test covering the whole loop.
 - Removed the duplicate `BeatMatch-Source/` tree — `BeatMatch/Sources/` is the single source of truth.
+- Added the app icon — `Sources/Assets.xcassets/AppIcon.appiconset/` (single 1024 asset). Master
+  also at `AppStore/AppIcon-1024.png` for App Store Connect. Rebuilt from
+  `~/Downloads/Pitchwire_Modern_P_Icon_1024.png`: cropped the AI-generated icon-in-a-frame down
+  to the P mark and re-composited it full-bleed on a solid navy field (no rounded corners / shadow /
+  alpha — iOS masks the shape itself).
 
 ## Next
 See `ARCHITECTURE.md` for the full reasoning (MVP scope, challenged assumptions, deferred work).
