@@ -11,6 +11,9 @@ private struct FakeGateway: AIGateway {
     }
 }
 
+// @MainActor: `LLMLog.record` funnels mutations to the main thread, so the
+// assertions on `log.entries` must observe from there too.
+@MainActor
 final class FallbackGatewayTests: XCTestCase {
 
     private func request() -> AIRequest { AIRequest(task: .pitchDraft, prompt: "x") }
@@ -65,6 +68,7 @@ final class FallbackGatewayTests: XCTestCase {
     }
 }
 
+@MainActor
 final class LLMLogTests: XCTestCase {
 
     func testRespectsCaptureToggle() {

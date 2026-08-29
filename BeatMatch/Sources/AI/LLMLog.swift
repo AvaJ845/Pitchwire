@@ -57,10 +57,25 @@ final class LLMLog {
         #endif
     }
 
+    /// Thread-safe entry point. `AIClient` emits from whatever executor ran the
+    /// request — often several at once (e.g. `ExplanationEnricher`) — but `entries`
+    /// is `@Observable` and read by SwiftUI, so every mutation is funnelled onto
+    /// the main thread. A call already on main mutates synchronously (keeps the
+    /// unit tests straightforward); an off-main call hops.
     func record(_ entry: LLMLogEntry) {
-        guard isCapturing else { return }
         var entry = entry
         entry.detail = entry.detail.map(Redaction.redact)   // never store a secret
+        if Thread.isMainThread {
+            ingest(entry)
+        } else {
+            DispatchQueue.main.async { [weak self] in self?.ingest(entry) }
+        }
+    }
+
+    /// Always runs on the main thread (see `record`). Not marked `@MainActor` so
+    /// the non-isolated `record` can call it directly on the fast path.
+    private func ingest(_ entry: LLMLogEntry) {
+        guard isCapturing else { return }
         entries.append(entry)
         if entries.count > capacity { entries.removeFirst(entries.count - capacity) }
     }

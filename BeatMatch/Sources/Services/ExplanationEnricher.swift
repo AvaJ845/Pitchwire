@@ -19,23 +19,21 @@ enum ExplanationEnricher {
             .sorted { $0.confidenceScore > $1.confidenceScore }
             .prefix(8)
 
-        await withTaskGroup(of: (MatchExplanation, String)?.self) { group in
-            for target in pending {
-                guard let journalist = target.journalist, let explanation = target.explanation else { continue }
-                let drivers = RelevanceEngine.score(analysis: analysis, journalist: journalist).drivers.map(\.name)
-                group.addTask {
-                    let text = await write(analysis: analysis, journalist: journalist,
-                                           tier: target.confidenceTier, drivers: drivers, ai: ai)
-                    return text.map { (explanation, $0) }
-                }
-            }
-            for await result in group {
-                guard let (explanation, text) = result else { continue }
-                explanation.reasonText = text
-                explanation.aiEnhanced = true
-            }
+        // Sequential on purpose: the backend rate-limits per IP, and each result
+        // is written back on the main actor so the card upgrades in place as we go.
+        // `.task` cancellation (navigating away) simply stops the loop — the next
+        // visit resumes from the `aiEnhanced == false` filter.
+        for target in pending {
+            if Task.isCancelled { return }
+            guard let journalist = target.journalist, let explanation = target.explanation else { continue }
+            let drivers = RelevanceEngine.score(analysis: analysis, journalist: journalist).drivers.map(\.name)
+            guard let text = await write(analysis: analysis, journalist: journalist,
+                                        tier: target.confidenceTier, drivers: drivers, ai: ai)
+            else { continue }
+            explanation.reasonText = text
+            explanation.aiEnhanced = true
+            try? context.save()
         }
-        try? context.save()
     }
 
     private static func write(
