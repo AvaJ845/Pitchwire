@@ -76,6 +76,15 @@ one-line change in the backend task→model map. `AIConfiguration.defaultModel` 
 advisory only. **Re-check z.ai's pricing page for the current free-model lineup when wiring the
 backend** — it changes.
 
+**Vision (GLM-4.6V-Flash) — not MVP.** Its only fit is story intake from a screenshot / PDF /
+image-heavy page, and that intake path is itself deferred (MVP is paste-text). When file/URL
+intake is built: extract text on-device first — PDFKit for PDFs, Apple Vision-framework OCR for
+images (free, private) — and feed the text model. Use the vision model only as a fallback when
+OCR can't (infographics, odd layouts, "read this announcement screenshot"). Never run vision on
+anything involving a person's photo or identity. Carrying it later means one new `AITask` plus an
+image-bytes field on `AIRequest.input` — a small extension, not a rewrite; not worth building
+speculatively now.
+
 ## Commercial model = data, not code (`Sources/Entitlements/`)
 
 No feature ever checks `if plan == .free`. Features ask `Entitlements`:
