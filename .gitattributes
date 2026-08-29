@@ -1,0 +1,2 @@
+Pitchwire/Resources/MiniLM.mlpackage/** filter=lfs diff=lfs merge=lfs -text
+**/MiniLM.mlpackage/** filter=lfs diff=lfs merge=lfs -text
