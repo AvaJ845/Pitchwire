@@ -26,24 +26,29 @@ enum ExplanationEnricher {
         for target in pending {
             if Task.isCancelled { return }
             guard let journalist = target.journalist, let explanation = target.explanation else { continue }
+
+            // Read every SwiftData field HERE, on the main actor, into a plain
+            // request value. Nothing @Model crosses the `await`.
             let drivers = RelevanceEngine.score(analysis: analysis, journalist: journalist).drivers.map(\.name)
-            guard let text = await write(analysis: analysis, journalist: journalist,
-                                        tier: target.confidenceTier, drivers: drivers, ai: ai)
-            else { continue }
+            let request = makeRequest(analysis: analysis, journalist: journalist,
+                                      tier: target.confidenceTier, drivers: drivers)
+
+            guard let text = await rewrite(request, using: ai) else { continue }
             explanation.reasonText = text
             explanation.aiEnhanced = true
             try? context.save()
         }
     }
 
-    private static func write(
+    /// Pure — runs on the caller's actor (main). Pulls the journalist's facts into
+    /// a plain `AIRequest`.
+    private static func makeRequest(
         analysis: StoryAnalysisResult,
         journalist: JournalistProfile,
         tier: ConfidenceTier,
-        drivers: [String],
-        ai: AIClient
-    ) async -> String? {
-        let request = AIRequest(
+        drivers: [String]
+    ) -> AIRequest {
+        AIRequest(
             task: .matchExplanation,
             tier: .fast,
             input: [
@@ -60,6 +65,10 @@ enum ExplanationEnricher {
                 + "story. Ground it only in the beat and bylines given. Refer to them by name or "
                 + "'they' — never assume he/she. No greeting, no markdown."
         )
+    }
+
+    /// The only part that suspends. Takes a plain value; touches nothing @Model.
+    private static func rewrite(_ request: AIRequest, using ai: AIClient) async -> String? {
         guard let text = await ai.text(for: request) else { return nil }
         let cleaned = text
             .replacingOccurrences(of: "*", with: "")

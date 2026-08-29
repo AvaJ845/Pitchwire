@@ -218,16 +218,16 @@ struct JournalistDetailView: View {
         isDrafting = true
         defer { isDrafting = false }
 
+        // Read every @Model field on the main actor, before the await.
         let analysis = story.analysisResult
-        let candidate = MatchCandidate(
-            journalist: journalist,
-            confidenceTier: target.confidenceTier,
-            confidenceScore: target.confidenceScore,
-            explanation: target.explanation ?? MatchExplanation(reasonText: "")
-        )
+        let rawText = story.rawText
+        let recipientName = journalist.name
+        let matchReason = target.explanation?.reasonText ?? ""
 
         do {
-            let newDraft = try await draftingService.draft(story: analysis, rawText: story.rawText, for: candidate)
+            let newDraft = try await draftingService.draft(
+                story: analysis, rawText: rawText,
+                recipientName: recipientName, matchReason: matchReason)
             newDraft.mediaTarget = target
             newDraft.campaign = campaign
             modelContext.insert(newDraft)

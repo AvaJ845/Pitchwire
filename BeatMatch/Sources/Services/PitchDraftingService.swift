@@ -1,7 +1,10 @@
 import Foundation
 
 protocol PitchDraftingService {
-    func draft(story: StoryAnalysisResult, rawText: String, for candidate: MatchCandidate) async throws -> PitchDraft
+    /// `recipientName` / `matchReason` are passed as plain values — the caller
+    /// reads them off the `@Model` on the main actor, never this method.
+    func draft(story: StoryAnalysisResult, rawText: String,
+               recipientName: String, matchReason: String) async throws -> PitchDraft
 }
 
 /// Pitch drafting runs the `.pitchDraft` task through the AI gateway (quality
@@ -11,9 +14,8 @@ protocol PitchDraftingService {
 struct DefaultPitchDraftingService: PitchDraftingService {
     var ai: AIClient = AIClient()
 
-    func draft(story: StoryAnalysisResult, rawText: String, for candidate: MatchCandidate) async throws -> PitchDraft {
-        let name = candidate.journalist.name
-
+    func draft(story: StoryAnalysisResult, rawText: String,
+               recipientName name: String, matchReason: String) async throws -> PitchDraft {
         let request = AIRequest(
             task: .pitchDraft,
             input: [
@@ -22,7 +24,7 @@ struct DefaultPitchDraftingService: PitchDraftingService {
                 "angle": story.angle,
                 "audience": story.audience,
                 "hooks": story.mediaHooks.joined(separator: ", "),
-                "whyThisJournalist": candidate.explanation.reasonText
+                "whyThisJournalist": matchReason
             ],
             prompt: "Draft a media pitch. Return: SUBJECT: <line>\\nSHORT: <text>\\nLONG: <text>"
         )
@@ -39,7 +41,7 @@ struct DefaultPitchDraftingService: PitchDraftingService {
 
         \(story.summary)
 
-        Flagging this for you because \(candidate.explanation.reasonText)\(hookLine)
+        Flagging this for you because \(matchReason)\(hookLine)
 
         Happy to send more detail or set up a quick call if useful.
         """
@@ -49,7 +51,7 @@ struct DefaultPitchDraftingService: PitchDraftingService {
 
         \(rawText.prefix(600))
 
-        Why I thought of you: \(candidate.explanation.reasonText)
+        Why I thought of you: \(matchReason)
 
         The angle I think fits your beat: \(story.mediaHooks.joined(separator: "; "))
 
