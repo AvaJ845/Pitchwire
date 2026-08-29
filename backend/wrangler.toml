@@ -1,6 +1,7 @@
 name = "pitchwire-ai"
 main = "src/worker.js"
 compatibility_date = "2026-08-01"
+preview_urls = false   # only the one workers.dev route; no extra public surface
 
 # Secrets (never in this file — set with `wrangler secret put`):
 #   ZAI_API_KEY             z.ai API key  (create at https://z.ai — free models: glm-4.7-flash / glm-4.5-flash)
