@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Xcode / XcodeGen — project is generated from BeatMatch/project.yml
+*.xcodeproj/
+DerivedData/
+build/
+*.xcresult
+BeatMatch/ta/
+BeatMatch/test-attachments/
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate

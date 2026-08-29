@@ -1,0 +1,48 @@
+name: BeatMatch
+options:
+  bundleIdPrefix: com.avaresearch
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+targets:
+  BeatMatch:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_NAME: Pitchwire
+        PRODUCT_BUNDLE_IDENTIFIER: com.avaresearch.pitchwire
+        SWIFT_VERSION: "5.0"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: true
+        CODE_SIGNING_ALLOWED: false
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_CFBundleDisplayName: Pitchwire
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+  BeatMatchUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    settings:
+      base:
+        PRODUCT_NAME: PitchwireUITests
+        PRODUCT_BUNDLE_IDENTIFIER: com.avaresearch.pitchwireUITests
+        SWIFT_VERSION: "5.0"
+        CODE_SIGNING_ALLOWED: false
+        GENERATE_INFOPLIST_FILE: true
+    dependencies:
+      - target: BeatMatch
+schemes:
+  BeatMatch:
+    build:
+      targets:
+        BeatMatch: all
+        BeatMatchUITests: [test]
+    test:
+      targets:
+        - BeatMatchUITests
