@@ -19,7 +19,22 @@ app ──POST /v1/generate──▶ Worker ──▶ z.ai GLM-4.7-Flash   (free
 - Task → model map + system prompts live in `src/worker.js` — change routing
   there, nothing in the app moves.
 
-## Deploy (about 10 minutes)
+## Deploy A — Cloudflare dashboard (no local install)
+
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages** → **Create** →
+   **Create Worker** → name `pitchwire-ai` → deploy the default.
+2. **Edit code** → replace everything with `src/worker.js` → **Deploy**.
+3. **Settings → Variables and Secrets**:
+   - Secret `ZAI_API_KEY` = z.ai key
+   - Secret `NVIDIA_API_KEY` = NVIDIA key *(optional; skip → chain ends at GLM-4.5)*
+   - Secret `PITCHWIRE_CLIENT_TOKEN` = `openssl rand -hex 32`
+   - Variable `RATE_LIMIT_PER_MIN` = `20`
+4. **Settings → Runtime** → set Compatibility date to a recent date.
+5. URL: `https://pitchwire-ai.<subdomain>.workers.dev`
+
+## Deploy B — wrangler CLI (about 10 minutes)
+
+Needs Node (nodejs.org `.pkg`, no Homebrew required).
 
 ```bash
 npm install -g wrangler

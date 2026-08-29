@@ -1,0 +1,24 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "The thin backend from the AI Infrastructure Direction. A single Cloudflare Worker: the app calls it, it holds the provider keys and runs the GLM \u2192 GLM \u2192 NVIDIA failover. API-first, no servers, no GPU ops.",
+  "main": "index.js",
+  "scripts": {
+    "login": "wrangler login",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "secret": "wrangler secret put"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "wrangler": "^4.127.1"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20260828.1": true
+  },
+  "private": true
+}
