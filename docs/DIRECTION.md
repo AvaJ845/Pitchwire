@@ -183,9 +183,22 @@ each 0–1 with a weight and a human fragment:
 
 `WeightedRelevanceService` applies it over the pool; the "why this match" prose is built
 from the signals that actually drove the score. Journalist detail has a **"How we scored
-this"** breakdown (score bar + per-signal bars). All deterministic — the model never runs
-here. `RelevanceEngineTests` covers alignment, off-topic rejection, the do-not-pitch filter,
-and recency lift.
+this"** breakdown (score bar + per-signal bars). Ranking is fully deterministic.
+
+**Explanations are progressively enhanced.** The grounded one-liner shows instantly; when a
+backend is configured, `ExplanationEnricher` runs on the match list and rewrites the top ~8
+into real prose via the `matchExplanation` task — grounded only in the journalist's beat and
+*real* bylines, pronoun-safe (name or "they", never assumed), capped at one sentence, marked
+with an "AI" badge. `MatchExplanation.groundedReason` keeps the deterministic original.
+`RelevanceEngineTests` covers alignment, off-topic rejection, the do-not-pitch filter, recency lift.
+
+## Campaign memory — follow-ups
+
+`FollowUpTask` now has a UI: `FollowUpsView` (reachable from the match-list toolbar) lists,
+adds, and completes follow-ups per campaign with due dates. Marking a pitch sent offers
+"remind me in 3 days / a week". Home surfaces a **"Follow-ups due"** section for anything
+overdue or due within a day. Not paywalled — campaign memory is the retention spine
+(`.followUpReminders` is in the free plan).
 
 ## Real seed set — see `docs/SEED_SET.md`
 

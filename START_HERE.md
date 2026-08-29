@@ -107,6 +107,15 @@ BeatMatch/
   public-editorial-signal only (no contact data), claimed-profile outreach in parallel, never
   buy/scrape/enrich (5.1.1(viii)).
 
+## Slice 3 — closing the last north-star gaps
+- **Real explanations.** `ExplanationEnricher` runs on the match list — rewrites the top ~8
+  "why this match" reasons into grounded prose via the live backend (name/`they` only, one
+  sentence, "AI" badge). The relevance engine's grounded one-liner shows first;
+  `MatchExplanation.groundedReason` keeps it.
+- **Follow-up memory.** `FollowUpsView` (match-list toolbar) — add/complete follow-ups per
+  campaign with due dates. "Mark as sent" offers a reminder; Home shows a "Follow-ups due"
+  section. Free plan (`.followUpReminders`).
+
 ## Slice 1 — toward the AI Press Agent direction
 Built against the product direction (story-first workflow) + the AI Infrastructure Direction deck:
 - **Richer story understanding** — `StoryAnalysisResult` / `Story` now carry audience, subtopics,

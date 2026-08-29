@@ -1,9 +1,12 @@
 import SwiftUI
+import SwiftData
 
 struct PitchDraftView: View {
+    @Environment(\.modelContext) private var modelContext
     @Bindable var draft: PitchDraft
     @State private var length: Length = .short
     @State private var copied = false
+    @State private var offerFollowUp = false
 
     enum Length: String, CaseIterable { case short = "Short", long = "Long" }
 
@@ -64,7 +67,13 @@ struct PitchDraftView: View {
 
                 Button {
                     Haptics.success()
-                    withAnimation(.snappy) { draft.status = sent ? .draft : .markedSent }
+                    let wasSent = sent
+                    withAnimation(.snappy) { draft.status = wasSent ? .draft : .markedSent }
+                    try? modelContext.save()
+                    if !wasSent, draft.campaign != nil,
+                       !(draft.campaign?.followUpTasks.contains { $0.title.contains(recipientName) } ?? false) {
+                        offerFollowUp = true
+                    }
                 } label: {
                     Label(sent ? "Marked as sent" : "Mark as sent",
                           systemImage: sent ? "checkmark.circle.fill" : "circle")
@@ -89,5 +98,29 @@ struct PitchDraftView: View {
         .screenBackground()
         .navigationTitle("Pitch draft")
         .navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog("Sent to \(recipientName)", isPresented: $offerFollowUp, titleVisibility: .visible) {
+            Button("Remind me in 3 days") { addFollowUp(days: 3) }
+            Button("Remind me in a week") { addFollowUp(days: 7) }
+            Button("No reminder", role: .cancel) {}
+        } message: {
+            Text("Add a follow-up so this doesn't go quiet.")
+        }
+    }
+
+    private var recipientName: String {
+        draft.mediaTarget?.journalist?.name ?? "this journalist"
+    }
+
+    private func addFollowUp(days: Int) {
+        guard let campaign = draft.campaign else { return }
+        Haptics.tap()
+        let task = FollowUpTask(
+            title: "Follow up with \(recipientName)",
+            dueDate: .now.addingTimeInterval(Double(days) * 86_400),
+            campaign: campaign
+        )
+        modelContext.insert(task)
+        campaign.followUpTasks.append(task)
+        try? modelContext.save()
     }
 }

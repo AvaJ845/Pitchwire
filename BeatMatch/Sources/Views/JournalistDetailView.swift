@@ -96,7 +96,14 @@ struct JournalistDetailView: View {
     private var whyCard: some View {
         Card {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(title: "Why this match")
+                HStack {
+                    SectionLabel(title: "Why this match")
+                    if target.explanation?.aiEnhanced == true {
+                        Label("AI", systemImage: "sparkles")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(Palette.accent)
+                    }
+                }
                 Text(target.explanation?.reasonText ?? "—")
                     .font(.callout)
                     .foregroundStyle(Palette.ink)

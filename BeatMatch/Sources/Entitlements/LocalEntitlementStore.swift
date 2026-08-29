@@ -16,7 +16,9 @@ final class LocalEntitlementStore: EntitlementStore {
         .free: Plan(
             tier: .free,
             limits: [.storyAnalysis: 3, .activeCampaign: 2, .aiPitchDraft: 5],
-            features: [.savedCampaigns],
+            // Campaign memory (saved campaigns + follow-ups) is the retention
+            // spine — never paywalled. Team/export/multi-client are the paid line.
+            features: [.savedCampaigns, .followUpReminders],
             trialDays: 0,
             periodDays: 30
         ),

@@ -3,7 +3,10 @@ import SwiftData
 
 struct MatchListView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AIClient.self) private var aiClient
     let campaign: Campaign
+
+    @State private var enriching = false
 
     private var visibleTargets: [MediaTarget] {
         campaign.mediaTargets.filter { $0.status != .hidden }
@@ -113,6 +116,25 @@ struct MatchListView: View {
         .screenBackground()
         .navigationTitle(campaign.name)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    FollowUpsView(campaign: campaign)
+                } label: {
+                    Label("Follow-ups", systemImage: openFollowUps > 0 ? "bell.badge" : "bell")
+                }
+            }
+        }
+        .task(id: campaign.id) {
+            guard !enriching else { return }
+            enriching = true
+            await ExplanationEnricher.enrich(campaign: campaign, using: aiClient, context: modelContext)
+            enriching = false
+        }
+    }
+
+    private var openFollowUps: Int {
+        campaign.followUpTasks.filter { !$0.isDone }.count
     }
 
     private func setStatus(_ target: MediaTarget, _ status: MediaTargetStatus) {

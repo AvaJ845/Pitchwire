@@ -43,6 +43,7 @@ final class EntitlementsTests: XCTestCase {
     func testFeatureGatesFollowThePlan() {
         let (free, _) = makeEntitlements(tier: .free)
         XCTAssertTrue(free.can(.savedCampaigns))
+        XCTAssertTrue(free.can(.followUpReminders), "campaign memory is not paywalled")
         XCTAssertFalse(free.can(.exportPitch))
         XCTAssertFalse(free.can(.teamWorkspace))
 

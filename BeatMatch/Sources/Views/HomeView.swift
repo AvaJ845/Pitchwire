@@ -65,6 +65,10 @@ struct HomeView: View {
                         .foregroundStyle(Palette.inkTertiary)
                         .frame(maxWidth: .infinity)
 
+                    if !dueFollowUps.isEmpty {
+                        dueSection
+                    }
+
                     if storyText.isEmpty {
                         examplesSection
                     }
@@ -149,6 +153,40 @@ struct HomeView: View {
                     RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous)
                         .strokeBorder(Palette.hairline, lineWidth: 1)
                 )
+            }
+        }
+    }
+
+    private var dueFollowUps: [FollowUpTask] {
+        campaigns
+            .flatMap(\.followUpTasks)
+            .filter { !$0.isDone && ($0.dueDate.map { $0 < .now.addingTimeInterval(86_400) } ?? false) }
+            .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
+    }
+
+    private var dueSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionLabel(title: "Follow-ups due")
+            ForEach(dueFollowUps.prefix(3)) { task in
+                NavigationLink {
+                    if let c = task.campaign { FollowUpsView(campaign: c) }
+                } label: {
+                    Card {
+                        HStack(spacing: 10) {
+                            Image(systemName: "bell.badge")
+                                .foregroundStyle(Palette.warning)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(task.title).font(.subheadline).foregroundStyle(Palette.ink)
+                                if let c = task.campaign {
+                                    Text(c.name).font(.caption).foregroundStyle(Palette.inkTertiary)
+                                }
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(Palette.inkTertiary)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
             }
         }
     }

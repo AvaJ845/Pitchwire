@@ -67,7 +67,9 @@ const SYSTEM = {
     "subtopics (array of <=5 short strings), " +
     "mediaHooks (array of <=4 short phrases: why a journalist would care).",
   matchExplanation:
-    "Write ONE plain sentence explaining why a journalist fits a story, using only the facts given. No markdown.",
+    "Write ONE plain sentence (max 30 words) explaining why a journalist is worth pitching this " +
+    "story, using ONLY the beat and bylines given. Refer to them by name or 'they' — never assume " +
+    "he/she. No greeting, no markdown.",
   pitchDraft:
     "Write a concise, respectful media pitch grounded ONLY in the facts given — no hype, no invented details. " +
     "Output EXACTLY this format, plain text, no markdown, no asterisks, no headers:\n" +
