@@ -19,7 +19,7 @@ protocol AITelemetry {
 
 struct LoggingTelemetry: AITelemetry {
     func record(_ event: AIEvent) {
-        let status = event.ok ? "ok" : "ERR(\(event.errorKind ?? "?"))"
+        let status = event.ok ? "ok" : "ERR(\(Redaction.redact(event.errorKind ?? "?")))"
         print("[AI] \(event.task.rawValue) tier=\(event.tier.rawValue) model=\(event.model) \(event.latencyMS)ms cached=\(event.cached) \(status)")
     }
 }
@@ -44,6 +44,7 @@ final class AIClient {
     ) {
         self.configuration = configuration
         self.log = log
+        Redaction.register(configuration.clientToken)
         if let telemetry {
             self.telemetry = telemetry
         } else if let log {
@@ -57,6 +58,7 @@ final class AIClient {
     /// Swap the backend at runtime (e.g. after sign-in issues a client token).
     func configure(_ configuration: AIConfiguration) {
         self.configuration = configuration
+        Redaction.register(configuration.clientToken)
         self.gateway = Self.makeGateway(for: configuration, log: log)
     }
 
@@ -67,12 +69,21 @@ final class AIClient {
         do {
             let response = try await gateway.run(request)
             emit(request, model: response.model, start: start, cached: response.cached, ok: true, error: nil)
+            capturePayload(request, responseText: response.text, error: nil)
             return response
         } catch {
             // The call never reached a model, so there is no model name to report.
             emit(request, model: "—", start: start, cached: false, ok: false, error: error)
+            capturePayload(request, responseText: nil, error: error)
             throw error
         }
+    }
+
+    private func capturePayload(_ request: AIRequest, responseText: String?, error: Error?) {
+        #if DEBUG
+        guard log?.isCapturingPayloads == true else { return }
+        PayloadLog.record(request: request, responseText: responseText, error: error)
+        #endif
     }
 
     /// Convenience: run and return the text, or `nil` if anything went wrong.

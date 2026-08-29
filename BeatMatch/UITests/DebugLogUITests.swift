@@ -19,6 +19,8 @@ final class DebugLogUITests: XCTestCase {
         }
         XCTAssertTrue(logLink.exists, "Developer / LLM log row should be in Profile (DEBUG)")
         XCTAssertTrue(app.switches["Capture LLM logs"].exists)
+        XCTAssertTrue(app.switches["Capture prompts & responses"].exists)
+        XCTAssertEqual(app.switches["Capture prompts & responses"].value as? String, "0", "payload capture defaults off")
         XCTAssertFalse(app.staticTexts["Default model"].exists, "no model name in user-facing UI")
         XCTAssertTrue(app.staticTexts["Status"].exists)
 

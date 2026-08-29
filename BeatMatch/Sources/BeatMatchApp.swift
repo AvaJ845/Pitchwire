@@ -10,9 +10,18 @@ struct BeatMatchApp: App {
     let sharedModelContainer: ModelContainer
 
     init() {
+        #if DEBUG
         let resetForTests = ProcessInfo.processInfo.arguments.contains("-uitest-reset")
+        #else
+        let resetForTests = false   // launch args are honoured in DEBUG only
+        #endif
 
         // Developer LLM log — DEBUG-only viewer, capture toggle in Settings.
+        if resetForTests {
+            for key in ["llmlog.capture", "llmlog.capture.payloads"] {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+        }
         let log = LLMLog()
         llmLog = log
 

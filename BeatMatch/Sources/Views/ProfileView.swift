@@ -63,7 +63,16 @@ struct ProfileView: View {
                 } header: {
                     Text("Developer")
                 } footer: {
-                    Text("DEBUG builds only. Records every AI call and every provider failover.")
+                    Text("DEBUG builds only. Records every AI call and every provider failover — metadata only, secrets redacted.")
+                }
+
+                Section {
+                    Toggle("Capture prompts & responses", isOn: Binding(
+                        get: { llmLog.isCapturingPayloads },
+                        set: { llmLog.isCapturingPayloads = $0 }
+                    ))
+                } footer: {
+                    Text("Writes full prompts and responses to the device console (Xcode / Console.app when attached — not sysdiagnose). Prompts contain your unpublished story text. Off by default.")
                 }
                 #endif
             }

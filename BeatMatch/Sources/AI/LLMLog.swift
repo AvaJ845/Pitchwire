@@ -32,9 +32,17 @@ final class LLMLog {
     private let capacity: Int
     private let defaults: UserDefaults
     private let captureKey = "llmlog.capture"
+    private let payloadKey = "llmlog.capture.payloads"
 
+    /// Metadata capture — task, tier, provider, latency, outcome. No payloads.
     var isCapturing: Bool {
         didSet { defaults.set(isCapturing, forKey: captureKey) }
+    }
+
+    /// Full prompt + response capture to the on-device unified log (`PayloadLog`).
+    /// OFF by default even in DEBUG — prompts carry the user's unpublished story.
+    var isCapturingPayloads: Bool {
+        didSet { defaults.set(isCapturingPayloads, forKey: payloadKey) }
     }
 
     init(capacity: Int = 300, defaults: UserDefaults = .standard) {
@@ -42,13 +50,17 @@ final class LLMLog {
         self.defaults = defaults
         #if DEBUG
         self.isCapturing = defaults.object(forKey: captureKey) as? Bool ?? true
+        self.isCapturingPayloads = defaults.object(forKey: payloadKey) as? Bool ?? false
         #else
         self.isCapturing = false
+        self.isCapturingPayloads = false
         #endif
     }
 
     func record(_ entry: LLMLogEntry) {
         guard isCapturing else { return }
+        var entry = entry
+        entry.detail = entry.detail.map(Redaction.redact)   // never store a secret
         entries.append(entry)
         if entries.count > capacity { entries.removeFirst(entries.count - capacity) }
     }

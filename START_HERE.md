@@ -100,7 +100,9 @@ Built against the product direction (story-first workflow) + the AI Infrastructu
   `FallbackGateway` is the failover chain (GLM-4.7 → GLM-4.5 → NVIDIA NIM, all free), which runs
   **in the backend** — the app makes one call and never sees the failover. `OpenAICompatibleGateway`
   is the shared z.ai/NVIDIA client (backend/keyed-dev only). DEBUG build: Profile → Developer has an
-  **LLM log** (every call + failover) with a capture toggle.
+  **LLM log** (every call + failover) with a capture toggle. Guardrails: `-uitest-reset` is
+  DEBUG-only; `Redaction` scrubs secrets at every log boundary; a second toggle sends full
+  prompts/responses to `OSLog` (device-only, `.private`) and is **off by default even in DEBUG**.
 - **Entitlements** (`Sources/Entitlements/`) — features ask `Entitlements.can/remaining/consume`,
   never `if plan == .free`. All limits/features/trials live in `LocalEntitlementStore.catalog`
   (one place). Swappable `EntitlementStore` protocol for a StoreKit/server-backed store later.

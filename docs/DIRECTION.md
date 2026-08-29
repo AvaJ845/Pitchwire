@@ -60,6 +60,15 @@ Implemented in `Sources/AI/`:
   **LLM log** (`LLMLog` + a viewer in Profile → Developer, compiled out of release) captures every
   call and every provider failover, with a capture toggle. Expected offline `notConfigured` states
   are filtered out.
+- **Debug-logging guardrails:**
+  - `-uitest-reset` launch arg is honoured in **DEBUG only** (`#else` → `false` in release).
+  - `Redaction` scrubs bearer tokens, `nvapi-`/`sk-` key shapes, `api_key=`/`token=` pairs, and any
+    registered exact secret (the client token registers itself on `AIClient.configure`) at every
+    log boundary — `LLMLog.record` redacts entry detail, `LoggingTelemetry` redacts before print.
+  - **Prompt/response payload capture is a second toggle, OFF by default even in DEBUG**
+    (`LLMLog.isCapturingPayloads`). When on, `PayloadLog` writes redacted prompts + responses to
+    `OSLog` with `.private` fields — visible in Xcode/Console when attached, never in sysdiagnose,
+    never in the in-app viewer (prompts carry the user's unpublished story).
 - **Cost control.** `AIResponse` carries `cached` + `usage`; the gateway contract lets the backend
   do retrieval-before-generation and return summaries. Fast tier for extraction, quality for prose.
 - **Defer:** multi-model routing policy, self-hosting (GLM is MIT/open-weight — a *future* option,
