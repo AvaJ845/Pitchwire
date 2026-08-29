@@ -22,25 +22,30 @@
 //
 // Verify these IDs periodically — z.ai renames its flash tier and NVIDIA retires
 // models on a schedule (llama-3.1/3.3 were retired 2026-08-26).
-// NVIDIA's free shared serverless endpoint only actually hosts the OpenAI
-// gpt-oss models for a standard developer account — the rest of the /v1/models
-// catalog (kimi, deepseek, nemotron, llama-4, qwen, …) returns
-// 404 "Not found for account" unless you stand up a dedicated (paid) NIM.
-// To widen the free pool, route through OpenRouter (many `:free` models, one
-// key, not Cloudflare-blocked) — a small addition to callModel().
-const NV_120 = "nvidia:openai/gpt-oss-120b";
-const NV_20  = "nvidia:openai/gpt-oss-20b";
-const GLM = ["glm-4.7-flash", "glm-4.5-flash"];   // Aliyun-blocked from Cloudflare; kept for a future non-CF host
+// Providers, all free:
+//  - nvidia:  NVIDIA NIM shared endpoint. Only hosts the OpenAI gpt-oss models
+//             for a standard account (the rest of /v1/models needs a paid NIM).
+//  - openrouter:  many `:free` models incl. GLM; not Cloudflare-blocked, so it
+//             also gives us GLM back. `:free` tier is 50/day (1000/day with
+//             $10+ credit on the account).
+//  - z.ai direct:  Aliyun-blocked from Cloudflare — dormant, kept for a non-CF host.
+const NV_120       = "nvidia:openai/gpt-oss-120b";
+const NV_20        = "nvidia:openai/gpt-oss-20b";
+const OR_GLM       = "openrouter:z-ai/glm-5.2:free";
+const OR_LIGHTNING = "openrouter:nvidia/nemotron-3.5-lightning:free";
+const OR_SUPER     = "openrouter:nvidia/nemotron-3-super-120b-a12b:free";
+const OR_MINIMAX   = "openrouter:minimax/minimax-m2.7:free";
+const GLM_DIRECT   = ["glm-4.7-flash", "glm-4.5-flash"];
 const TASK_MODELS = {
   // fast tier — extraction / classification
-  storyAnalysis:    [NV_20, NV_120, ...GLM],
-  matchExplanation: [NV_20, NV_120, ...GLM],
-  subjectLine:      [NV_20, NV_120, ...GLM],
+  storyAnalysis:    [OR_LIGHTNING, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
+  matchExplanation: [OR_LIGHTNING, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
+  subjectLine:      [OR_LIGHTNING, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
   // quality tier — user-facing prose. Add glm-5.3-flash (paid) to the head if
   // free capacity ever becomes the bottleneck.
-  pitchDraft:       [NV_120, NV_20, ...GLM],
-  pitchRewrite:     [NV_120, NV_20, ...GLM],
-  followUp:         [NV_120, NV_20, ...GLM],
+  pitchDraft:       [OR_GLM, NV_120, OR_SUPER, OR_MINIMAX, NV_20, ...GLM_DIRECT],
+  pitchRewrite:     [OR_GLM, NV_120, OR_SUPER, OR_MINIMAX, NV_20, ...GLM_DIRECT],
+  followUp:         [OR_GLM, NV_120, OR_SUPER, NV_20, ...GLM_DIRECT],
 };
 
 const SYSTEM = {
@@ -136,10 +141,17 @@ export default {
 
 async function callModel(model, messages, temperature, env) {
   let baseURL, apiKey, realModel;
+  const extraHeaders = {};
   if (model.startsWith("nvidia:")) {
     baseURL = "https://integrate.api.nvidia.com/v1";
     apiKey = env.NVIDIA_API_KEY || env.NVIDIA_API_Key;   // tolerate the secret-name casing
     realModel = model.slice("nvidia:".length);
+  } else if (model.startsWith("openrouter:")) {
+    baseURL = "https://openrouter.ai/api/v1";
+    apiKey = env.OPENROUTER_API_KEY;
+    realModel = model.slice("openrouter:".length);
+    extraHeaders["HTTP-Referer"] = "https://github.com/AvaJ845/Pitchwire";
+    extraHeaders["X-Title"] = "Pitchwire";
   } else {
     baseURL = "https://api.z.ai/api/paas/v4";
     apiKey = env.ZAI_API_KEY;
@@ -155,6 +167,7 @@ async function callModel(model, messages, temperature, env) {
       "Accept": "application/json",
       // Aliyun-fronted APIs (z.ai) 405 requests without a UA.
       "User-Agent": "Pitchwire/1.0 (+https://github.com/AvaJ845/Pitchwire)",
+      ...extraHeaders,
     },
     body: JSON.stringify({ model: realModel, messages, temperature, stream: false }),
   });

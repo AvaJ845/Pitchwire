@@ -8,10 +8,14 @@ API-first, no servers, no GPU ops. **Deployed and live** at
 ## What it does
 
 ```
-app ──POST /v1/generate──▶ Worker ──▶ NVIDIA NIM gpt-oss-120b / -20b   (free)
-   Bearer <client token>            └▶ z.ai GLM-4.7 / 4.5-Flash        (free — see limitation)
+app ──POST /v1/generate──▶ Worker ──▶ OpenRouter :free  (GLM-5.2, Nemotron-3.5-Lightning, …)
+   Bearer <client token>            └▶ NVIDIA NIM       (gpt-oss-120b / -20b)
+                                    └▶ z.ai GLM direct  (dormant — Aliyun blocks CF)
 ◀── { text, model, cached, usage } ─┘
 ```
+
+Providers are prefixed in the model id: `openrouter:z-ai/glm-5.2:free`,
+`nvidia:openai/gpt-oss-120b`, or a bare `glm-4.7-flash` for z.ai direct.
 
 - Provider keys live in Worker secrets, never in the app.
 - Identical requests are cached 6h (Cache API).
