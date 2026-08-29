@@ -14,7 +14,10 @@ struct AIConfiguration {
     /// Advisory only — the backend router has the final say.
     var defaultModel: String
 
-    static let offline = AIConfiguration(baseURL: nil, clientToken: nil, defaultModel: "glm-5.3-flash")
+    // Advisory only — the backend task→model map is the real router. MVP starts on
+    // the free tier (GLM-4.7-Flash / 4.5-Flash); a paid model (GLM-5.3-Flash) is
+    // routed per-task server-side later, no app change. See docs/DIRECTION.md.
+    static let offline = AIConfiguration(baseURL: nil, clientToken: nil, defaultModel: "glm-4.7-flash")
 
     var isConfigured: Bool { baseURL != nil && clientToken != nil }
 }

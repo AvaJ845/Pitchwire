@@ -54,6 +54,28 @@ Implemented in `Sources/AI/`:
 - **Defer:** multi-model routing policy, self-hosting (GLM is MIT/open-weight — a *future* option,
   not an MVP trigger), GPU/inference ops.
 
+### Model choice (decided 2026-08-29)
+
+**MVP runs entirely on z.ai's free tier.** Every task here is structured extraction or short
+business prose — not hard reasoning — and the LLM never invents facts (authority split), so a
+free Flash model is both sufficient and safe. Cost is ~$0.001/story even on the paid model, so
+the reason to start free is rate-limit simplicity + generous free-plan limits, not token cost.
+
+An API key **is** required even for the free models (there is no keyless access) — it lives in
+the **backend vault only**, never the app. The app declares `AITask` + `ModelTier`; the backend
+owns this map:
+
+| Tier | Tasks | MVP model | Later (Pro) |
+|---|---|---|---|
+| `.fast` | `storyAnalysis`, `matchExplanation` | **GLM-4.7-Flash** (free), fallback GLM-4.5-Flash | unchanged |
+| `.quality` | `pitchDraft`, `pitchRewrite`, `subjectLine`, `followUp` | **GLM-4.7-Flash** (free) | route `pitchDraft`/`pitchRewrite` → **GLM-5.3-Flash** (paid, ~$0.075/$0.25 per M) |
+
+Add the paid tier only when (1) free-tier rate limits actually bite under real usage **and**
+(2) there's evidence users care about draft polish specifically (vs. match quality). It's a
+one-line change in the backend task→model map. `AIConfiguration.defaultModel` is `glm-4.7-flash`,
+advisory only. **Re-check z.ai's pricing page for the current free-model lineup when wiring the
+backend** — it changes.
+
 ## Commercial model = data, not code (`Sources/Entitlements/`)
 
 No feature ever checks `if plan == .free`. Features ask `Entitlements`:
