@@ -41,11 +41,15 @@ final class CoreLoopUITests: XCTestCase {
         snap(app, "02-story-summary")
         app.buttons["Find journalists"].tap()
 
-        // Match list — deterministic seed data puts Morgan Ito in the top tier
+        // Match list
         XCTAssertTrue(app.staticTexts["Excellent match"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Sample data"].exists, "sample-data honesty banner must show")
         snap(app, "03-match-list")
+        let list = app.collectionViews.firstMatch
         let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Morgan Ito")).firstMatch
-        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        var tries = 0
+        while !row.exists && tries < 8 { list.swipeUp(); tries += 1 }
+        XCTAssertTrue(row.exists, "Morgan Ito should be among the matches")
         row.tap()
 
         // Detail: "why this match" + provenance are non-negotiable per the brief

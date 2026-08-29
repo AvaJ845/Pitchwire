@@ -21,6 +21,10 @@ struct MatchListView: View {
 
     private var hiddenCount: Int { campaign.mediaTargets.filter { $0.status == .hidden }.count }
 
+    private var hasSampleData: Bool {
+        visibleTargets.contains { $0.journalist?.isSampleData == true }
+    }
+
     var body: some View {
         List {
             if let story = campaign.story {
@@ -32,6 +36,15 @@ struct MatchListView: View {
                     .listRowInsets(EdgeInsets(top: 8, leading: Metrics.gutter, bottom: 4, trailing: Metrics.gutter))
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
+                }
+            }
+
+            if hasSampleData {
+                Section {
+                    SampleDataBanner()
+                        .listRowInsets(EdgeInsets(top: 4, leading: Metrics.gutter, bottom: 8, trailing: Metrics.gutter))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                 }
             }
 

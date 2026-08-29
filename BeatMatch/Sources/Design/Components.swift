@@ -161,6 +161,36 @@ extension ButtonStyle where Self == PitchwireButtonStyle {
     static var pitchwireQuiet: PitchwireButtonStyle { PitchwireButtonStyle(prominent: false) }
 }
 
+// MARK: - Sample data notice
+
+/// Shown wherever sample journalists appear, until real ingestion exists.
+/// Honesty is a product surface, not a footnote.
+struct SampleDataBanner: View {
+    var compact = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "flask.fill")
+                .foregroundStyle(Palette.warning)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Sample data")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Palette.ink)
+                if !compact {
+                    Text("These journalists are fictional stand-ins. Real matching isn't wired up yet — names, outlets and coverage are demo data.")
+                        .font(.caption)
+                        .foregroundStyle(Palette.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(Palette.warning.opacity(0.10), in: RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 // MARK: - Screen background
 
 struct ScreenBackground: ViewModifier {

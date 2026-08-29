@@ -66,8 +66,12 @@ BeatMatch/
 ```
 
 ## What's real vs. placeholder
-- The 15 journalists in `Data/SampleJournalists.swift` are fictional — clearly marked as sample
-  data, not real people. Real ingestion (Fellow 4's job) replaces this file's `seedPool()` later.
+- **Every match is fictional.** The 15 journalists in `Data/SampleJournalists.swift` are made up
+  and carry only `.sampleData` provenance. The app says so everywhere they appear — a banner on the
+  match list, a "Sample" tag per card, a pill on the detail header, an honest "not a real person"
+  provenance record. Sample profiles always score `.exploratory` confidence. When real ingestion
+  writes real `ProvenanceRecord`s, `JournalistProfile.isSampleData` flips false and the banners
+  vanish. `SampleDataTests` enforces the honesty.
 - The `Story` ↔ `StoryAnalysisResult` mapping lives in one place — `Story.apply(_:)` and
   `Story.analysisResult` (in `Models/Story.swift`). Add a new analysis field there, not at call sites.
 - Story analysis and pitch drafting are deterministic/template-based (`StubStoryAnalysisService`,

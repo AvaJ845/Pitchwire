@@ -60,6 +60,11 @@ struct HomeView: View {
 
                     AllowanceFooter(key: .storyAnalysis)
 
+                    Label("Matches use sample journalists for now — real ingestion is coming.", systemImage: "flask")
+                        .font(.caption)
+                        .foregroundStyle(Palette.inkTertiary)
+                        .frame(maxWidth: .infinity)
+
                     if storyText.isEmpty {
                         examplesSection
                     }

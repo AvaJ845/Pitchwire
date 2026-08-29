@@ -56,6 +56,13 @@ extension JournalistProfile {
         provenanceRecords.contains(where: \.issueReported)
     }
 
+    /// True while this profile is a fictional stand-in (every source is sample
+    /// data). Real ingestion replaces these records with real ones and this
+    /// flips to false — the sample banners then disappear on their own.
+    var isSampleData: Bool {
+        !provenanceRecords.isEmpty && provenanceRecords.allSatisfy { $0.sourceType == .sampleData }
+    }
+
     /// Confidence = how authoritative the best source is + how recently it was verified.
     var evidenceConfidence: EvidenceConfidence {
         guard let primary = primaryProvenance else { return .exploratory }

@@ -1,121 +1,69 @@
 import Foundation
 
-/// Placeholder / sample data for local development only.
-/// These are NOT real journalists — fictional profiles to prove the
-/// analyze -> understand -> match -> explain -> draft loop before the real
-/// ingestion pipeline (public editorial-signal ingestion + provenance registry)
-/// is built. Every profile carries provenance records, same as real data would,
-/// so the UI never special-cases "sample" vs "real" — it reads whatever's there.
+/// Fictional sample data — **not real journalists.** These stand in for the real
+/// ingestion pipeline (public editorial signals + publisher partnerships +
+/// licensed data + claimed profiles) so the analyze → match → explain → draft
+/// loop can be built and shown. Every profile carries only `.sampleData`
+/// provenance, so `JournalistProfile.isSampleData` is true and the UI shows a
+/// clear "sample data" state everywhere a match appears.
+///
+/// When real ingestion lands it writes real `ProvenanceRecord`s with real source
+/// types; `isSampleData` flips to false and the sample banners vanish.
 enum SampleJournalists {
     private struct Entry {
         let name: String
         let outlet: String
         let topics: [String]
         let bylines: [String]
-        /// (sourceType, detail, coverageBasis, daysSinceVerified, pitchPreference?)
-        let provenance: [(ProvenanceSourceType, String, String?, Int, String?)]
     }
 
     static func seedPool() -> [JournalistProfile] {
         let entries: [Entry] = [
             Entry(name: "Riley Chen", outlet: "The Signal Desk",
                   topics: ["ai", "machine learning", "developer tools", "automation"],
-                  bylines: ["How small teams ship AI features fast", "Inside the developer tools boom"],
-                  provenance: [
-                    (.claimedProfile, "Profile claimed and edited by Riley Chen", "Self-declared beat + pitch rules", 20, "Email preferred, no cold DMs, data-backed pitches"),
-                    (.publicSignal, "Bylines from The Signal Desk author page", "12 articles, last 90 days", 6, nil)
-                  ]),
+                  bylines: ["How small teams ship AI features fast", "Inside the developer tools boom"]),
             Entry(name: "Morgan Ito", outlet: "Northbridge Tech Review",
                   topics: ["ai", "product launch", "vertical ai"],
-                  bylines: ["What makes an AI launch land", "The quiet rise of vertical AI"],
-                  provenance: [
-                    (.publisherPartner, "Supplied by Northbridge Tech Review editorial desk", "Outlet-provided beat + contact routing", 45, "Launch stories welcome; needs one-line product summary up top"),
-                    (.publicSignal, "RSS + author archive", "8 articles, last 60 days", 3, nil)
-                  ]),
+                  bylines: ["What makes an AI launch land", "The quiet rise of vertical AI"]),
             Entry(name: "Sasha Reyes", outlet: "Founders Weekly",
                   topics: ["funding", "startups", "seed rounds"],
-                  bylines: ["Seed rounds are getting weirder", "Why founders are skipping the pitch deck"],
-                  provenance: [
-                    (.licensedDataset, "Licensed media database record", "Beat classification + outlet", 200, "Funding news only if the round is closed and named"),
-                    (.publicSignal, "Public bylines", "Sparse recent coverage", 150, nil)
-                  ]),
+                  bylines: ["Seed rounds are getting weirder", "Why founders are skipping the pitch deck"]),
             Entry(name: "Dana Whitfield", outlet: "The Interface",
                   topics: ["developer tools", "apis", "cli", "sdk"],
-                  bylines: ["The best developer tools of the year", "API design as product strategy"],
-                  provenance: [
-                    (.claimedProfile, "Profile claimed by Dana Whitfield", "Self-declared beat", 8, "Short, technical pitches. Show, don't tell."),
-                  ]),
+                  bylines: ["The best developer tools of the year", "API design as product strategy"]),
             Entry(name: "Priya Nandan", outlet: "Consumer Tech Daily",
                   topics: ["consumer", "apps", "ios", "productivity"],
-                  bylines: ["The App Store's quiet renaissance", "Why consumer apps are getting simpler"],
-                  provenance: [
-                    (.publisherPartner, "Consumer Tech Daily contributor roster", "Outlet-provided", 30, "Consumer angle required; no B2B"),
-                    (.publicSignal, "Author page", "10 articles, last 90 days", 2, nil)
-                  ]),
+                  bylines: ["The App Store's quiet renaissance", "Why consumer apps are getting simpler"]),
             Entry(name: "Owen Marsh", outlet: "Fintech Ledger",
                   topics: ["fintech", "payments", "banking"],
-                  bylines: ["Payments infrastructure nobody talks about", "The new fintech underwriting stack"],
-                  provenance: [
-                    (.licensedDataset, "Licensed media database record", "Beat + outlet", 90, "Prefers infrastructure over consumer fintech"),
-                  ]),
+                  bylines: ["Payments infrastructure nobody talks about", "The new fintech underwriting stack"]),
             Entry(name: "Elena Cho", outlet: "The Signal Desk",
                   topics: ["ai", "acquisition", "product launch"],
-                  bylines: ["What AI acquisitions really buy", "The build-vs-buy calculus for AI teams"],
-                  provenance: [
-                    (.publicSignal, "Bylines from The Signal Desk", "6 articles, last 120 days", 40, nil),
-                  ]),
+                  bylines: ["What AI acquisitions really buy", "The build-vs-buy calculus for AI teams"]),
             Entry(name: "Marcus Aldridge", outlet: "Deep Dive Tech",
                   topics: ["developer tools", "ai", "open source"],
-                  bylines: ["Framework fatigue is real", "The tools developers actually reach for"],
-                  provenance: [
-                    (.claimedProfile, "Profile claimed by Marcus Aldridge", "Self-declared beat + do-not-pitch list", 15, "No funding pitches. Open-source angle welcome."),
-                    (.publicSignal, "Author archive", "14 articles, last 90 days", 4, nil)
-                  ]),
+                  bylines: ["Framework fatigue is real", "The tools developers actually reach for"]),
             Entry(name: "Talia Brooks", outlet: "Northbridge Tech Review",
                   topics: ["consumer", "product launch", "automation"],
-                  bylines: ["Launch week, decoded", "What a good product launch looks like in 2026"],
-                  provenance: [
-                    (.publisherPartner, "Northbridge Tech Review editorial desk", "Outlet-provided", 60, "Launch playbooks and consumer angles"),
-                  ]),
+                  bylines: ["Launch week, decoded", "What a good product launch looks like in 2026"]),
             Entry(name: "Jules Ferreira", outlet: "Founders Weekly",
                   topics: ["startups", "acquisition", "funding"],
-                  bylines: ["The acquihire is back", "Inside a founder's first exit"],
-                  provenance: [
-                    (.publicSignal, "Public bylines", "5 articles, last 180 days", 170, nil),
-                  ]),
+                  bylines: ["The acquihire is back", "Inside a founder's first exit"]),
             Entry(name: "Nora Kessler", outlet: "The Interface",
                   topics: ["ai", "apis", "sdk", "developer tools"],
-                  bylines: ["The API-first AI stack", "Why every AI startup needs an SDK strategy"],
-                  provenance: [
-                    (.claimedProfile, "Profile claimed by Nora Kessler", "Self-declared beat", 25, "API/SDK strategy stories. Email only."),
-                    (.publicSignal, "Author page", "9 articles, last 75 days", 5, nil)
-                  ]),
+                  bylines: ["The API-first AI stack", "Why every AI startup needs an SDK strategy"]),
             Entry(name: "Ibrahim Solis", outlet: "Consumer Tech Daily",
                   topics: ["ai", "consumer", "apps"],
-                  bylines: ["AI features nobody asked for (and some they did)", "The consumer AI app graveyard"],
-                  provenance: [
-                    (.publisherPartner, "Consumer Tech Daily roster", "Outlet-provided", 35, "Skeptical of AI hype; bring a real use case"),
-                  ]),
+                  bylines: ["AI features nobody asked for (and some they did)", "The consumer AI app graveyard"]),
             Entry(name: "Wren Ashby", outlet: "Deep Dive Tech",
                   topics: ["fintech", "developer tools", "apis"],
-                  bylines: ["Building fintech APIs that don't break", "The infrastructure behind embedded finance"],
-                  provenance: [
-                    (.licensedDataset, "Licensed media database record", "Beat + outlet", 110, nil),
-                    (.publicSignal, "Author archive", "7 articles, last 100 days", 12, nil)
-                  ]),
+                  bylines: ["Building fintech APIs that don't break", "The infrastructure behind embedded finance"]),
             Entry(name: "Camille Duquette", outlet: "Fintech Ledger",
                   topics: ["funding", "fintech", "startups"],
-                  bylines: ["Fintech funding is back, quietly", "Who's actually writing fintech checks in 2026"],
-                  provenance: [
-                    (.publicSignal, "Public bylines", "6 articles, last 60 days", 8, nil),
-                  ]),
+                  bylines: ["Fintech funding is back, quietly", "Who's actually writing fintech checks in 2026"]),
             Entry(name: "Theo Lindqvist", outlet: "The Signal Desk",
                   topics: ["developer tools", "ai", "product launch"],
-                  bylines: ["Developer-first launches, ranked", "What developers notice in the first five minutes"],
-                  provenance: [
-                    (.claimedProfile, "Profile claimed by Theo Lindqvist", "Self-declared beat", 10, "Developer-first launches. Short pitch, link to docs."),
-                    (.publisherPartner, "The Signal Desk desk", "Outlet-provided contact routing", 50, nil)
-                  ]),
+                  bylines: ["Developer-first launches, ranked", "What developers notice in the first five minutes"]),
         ]
 
         var outletCache: [String: Outlet] = [:]
@@ -130,16 +78,14 @@ enum SampleJournalists {
                 recentBylineTitles: entry.bylines,
                 outlet: outlet
             )
-            journalist.provenanceRecords = entry.provenance.map { item in
-                let (type, detail, basis, days, pref) = item
-                return ProvenanceRecord(
-                    sourceType: type,
-                    detail: detail,
-                    coverageBasis: basis,
-                    lastVerifiedAt: Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date(),
-                    pitchPreference: pref
+            journalist.provenanceRecords = [
+                ProvenanceRecord(
+                    sourceType: .sampleData,
+                    detail: "Fictional profile — a stand-in until real journalist ingestion is built. This is not a real person.",
+                    coverageBasis: "Demo beat topics and article titles, not real coverage",
+                    lastVerifiedAt: Date()
                 )
-            }
+            ]
             return journalist
         }
     }

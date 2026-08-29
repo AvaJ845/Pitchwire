@@ -75,7 +75,9 @@ struct JournalistDetailView: View {
             }
             HStack(spacing: 8) {
                 ConfidencePill(tier: target.confidenceTier)
-                if let c = journalist?.evidenceConfidence {
+                if journalist?.isSampleData == true {
+                    Tag(text: "Sample data", icon: "flask", color: Palette.warning)
+                } else if let c = journalist?.evidenceConfidence {
                     EvidenceDot(confidence: c)
                 }
             }

@@ -125,10 +125,19 @@ No feature ever checks `if plan == .free`. Features ask `Entitlements`:
 
 | Layer | Source | Status |
 |---|---|---|
-| A | Claimed journalist profiles (journalist edits their own beat / pitch rules / do-not-pitch) | modeled (`claimedProfile`), not yet real |
-| B | Publisher / network partnerships (first-party editorial context) | modeled (`publisherPartner`), not yet real |
-| C | Licensed professional datasets (only where rights are explicit) | modeled (`licensedDataset`), not yet real |
-| D | Public editorial signals (bylines, author pages, RSS, topic patterns) | modeled (`publicSignal`), not yet real |
+| A | Claimed journalist profiles (journalist edits their own beat / pitch rules / do-not-pitch) | `ProvenanceSourceType.claimedProfile` modeled; **no real data yet** |
+| B | Publisher / network partnerships (first-party editorial context) | `.publisherPartner` modeled; **no real data yet** |
+| C | Licensed professional datasets (only where rights are explicit) | `.licensedDataset` modeled; **no real data yet** |
+| D | Public editorial signals (bylines, author pages, RSS, topic patterns) | `.publicSignal` modeled; **no real data yet** |
+
+**Today every match is fictional.** `SampleJournalists.seedPool()` returns 15 made-up profiles,
+each carrying only `.sampleData` provenance, so `JournalistProfile.isSampleData` is true. The app
+says so, loudly: a `SampleDataBanner` on the match list, a "Sample" tag on every card, a "Sample
+data" pill on the detail header, and an honest "Fictional profile — this is not a real person"
+provenance record. Sample profiles always score `.exploratory` evidence confidence — nothing
+about "verified" data inflates them. When real ingestion writes real `ProvenanceRecord`s,
+`isSampleData` flips false and every banner disappears on its own. (`SampleDataTests` enforces
+this.)
 
 App Store guideline **5.1.1(viii)** — apps compiling personal info from sources not provided by
 the user, "even public databases," are not permitted — is the strategic constraint the whole
