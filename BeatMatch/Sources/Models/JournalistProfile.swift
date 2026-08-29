@@ -25,15 +25,35 @@ final class JournalistProfile {
     var recentBylineTitles: [String]
     var outlet: Outlet?
 
+    // Signals for the relevance engine. All from public editorial context —
+    // who they write for, where, and which story angles they actually cover.
+    var audiences: [String] = []        // Developers / Founders / Consumers / Businesses
+    var regions: [String] = []          // US / EU / Global
+    var coveredAngles: [String] = []    // product launch / funding / acquisition / hire / partnership
+    var doNotPitch: [String] = []       // angles or topics they've said not to pitch
+
     @Relationship(deleteRule: .cascade)
     var provenanceRecords: [ProvenanceRecord] = []
 
-    init(name: String, beatTopics: [String] = [], recentBylineTitles: [String] = [], outlet: Outlet? = nil) {
+    init(
+        name: String,
+        beatTopics: [String] = [],
+        recentBylineTitles: [String] = [],
+        outlet: Outlet? = nil,
+        audiences: [String] = [],
+        regions: [String] = [],
+        coveredAngles: [String] = [],
+        doNotPitch: [String] = []
+    ) {
         self.id = UUID()
         self.name = name
         self.beatTopics = beatTopics
         self.recentBylineTitles = recentBylineTitles
         self.outlet = outlet
+        self.audiences = audiences
+        self.regions = regions
+        self.coveredAngles = coveredAngles
+        self.doNotPitch = doNotPitch
     }
 }
 

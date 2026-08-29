@@ -18,5 +18,24 @@ struct AIConfiguration {
     // a call is only knowable from AIResponse.model. See docs/DIRECTION.md.
     static let offline = AIConfiguration(baseURL: nil, clientToken: nil)
 
-    var isConfigured: Bool { baseURL != nil && clientToken != nil }
+    var isConfigured: Bool {
+        guard let baseURL, let clientToken else { return false }
+        return !clientToken.isEmpty && !baseURL.absoluteString.isEmpty
+    }
+
+    /// Reads `Config/AIConfig.plist` from the bundle (gitignored — see
+    /// `AIConfig.example.plist`). Absent or blank → `.offline`.
+    static func fromBundle(_ bundle: Bundle = .main) -> AIConfiguration {
+        guard
+            let url = bundle.url(forResource: "AIConfig", withExtension: "plist"),
+            let data = try? Data(contentsOf: url),
+            let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+            let base = (dict["BaseURL"] as? String).flatMap(URL.init(string:)),
+            !base.absoluteString.isEmpty,
+            let token = dict["ClientToken"] as? String, !token.isEmpty
+        else {
+            return .offline
+        }
+        return AIConfiguration(baseURL: base, clientToken: token)
+    }
 }

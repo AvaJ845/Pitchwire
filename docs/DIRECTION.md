@@ -166,6 +166,41 @@ compiled personal data.
 **Qualified pitch actions per analyzed story** — user submits a story, gets good matches, and
 saves / drafts / acts on them. Not downloads.
 
+## Relevance engine (`Sources/Services/RelevanceEngine.swift`)
+
+Matching is a **weighted, inspectable** score — not keyword intersection. Seven signals,
+each 0–1 with a weight and a human fragment:
+
+| Signal | Weight | What it reads |
+|---|---:|---|
+| Beat match | 28% | declared beat topics vs the story |
+| Recent coverage | 24% | byline titles that overlap the story, recency-weighted |
+| Angle fit | 16% | do they cover this kind of story (launch / funding / …) |
+| Audience fit | 12% | who they write for vs the story's audience |
+| Geography | 6% | region overlap |
+| Pitch preference | 6% | a **hard filter** — a declared "no funding pitches" zeroes the match |
+| Evidence | 8% | small tilt toward better-sourced profiles |
+
+`WeightedRelevanceService` applies it over the pool; the "why this match" prose is built
+from the signals that actually drove the score. Journalist detail has a **"How we scored
+this"** breakdown (score bar + per-signal bars). All deterministic — the model never runs
+here. `RelevanceEngineTests` covers alignment, off-topic rejection, the do-not-pitch filter,
+and recency lift.
+
+## Real seed set — see `docs/SEED_SET.md`
+
+Fellows verdict: ship a **public-editorial-signal** seed (beats + bylines, **no contact
+data**, working removal pipeline) to unblock matching evaluation now; run **claimed-profile
+outreach** in parallel for a consented, 5.1.1(viii)-defensible database. Never buy a list,
+scrape, or use an enrichment provider.
+
+## Backend — see `backend/`
+
+A single Cloudflare Worker implementing the `HTTPGateway` contract: provider keys in Worker
+secrets, task→model map, GLM-4.7 → GLM-4.5 → NVIDIA failover, 6h cache, per-IP rate limit.
+Deployable in ~10 min once z.ai + NVIDIA keys exist. The app stays `.offline` until
+`AIConfiguration.baseURL` is set from a gitignored xcconfig.
+
 ## Build status
 
 Done (Slice 0–2): the full loop runs offline — story intake, richer story understanding, the

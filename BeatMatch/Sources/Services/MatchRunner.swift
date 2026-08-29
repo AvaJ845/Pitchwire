@@ -8,7 +8,7 @@ enum MatchRunner {
     static func populateTargets(
         for campaign: Campaign,
         context: ModelContext,
-        service: MatchingService = KeywordMatchingService()
+        service: MatchingService = WeightedRelevanceService()
     ) {
         guard let story = campaign.story else { return }
 

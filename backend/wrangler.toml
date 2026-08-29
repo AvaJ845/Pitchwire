@@ -1,0 +1,14 @@
+name = "pitchwire-ai"
+main = "src/worker.js"
+compatibility_date = "2026-08-01"
+
+# Secrets (never in this file — set with `wrangler secret put`):
+#   ZAI_API_KEY             z.ai API key  (create at https://z.ai — free models: glm-4.7-flash / glm-4.5-flash)
+#   NVIDIA_API_KEY          NVIDIA build.nvidia.com key (free tier; verify commercial-use ToS before relying on it)
+#   PITCHWIRE_CLIENT_TOKEN  a long random string the app sends as `Authorization: Bearer <...>` (rotatable; NOT a provider key)
+
+[vars]
+RATE_LIMIT_PER_MIN = "20"
+
+[observability]
+enabled = true

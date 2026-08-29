@@ -93,6 +93,18 @@ BeatMatch/
   to the P mark and re-composited it full-bleed on a solid navy field (no rounded corners / shadow /
   alpha — iOS masks the shape itself).
 
+## Relevance engine + backend + seed-set plan
+- **`Sources/Services/RelevanceEngine.swift`** — matching is now a weighted 7-signal score
+  (beat, recent coverage, angle, audience, geography, pitch-preference hard-filter, evidence),
+  each inspectable. `WeightedRelevanceService` ranks the pool; "why this match" prose is built
+  from the driving signals; journalist detail has a "How we scored this" breakdown. Deterministic.
+- **`backend/`** — Cloudflare Worker: the `HTTPGateway` contract, provider keys in secrets,
+  GLM-4.7 → GLM-4.5 → NVIDIA failover, cache, rate limit. `backend/README.md` is the ~10-min
+  deploy runbook. App stays `.offline` until you set `AIConfiguration.baseURL`.
+- **`docs/SEED_SET.md`** — the fellows' plan for a real 15–20 journalist seed set:
+  public-editorial-signal only (no contact data), claimed-profile outreach in parallel, never
+  buy/scrape/enrich (5.1.1(viii)).
+
 ## Slice 1 — toward the AI Press Agent direction
 Built against the product direction (story-first workflow) + the AI Infrastructure Direction deck:
 - **Richer story understanding** — `StoryAnalysisResult` / `Story` now carry audience, subtopics,

@@ -12,3 +12,9 @@ BeatMatch/test-attachments/
 # Xcode user state
 xcuserdata/
 *.xcuserstate
+
+# Real backend config — the scoped client token. Template is AIConfig.example.plist.
+BeatMatch/Config/AIConfig.plist
+backend/node_modules/
+backend/.wrangler/
+backend/.dev.vars

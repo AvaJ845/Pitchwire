@@ -30,17 +30,15 @@ final class SampleDataTests: XCTestCase {
         }
     }
 
-    func testMatchingRanksSampleDataWithoutAConfidenceBonus() {
-        let service = KeywordMatchingService()
-        let analysis = StoryAnalysisResult(
-            theme: "AI", vertical: "ai", region: "US", angle: "product launch",
-            urgency: "standard", summary: "", audience: "Developers",
-            subtopics: ["developer tools", "apis"], mediaHooks: []
-        )
-        let results = service.match(analysis: analysis, against: pool)
+    func testMatchingReturnsOnlySampleProfiles() {
+        let results = WeightedRelevanceService().match(analysis: Self.aiLaunch, against: pool)
         XCTAssertFalse(results.isEmpty)
-        // A sample profile can still be a top topical fit, but nothing about
-        // "verified evidence" should be inflating it.
         XCTAssertTrue(results.allSatisfy { $0.journalist.isSampleData })
     }
+
+    static let aiLaunch = StoryAnalysisResult(
+        theme: "AI", vertical: "ai", region: "US", angle: "product launch",
+        urgency: "standard", summary: "", audience: "Developers",
+        subtopics: ["developer tools", "apis"], mediaHooks: []
+    )
 }

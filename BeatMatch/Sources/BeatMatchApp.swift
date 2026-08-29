@@ -25,9 +25,10 @@ struct BeatMatchApp: App {
         let log = LLMLog()
         llmLog = log
 
-        // AI layer — offline until a backend + client token exist. No provider key
-        // is ever present in the app (see AIConfiguration).
-        aiClient = AIClient(configuration: .offline, log: log)
+        // AI layer — reads Config/AIConfig.plist (gitignored) if present, else
+        // fully offline on deterministic fallbacks. No provider key is ever in
+        // the app — only a scoped client token for our own backend.
+        aiClient = AIClient(configuration: .fromBundle(), log: log)
 
         // Entitlements — one config object, swappable store. Feature code never
         // checks the plan directly.

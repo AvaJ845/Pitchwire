@@ -18,12 +18,21 @@ struct JournalistDetailView: View {
 
     private var journalist: JournalistProfile? { target.journalist }
 
+    private var relevance: RelevanceResult? {
+        guard let journalist, let story = campaign.story else { return nil }
+        return RelevanceEngine.score(analysis: story.analysisResult, journalist: journalist)
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 header
 
                 whyCard
+
+                if let relevance {
+                    scoreCard(relevance)
+                }
 
                 if let bylines = journalist?.recentBylineTitles, !bylines.isEmpty {
                     Card {
@@ -92,6 +101,39 @@ struct JournalistDetailView: View {
                     .font(.callout)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    @State private var showScore = false
+
+    private func scoreCard(_ result: RelevanceResult) -> some View {
+        Card {
+            VStack(alignment: .leading, spacing: 10) {
+                Button {
+                    withAnimation(.snappy) { showScore.toggle() }
+                } label: {
+                    HStack {
+                        SectionLabel(title: "How we scored this")
+                        Image(systemName: showScore ? "chevron.up" : "chevron.down")
+                            .font(.caption).foregroundStyle(Palette.inkTertiary)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                ScoreBar(value: result.total)
+
+                if showScore {
+                    VStack(spacing: 8) {
+                        ForEach(result.signals.sorted { $0.contribution > $1.contribution }) { s in
+                            SignalRow(signal: s)
+                        }
+                    }
+                    .padding(.top, 2)
+                    Text("A weighted read of structured beat, coverage and preference data — no AI, no guesswork.")
+                        .font(.caption2)
+                        .foregroundStyle(Palette.inkTertiary)
+                }
             }
         }
     }
@@ -189,6 +231,48 @@ struct JournalistDetailView: View {
         } catch {
             draftError = "Couldn't draft that pitch. Try again."
         }
+    }
+}
+
+private struct ScoreBar: View {
+    let value: Double   // 0...1
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Palette.hairline)
+                Capsule().fill(Palette.accent)
+                    .frame(width: max(6, geo.size.width * value))
+            }
+        }
+        .frame(height: 8)
+        .accessibilityLabel("Match score \(Int(value * 100)) out of 100")
+    }
+}
+
+private struct SignalRow: View {
+    let signal: RelevanceSignal
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(signal.name)
+                .font(.caption)
+                .foregroundStyle(Palette.inkSecondary)
+                .frame(width: 108, alignment: .leading)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Palette.hairline).frame(height: 5)
+                    Capsule()
+                        .fill(signal.score >= 0.35 ? Palette.accent : Palette.inkTertiary)
+                        .frame(width: max(3, geo.size.width * signal.score), height: 5)
+                }
+            }
+            .frame(height: 5)
+            Text("\(Int(signal.weight * 100))%")
+                .font(.caption2.monospacedDigit())
+                .foregroundStyle(Palette.inkTertiary)
+                .frame(width: 34, alignment: .trailing)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(signal.name): \(Int(signal.score * 100)) percent, weight \(Int(signal.weight * 100)) percent")
     }
 }
 
