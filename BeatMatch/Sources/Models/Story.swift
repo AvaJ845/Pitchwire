@@ -21,14 +21,18 @@ final class Story {
     var createdAt: Date
     var analysisStatus: AnalysisStatus
 
-    // Structured analysis output only — the LLM is never the source of truth
-    // for who exists, their beat, or recency (see ARCHITECTURE.md, Fellow 3).
+    // Structured analysis output only — the LLM interprets the story, it is never the
+    // source of truth for who exists, their beat, or recency (see ARCHITECTURE.md,
+    // and "Authority Split" in the AI Infrastructure Direction).
     var theme: String?
     var vertical: String?
     var region: String?
     var angle: String?
     var urgency: String?
     var summary: String?
+    var audience: String?
+    var subtopics: [String] = []
+    var mediaHooks: [String] = []
 
     init(rawText: String, sourceType: StorySourceType = .pastedText) {
         self.id = UUID()
@@ -49,6 +53,9 @@ extension Story {
         angle = analysis.angle
         urgency = analysis.urgency
         summary = analysis.summary
+        audience = analysis.audience
+        subtopics = analysis.subtopics
+        mediaHooks = analysis.mediaHooks
         analysisStatus = .analyzed
     }
 
@@ -59,7 +66,10 @@ extension Story {
             region: region ?? "",
             angle: angle ?? "",
             urgency: urgency ?? "",
-            summary: summary ?? ""
+            summary: summary ?? "",
+            audience: audience ?? "",
+            subtopics: subtopics,
+            mediaHooks: mediaHooks
         )
     }
 }

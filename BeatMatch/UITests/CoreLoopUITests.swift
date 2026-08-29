@@ -1,8 +1,9 @@
 import XCTest
 
-/// Slice 0 smoke test: proves the end-to-end loop the brief cares about —
-/// paste story -> Analyze -> confidence-tiered matches -> journalist detail
-/// (with "why this match" + provenance) -> Draft pitch -> editable draft.
+/// Smoke test for the North Star loop: paste story -> "what we understood"
+/// confirmation -> Find journalists -> confidence-tiered matches -> journalist
+/// detail (why this match + about-this-profile provenance) -> Draft pitch ->
+/// editable draft.
 final class CoreLoopUITests: XCTestCase {
 
     override func setUp() {
@@ -34,17 +35,22 @@ final class CoreLoopUITests: XCTestCase {
         snap(app, "01-home-intake")
         app.buttons["Analyze"].tap()
 
+        // Screen 2 — confirm understanding, then proceed
+        XCTAssertTrue(app.staticTexts["What we understood"].waitForExistence(timeout: 10))
+        snap(app, "02-story-summary")
+        app.buttons["Find journalists"].tap()
+
         // Match list — deterministic seed data puts Morgan Ito in the top tier
         XCTAssertTrue(app.staticTexts["Excellent match"].waitForExistence(timeout: 10))
-        snap(app, "02-match-list")
+        snap(app, "03-match-list")
         let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Morgan Ito")).firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 10))
         row.tap()
 
         // Detail: "why this match" + provenance are non-negotiable per the brief
         XCTAssertTrue(app.staticTexts["Why this match"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Provenance"].exists)
-        snap(app, "03-journalist-detail")
+        XCTAssertTrue(app.staticTexts["About this profile"].exists)
+        snap(app, "04-journalist-detail")
 
         // Draft pitch
         app.buttons["Draft pitch"].tap()
@@ -56,6 +62,6 @@ final class CoreLoopUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Pitch draft"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Subject"].exists)
         XCTAssertTrue(app.switches["Marked as sent"].exists)
-        snap(app, "04-pitch-draft")
+        snap(app, "05-pitch-draft")
     }
 }

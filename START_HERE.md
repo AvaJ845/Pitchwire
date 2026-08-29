@@ -40,10 +40,12 @@ xcodebuild -scheme BeatMatch -sdk iphonesimulator \
 ```
 
 ## What you'll see
-Paste any launch story into Home → Analyze → a confidence-tiered list of (sample) journalists
-with a one-line reason on every card → tap one for the full "why this match" + provenance →
-Draft pitch → subject/short/long pitch text you can edit and mark as sent. Campaigns and Drafts
-tabs list what you've built up. Everything is local — SwiftData, no accounts, no network calls.
+Paste a launch story into Home → Analyze → **"What we understood"** (theme, audience, angle,
+timing, editable topic chips) → Find journalists → a confidence-tiered list with a reason and an
+evidence-confidence label on every card → tap one for "why this match" + **About this profile**
+(each provenance record: source type, coverage basis, last verified, pitch preference) → Draft
+pitch → subject/short/long text you can edit and mark as sent. Campaigns and Drafts tabs list
+what you've built up. Everything is local — SwiftData, no accounts, no network calls.
 
 Reference screenshots of the loop are in `BeatMatch/Screenshots/`.
 
@@ -51,8 +53,8 @@ Reference screenshots of the loop are in `BeatMatch/Screenshots/`.
 ```
 BeatMatch/
   project.yml                 XcodeGen spec (deployment target, bundle id, targets)
-  Sources/                    the 22 Swift files — Models/ Services/ Data/ Views/ + BeatMatchApp.swift
-  UITests/CoreLoopUITests.swift   one smoke test: paste → analyze → match → detail → draft
+  Sources/                    Models/ Services/ Data/ Views/ + BeatMatchApp.swift
+  UITests/CoreLoopUITests.swift   one smoke test: paste → analyze → confirm → match → detail → draft
   Screenshots/                reference captures of each step
 ```
 
@@ -80,7 +82,23 @@ BeatMatch/
   to the P mark and re-composited it full-bleed on a solid navy field (no rounded corners / shadow /
   alpha — iOS masks the shape itself).
 
+## Slice 1 — toward the AI Press Agent direction
+Built against the product direction (story-first workflow) + the AI Infrastructure Direction deck:
+- **Richer story understanding** — `StoryAnalysisResult` / `Story` now carry audience, subtopics,
+  and media hooks alongside theme/vertical/region/angle/urgency.
+- **Screen 2, "What we understood"** (`StorySummaryView`) — sits between Analyze and the match
+  list; editable angle/region/topics so a wrong tag doesn't cascade into wrong matches. `MatchRunner`
+  builds targets and is re-runnable after edits.
+- **Multi-source provenance** — `JournalistProfile.provenanceRecords: [ProvenanceRecord]` (was 1:1),
+  each tagged `ProvenanceSourceType` (claimed / publisher / licensed / public-signal / sample) with a
+  coverage basis. `evidenceConfidence` (high / moderate / exploratory) is derived from the best
+  source + how recently it was verified, and shown on every match card and the detail view.
+- **AI provider seam** (`Services/AIProvider.swift`) — `ModelTier` (fast/quality) + an `AIProvider`
+  protocol. `OfflineAIProvider` ships today (always throws → deterministic fallback). Per the deck:
+  the app never holds a key; a real provider talks to a backend that routes to GLM-5.3-Flash.
+  `TemplatePitchDraftingService` already calls through the seam and falls back.
+
 ## Next
-See `ARCHITECTURE.md` for the full reasoning (MVP scope, challenged assumptions, deferred work).
-Slice 1 per the brief: URL/file story input, real journalist ingestion, iPad 3-pane layout,
-Share Extension, accounts.
+See `ARCHITECTURE.md` for the full reasoning. Not yet built: the backend / AI router itself,
+real journalist ingestion (Layers A–D), URL & file story input, Share Extension, iPad 3-pane
+workspace, accounts.

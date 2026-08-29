@@ -54,10 +54,17 @@ private struct MatchRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(target.journalist?.name ?? "Unknown")
                 .font(.headline)
-            if let outlet = target.journalist?.outlet?.name {
-                Text(outlet)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                if let outlet = target.journalist?.outlet?.name {
+                    Text(outlet)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                if let confidence = target.journalist?.evidenceConfidence {
+                    Text("· \(confidence.label)")
+                        .font(.caption)
+                        .foregroundStyle(confidence == .high ? .green : .secondary)
+                }
             }
             if let reason = target.explanation?.reasonText {
                 Text(reason)

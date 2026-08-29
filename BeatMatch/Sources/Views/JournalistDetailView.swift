@@ -11,15 +11,20 @@ struct JournalistDetailView: View {
 
     private let draftingService: PitchDraftingService = TemplatePitchDraftingService()
 
+    private var journalist: JournalistProfile? { target.journalist }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(target.journalist?.name ?? "Unknown")
+                    Text(journalist?.name ?? "Unknown")
                         .font(.title.bold())
-                    if let outlet = target.journalist?.outlet?.name {
+                    if let outlet = journalist?.outlet?.name {
                         Text(outlet)
                             .foregroundStyle(.secondary)
+                    }
+                    if let journalist {
+                        ConfidenceBadge(confidence: journalist.evidenceConfidence)
                     }
                 }
 
@@ -31,7 +36,7 @@ struct JournalistDetailView: View {
                     }
                 }
 
-                if let bylines = target.journalist?.recentBylineTitles, !bylines.isEmpty {
+                if let bylines = journalist?.recentBylineTitles, !bylines.isEmpty {
                     GroupBox {
                         VStack(alignment: .leading, spacing: 4) {
                             ForEach(bylines, id: \.self) { title in
@@ -43,30 +48,29 @@ struct JournalistDetailView: View {
                     }
                 }
 
-                if let provenance = target.journalist?.provenance {
+                if let journalist {
                     GroupBox {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Label(provenance.source, systemImage: "checkmark.seal")
-                            Text("Last verified: \(provenance.lastVerifiedAt.formatted(date: .abbreviated, time: .omitted))")
-                                .foregroundStyle(.secondary)
-                            if let pref = provenance.pitchPreference {
-                                Text("Pitch preference: \(pref)")
-                                    .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 14) {
+                            ForEach(journalist.orderedProvenance) { record in
+                                ProvenanceRow(record: record)
                             }
-                            Button("Report an issue with this profile", role: .destructive) {
-                                provenance.issueReported = true
-                                try? modelContext.save()
-                            }
-                            .font(.footnote)
-                            .disabled(provenance.issueReported)
-                            if provenance.issueReported {
-                                Text("Reported — thanks, we'll review this.")
+
+                            Divider()
+
+                            if journalist.hasReportedIssue {
+                                Label("Reported — thanks, we'll review this.", systemImage: "checkmark.circle")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
+                            } else {
+                                Button("Report an issue with this profile", role: .destructive) {
+                                    for record in journalist.provenanceRecords { record.issueReported = true }
+                                    try? modelContext.save()
+                                }
+                                .font(.footnote)
                             }
                         }
                     } label: {
-                        Text("Provenance")
+                        Text("About this profile")
                     }
                 }
 
@@ -94,7 +98,7 @@ struct JournalistDetailView: View {
     }
 
     private func generateDraft() async {
-        guard let journalist = target.journalist, let story = campaign.story else { return }
+        guard let journalist, let story = campaign.story else { return }
         isDrafting = true
         defer { isDrafting = false }
 
@@ -115,7 +119,53 @@ struct JournalistDetailView: View {
             try modelContext.save()
             draft = newDraft
         } catch {
-            // Slice 0: keep failure silent-but-safe; surfacing inline is a Slice 1 polish item.
+            // Keep failure silent-but-safe; inline surfacing is a later polish item.
+        }
+    }
+}
+
+private struct ConfidenceBadge: View {
+    let confidence: EvidenceConfidence
+
+    private var color: Color {
+        switch confidence {
+        case .high: return .green
+        case .moderate: return .orange
+        case .exploratory: return .secondary
+        }
+    }
+
+    var body: some View {
+        Label(confidence.label, systemImage: "gauge.medium")
+            .font(.caption.weight(.medium))
+            .foregroundStyle(color)
+            .padding(.top, 2)
+    }
+}
+
+private struct ProvenanceRow: View {
+    let record: ProvenanceRecord
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Label(record.sourceType.label, systemImage: record.sourceType.systemImage)
+                .font(.subheadline.weight(.medium))
+            Text(record.detail)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            if let basis = record.coverageBasis {
+                Text(basis)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Text("Last verified \(record.lastVerifiedAt.formatted(date: .abbreviated, time: .omitted))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if let pref = record.pitchPreference {
+                Text("Pitch preference: \(pref)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }

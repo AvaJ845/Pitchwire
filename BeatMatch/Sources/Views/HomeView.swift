@@ -9,7 +9,6 @@ struct HomeView: View {
     @State private var errorMessage: String?
 
     private let analysisService: StoryAnalysisService = StubStoryAnalysisService()
-    private let matchingService: MatchingService = KeywordMatchingService()
 
     var body: some View {
         NavigationStack {
@@ -18,7 +17,7 @@ struct HomeView: View {
                     Text("What's your story?")
                         .font(.largeTitle.bold())
 
-                    Text("Paste your launch story, press release, or announcement. We'll find who's most likely to care.")
+                    Text("Paste your launch story, press release, or announcement. We'll tell you who's most likely to care, why, and what to say.")
                         .foregroundStyle(.secondary)
 
                     TextEditor(text: $storyText)
@@ -51,7 +50,7 @@ struct HomeView: View {
             }
             .navigationTitle("Pitchwire")
             .navigationDestination(item: $activeCampaign) { campaign in
-                MatchListView(campaign: campaign)
+                StorySummaryView(campaign: campaign)
             }
         }
     }
@@ -68,28 +67,8 @@ struct HomeView: View {
 
             let campaign = Campaign(name: analysis.theme, story: story)
             modelContext.insert(campaign)
-
-            let pool = SampleJournalists.seedPool()
-            let candidates = matchingService.match(analysis: analysis, against: pool)
-
-            for candidate in candidates {
-                modelContext.insert(candidate.journalist)
-                if let outlet = candidate.journalist.outlet {
-                    modelContext.insert(outlet)
-                }
-                modelContext.insert(candidate.explanation)
-
-                let target = MediaTarget(
-                    confidenceTier: candidate.confidenceTier,
-                    confidenceScore: candidate.confidenceScore,
-                    journalist: candidate.journalist,
-                    explanation: candidate.explanation
-                )
-                target.campaign = campaign
-                campaign.mediaTargets.append(target)
-            }
-
             try modelContext.save()
+
             storyText = ""
             activeCampaign = campaign
         } catch {
