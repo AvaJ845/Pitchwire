@@ -22,18 +22,25 @@
 //
 // Verify these IDs periodically — z.ai renames its flash tier and NVIDIA retires
 // models on a schedule (llama-3.1/3.3 were retired 2026-08-26).
-const NVIDIA_PRIMARY = "nvidia:openai/gpt-oss-120b";
-const NVIDIA_LIGHT   = "nvidia:openai/gpt-oss-20b";
+// NVIDIA's free shared serverless endpoint only actually hosts the OpenAI
+// gpt-oss models for a standard developer account — the rest of the /v1/models
+// catalog (kimi, deepseek, nemotron, llama-4, qwen, …) returns
+// 404 "Not found for account" unless you stand up a dedicated (paid) NIM.
+// To widen the free pool, route through OpenRouter (many `:free` models, one
+// key, not Cloudflare-blocked) — a small addition to callModel().
+const NV_120 = "nvidia:openai/gpt-oss-120b";
+const NV_20  = "nvidia:openai/gpt-oss-20b";
+const GLM = ["glm-4.7-flash", "glm-4.5-flash"];   // Aliyun-blocked from Cloudflare; kept for a future non-CF host
 const TASK_MODELS = {
   // fast tier — extraction / classification
-  storyAnalysis:    [NVIDIA_LIGHT, NVIDIA_PRIMARY, "glm-4.7-flash", "glm-4.5-flash"],
-  matchExplanation: [NVIDIA_LIGHT, NVIDIA_PRIMARY, "glm-4.7-flash", "glm-4.5-flash"],
+  storyAnalysis:    [NV_20, NV_120, ...GLM],
+  matchExplanation: [NV_20, NV_120, ...GLM],
+  subjectLine:      [NV_20, NV_120, ...GLM],
   // quality tier — user-facing prose. Add glm-5.3-flash (paid) to the head if
   // free capacity ever becomes the bottleneck.
-  pitchDraft:       [NVIDIA_PRIMARY, NVIDIA_LIGHT, "glm-4.7-flash", "glm-4.5-flash"],
-  pitchRewrite:     [NVIDIA_PRIMARY, NVIDIA_LIGHT, "glm-4.7-flash", "glm-4.5-flash"],
-  subjectLine:      [NVIDIA_LIGHT, NVIDIA_PRIMARY, "glm-4.7-flash", "glm-4.5-flash"],
-  followUp:         [NVIDIA_PRIMARY, NVIDIA_LIGHT, "glm-4.7-flash", "glm-4.5-flash"],
+  pitchDraft:       [NV_120, NV_20, ...GLM],
+  pitchRewrite:     [NV_120, NV_20, ...GLM],
+  followUp:         [NV_120, NV_20, ...GLM],
 };
 
 const SYSTEM = {
@@ -84,16 +91,23 @@ export default {
     const { task, tier, input = {}, prompt = "" } = body;
     if (!TASK_MODELS[task]) return json({ error: `unknown task ${task}` }, 400);
 
+    // ?only=<model> forces a single provider — for verifying a model works.
+    // Authed by the same client token; not cached.
+    const only = url.searchParams.get("only");
+    const chain = only ? [only] : TASK_MODELS[task];
+
     // Cache identical requests (retrieval-before-generation is the backend's job;
-    // this is the cheap first layer).
+    // this is the cheap first layer). Skipped when forcing a model.
     const cacheKey = await hash(JSON.stringify({ task, tier, input, prompt }));
     const cache = caches.default;
     const cachedURL = new URL(request.url);
     cachedURL.pathname = `/cache/${cacheKey}`;
-    const hit = await cache.match(cachedURL);
-    if (hit) {
-      const data = await hit.json();
-      return json({ ...data, cached: true });
+    if (!only) {
+      const hit = await cache.match(cachedURL);
+      if (hit) {
+        const data = await hit.json();
+        return json({ ...data, cached: true });
+      }
     }
 
     const messages = [
@@ -103,11 +117,11 @@ export default {
     const temperature = tier === "fast" ? 0.2 : 0.6;
 
     const errs = [];
-    for (const model of TASK_MODELS[task]) {
+    for (const model of chain) {
       try {
         const out = await callModel(model, messages, temperature, env);
         const payload = { text: out.text, model: out.model, cached: false, usage: out.usage };
-        ctx.waitUntil(cache.put(cachedURL, json(payload, 200, 60 * 60 * 6))); // 6h
+        if (!only) ctx.waitUntil(cache.put(cachedURL, json(payload, 200, 60 * 60 * 6))); // 6h
         return json(payload);
       } catch (e) {
         const line = `${model}: ${e.message || e}`;

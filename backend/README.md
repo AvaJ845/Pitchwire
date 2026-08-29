@@ -31,7 +31,21 @@ Deploy / Fly / a VPS) or proxies z.ai via OpenRouter. NVIDIA's free tier
 
 Model IDs drift — z.ai renames its flash tier, NVIDIA retired llama-3.1/3.3 on
 2026-08-26. If calls start 410ing, check `GET https://integrate.api.nvidia.com/v1/models`
-and update `NVIDIA_PRIMARY` / `NVIDIA_LIGHT` in `src/worker.js`.
+and update the model constants in `src/worker.js`.
+
+**NVIDIA free tier only serves the OpenAI gpt-oss models** for a standard
+developer account. The rest of the `/v1/models` catalog (kimi, deepseek,
+nemotron, llama-4, qwen, …) returns `404 "Not found for account"` — those need a
+dedicated, paid NIM deployment. To widen the free pool without GPUs, add
+**OpenRouter** as a provider in `callModel()`: many `:free` models
+(`deepseek/deepseek-chat-v3-0324:free`, `meta-llama/llama-3.3-70b-instruct:free`,
+`google/gemini-2.0-flash-exp:free`, …), one key, and its infra isn't
+Cloudflare-blocked so z.ai's GLM models become reachable through it too.
+
+### Debug
+
+`POST /v1/generate?only=nvidia:openai/gpt-oss-20b` forces one provider and skips
+the cache — for checking whether a model is actually reachable.
 
 ## Deploy A — Cloudflare dashboard (no local install)
 
