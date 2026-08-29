@@ -12,15 +12,24 @@ on the iPhone 17 Pro simulator (Xcode 26). No manual Xcode wizard step is needed
 
 ## Open it
 
+`BeatMatch.xcodeproj/` is **git-ignored** — it's generated from `project.yml` by
+[XcodeGen](https://github.com/yonyz/XcodeGen). On a fresh clone you must generate it first:
+
 ```
+brew install xcodegen                 # if you don't have it (or ~/bin/xcodegen)
 cd "~/Documents/AI Press Agent/BeatMatch"
-open BeatMatch.xcodeproj      # Cmd+R to run, Cmd+U to run the smoke test
+xcodegen generate
+open BeatMatch.xcodeproj               # Cmd+R to run, Cmd+U for the smoke test
 ```
 
-The project is generated from `project.yml` by [XcodeGen](https://github.com/yonyz/XcodeGen).
-If you add/rename/move source files, run `xcodegen generate` again (or just work in Xcode —
-it picks up files in `Sources/` automatically). `BeatMatch.xcodeproj/` is git-ignored; the
-source of truth is `project.yml` + `Sources/` + `UITests/`.
+Re-run `xcodegen generate` whenever you edit `project.yml` or add/rename/move source files
+(new files inside `Sources/` are picked up automatically by Xcode's folder sync, so you only
+need it for `project.yml` changes). The source of truth is `project.yml` + `Sources/` + `UITests/`.
+
+**If Xcode won't build / "fails to load":** you're almost certainly on a stale generated
+project — delete `BeatMatch.xcodeproj`, re-run `xcodegen generate`, and clean the build folder
+(Cmd+Shift+K). `project.yml` sets `ALWAYS_SEARCH_USER_PATHS: NO` (Xcode 26 rejects the legacy
+"traditional headermap" behaviour) — if you see that warning, your project predates that fix.
 
 Build/test from the command line:
 

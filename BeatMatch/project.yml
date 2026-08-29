@@ -4,6 +4,12 @@ options:
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
+settings:
+  base:
+    # Xcode 16+/26 rejects the legacy "traditional headermap" behaviour that
+    # ALWAYS_SEARCH_USER_PATHS=YES implies. This project has no bridging headers
+    # or user header search paths, so turn it off explicitly.
+    ALWAYS_SEARCH_USER_PATHS: NO
 targets:
   BeatMatch:
     type: application
