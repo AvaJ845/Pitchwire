@@ -1,15 +1,15 @@
 # Pitchwire AI gateway
 
 The thin backend from the AI Infrastructure Direction. A single Cloudflare Worker:
-the app calls it, it holds the provider keys and runs the GLM → GLM → NVIDIA
-failover. API-first, no servers, no GPU ops.
+the app calls it, it holds the provider keys and runs the failover chain.
+API-first, no servers, no GPU ops. **Deployed and live** at
+`pitchwire-ai.divine-mountain-8173.workers.dev`.
 
 ## What it does
 
 ```
-app ──POST /v1/generate──▶ Worker ──▶ z.ai GLM-4.7-Flash   (free)
-   Bearer <client token>            └▶ z.ai GLM-4.5-Flash   (free, on 429/5xx)
-                                    └▶ NVIDIA NIM            (free, last resort)
+app ──POST /v1/generate──▶ Worker ──▶ NVIDIA NIM gpt-oss-120b / -20b   (free)
+   Bearer <client token>            └▶ z.ai GLM-4.7 / 4.5-Flash        (free — see limitation)
 ◀── { text, model, cached, usage } ─┘
 ```
 
@@ -17,7 +17,21 @@ app ──POST /v1/generate──▶ Worker ──▶ z.ai GLM-4.7-Flash   (free
 - Identical requests are cached 6h (Cache API).
 - Per-IP rate limit (default 20/min) as light abuse protection.
 - Task → model map + system prompts live in `src/worker.js` — change routing
-  there, nothing in the app moves.
+  there, nothing in the app moves. `fast` tasks lead with gpt-oss-20b,
+  `quality` tasks with gpt-oss-120b.
+
+### Known limitation — z.ai on Cloudflare
+
+z.ai's API is fronted by Aliyun, which **blocks Cloudflare Worker egress IPs**
+(returns a 405 `zh-cn` WAF page — the API works fine from a normal host). So on
+Cloudflare, **NVIDIA NIM carries the chain** and the z.ai entries are effectively
+dead. They light up automatically if the gateway moves off Cloudflare (Deno
+Deploy / Fly / a VPS) or proxies z.ai via OpenRouter. NVIDIA's free tier
+(~40 rpm) is plenty for now.
+
+Model IDs drift — z.ai renames its flash tier, NVIDIA retired llama-3.1/3.3 on
+2026-08-26. If calls start 410ing, check `GET https://integrate.api.nvidia.com/v1/models`
+and update `NVIDIA_PRIMARY` / `NVIDIA_LIGHT` in `src/worker.js`.
 
 ## Deploy A — Cloudflare dashboard (no local install)
 

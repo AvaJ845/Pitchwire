@@ -29,7 +29,16 @@ struct AIConfiguration {
         guard
             let url = bundle.url(forResource: "AIConfig", withExtension: "plist"),
             let data = try? Data(contentsOf: url),
-            let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+            let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        else {
+            return .offline
+        }
+        return from(dict: dict)
+    }
+
+    /// Pure mapping from a plist dict — testable without a bundle.
+    static func from(dict: [String: Any]) -> AIConfiguration {
+        guard
             let base = (dict["BaseURL"] as? String).flatMap(URL.init(string:)),
             !base.absoluteString.isEmpty,
             let token = dict["ClientToken"] as? String, !token.isEmpty

@@ -194,12 +194,18 @@ data**, working removal pipeline) to unblock matching evaluation now; run **clai
 outreach** in parallel for a consented, 5.1.1(viii)-defensible database. Never buy a list,
 scrape, or use an enrichment provider.
 
-## Backend — see `backend/`
+## Backend — **deployed & live** (`backend/`)
 
-A single Cloudflare Worker implementing the `HTTPGateway` contract: provider keys in Worker
-secrets, task→model map, GLM-4.7 → GLM-4.5 → NVIDIA failover, 6h cache, per-IP rate limit.
-Deployable in ~10 min once z.ai + NVIDIA keys exist. The app stays `.offline` until
-`AIConfiguration.baseURL` is set from a gitignored xcconfig.
+A single Cloudflare Worker at `pitchwire-ai.divine-mountain-8173.workers.dev` implementing the
+`HTTPGateway` contract: keys in Worker secrets, task→model map, failover chain, 6h cache, per-IP
+rate limit. The app connects via a gitignored `BeatMatch/Config/AIConfig.plist`
+(`AIConfiguration.fromBundle()`); `AIConfig.example.plist` is the template.
+
+**Live chain:** NVIDIA NIM `gpt-oss-120b` / `gpt-oss-20b` (free) → z.ai GLM-4.7/4.5-Flash.
+z.ai's API is Aliyun-fronted and **blocks Cloudflare Worker IPs**, so NVIDIA carries it for now;
+z.ai lights up automatically if the gateway moves off Cloudflare or proxies via OpenRouter.
+Real GLM/gpt-oss output verified end-to-end: story analysis returns constrained JSON, pitch
+drafts are grounded in the journalist's actual beat + bylines.
 
 ## Build status
 

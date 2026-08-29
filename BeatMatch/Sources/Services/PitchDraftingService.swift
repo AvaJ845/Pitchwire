@@ -61,14 +61,29 @@ struct DefaultPitchDraftingService: PitchDraftingService {
         return PitchDraft(subject: subject, shortBody: shortBody, longBody: longBody)
     }
 
-    private static func parse(_ text: String) -> PitchDraft? {
-        func section(_ tag: String) -> String? {
+    static func parse(_ raw: String) -> PitchDraft? {
+        // Models sometimes wrap the labels ("**SUBJECT:**", "### SHORT") — strip
+        // markdown emphasis/heading markers before splitting.
+        let text = raw.replacingOccurrences(of: "*", with: "")
+            .replacingOccurrences(of: "#", with: "")
+            .replacingOccurrences(of: "`", with: "")
+
+        func section(_ tag: String, until others: [String]) -> String? {
             guard let range = text.range(of: "\(tag):", options: .caseInsensitive) else { return nil }
-            let rest = text[range.upperBound...]
-            let end = rest.range(of: "\n[A-Z]+:", options: .regularExpression)?.lowerBound ?? rest.endIndex
-            return rest[..<end].trimmingCharacters(in: .whitespacesAndNewlines)
+            var rest = String(text[range.upperBound...])
+            for other in others {
+                if let cut = rest.range(of: "\(other):", options: .caseInsensitive) {
+                    rest = String(rest[..<cut.lowerBound])
+                }
+            }
+            return rest.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        guard let subject = section("SUBJECT"), let short = section("SHORT"), let long = section("LONG") else { return nil }
+        guard
+            let subject = section("SUBJECT", until: ["SHORT", "LONG"]),
+            let short = section("SHORT", until: ["LONG", "SUBJECT"]),
+            let long = section("LONG", until: ["SUBJECT", "SHORT"]),
+            !subject.isEmpty, !short.isEmpty, !long.isEmpty
+        else { return nil }
         return PitchDraft(subject: subject, shortBody: short, longBody: long)
     }
 }

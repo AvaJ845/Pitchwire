@@ -98,9 +98,11 @@ BeatMatch/
   (beat, recent coverage, angle, audience, geography, pitch-preference hard-filter, evidence),
   each inspectable. `WeightedRelevanceService` ranks the pool; "why this match" prose is built
   from the driving signals; journalist detail has a "How we scored this" breakdown. Deterministic.
-- **`backend/`** — Cloudflare Worker: the `HTTPGateway` contract, provider keys in secrets,
-  GLM-4.7 → GLM-4.5 → NVIDIA failover, cache, rate limit. `backend/README.md` is the ~10-min
-  deploy runbook. App stays `.offline` until you set `AIConfiguration.baseURL`.
+- **`backend/`** — **DEPLOYED & LIVE** at `pitchwire-ai.divine-mountain-8173.workers.dev`.
+  Cloudflare Worker: keys in Worker secrets, failover chain (NVIDIA `gpt-oss-120b`/`-20b` → z.ai),
+  6h cache, rate limit. The app connects via gitignored `BeatMatch/Config/AIConfig.plist` (template:
+  `AIConfig.example.plist`). z.ai is Aliyun-blocked from Cloudflare — NVIDIA carries it; see
+  `backend/README.md`. `wrangler` is in `backend/`; `npm run deploy` from there.
 - **`docs/SEED_SET.md`** — the fellows' plan for a real 15–20 journalist seed set:
   public-editorial-signal only (no contact data), claimed-profile outreach in parallel, never
   buy/scrape/enrich (5.1.1(viii)).

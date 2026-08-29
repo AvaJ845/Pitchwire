@@ -20,10 +20,19 @@ final class AIConfigurationTests: XCTestCase {
         XCTAssertTrue(c.isConfigured)
     }
 
-    func testFromBundleFallsBackToOfflineWhenNoRealPlist() {
-        // The test bundle has no AIConfig.plist (only AIConfig.example.plist ships,
-        // and it has blank values) → must be offline, never a half-configured state.
-        let c = AIConfiguration.fromBundle(.main)
-        XCTAssertFalse(c.isConfigured)
+    func testFromDictBlankOrMissingIsOffline() {
+        XCTAssertFalse(AIConfiguration.from(dict: [:]).isConfigured)
+        XCTAssertFalse(AIConfiguration.from(dict: ["BaseURL": "", "ClientToken": ""]).isConfigured)
+        XCTAssertFalse(AIConfiguration.from(dict: ["BaseURL": "https://x"]).isConfigured)   // no token
+        XCTAssertFalse(AIConfiguration.from(dict: ["ClientToken": "abc"]).isConfigured)     // no url
+    }
+
+    func testFromDictConfiguredWhenBothPresent() {
+        let c = AIConfiguration.from(dict: [
+            "BaseURL": "https://pitchwire-ai.example.workers.dev",
+            "ClientToken": "tok_abc123",
+        ])
+        XCTAssertTrue(c.isConfigured)
+        XCTAssertEqual(c.baseURL?.host, "pitchwire-ai.example.workers.dev")
     }
 }

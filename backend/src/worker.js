@@ -13,25 +13,54 @@
  * A z.ai rate-limit is invisible to the user.
  */
 
+// Failover chain (all free).
+//
+// z.ai's API is fronted by Aliyun, which blocks Cloudflare Worker egress IPs
+// (405 "zh-cn" WAF page — the API works fine from a normal host). Until the
+// gateway moves off Cloudflare or proxies z.ai (e.g. via OpenRouter), NVIDIA NIM
+// carries the chain. z.ai stays listed so it lights up the moment it's reachable.
+//
+// Verify these IDs periodically — z.ai renames its flash tier and NVIDIA retires
+// models on a schedule (llama-3.1/3.3 were retired 2026-08-26).
+const NVIDIA_PRIMARY = "nvidia:openai/gpt-oss-120b";
+const NVIDIA_LIGHT   = "nvidia:openai/gpt-oss-20b";
 const TASK_MODELS = {
   // fast tier — extraction / classification
-  storyAnalysis:    ["glm-4.7-flash", "glm-4.5-flash", "nvidia:meta/llama-3.3-70b-instruct"],
-  matchExplanation: ["glm-4.7-flash", "glm-4.5-flash", "nvidia:meta/llama-3.3-70b-instruct"],
-  // quality tier — user-facing prose. Swap the head to glm-5.3-flash (paid) if
-  // free-tier limits bite AND draft polish is shown to matter.
-  pitchDraft:       ["glm-4.7-flash", "glm-4.5-flash", "nvidia:meta/llama-3.3-70b-instruct"],
-  pitchRewrite:     ["glm-4.7-flash", "glm-4.5-flash", "nvidia:meta/llama-3.3-70b-instruct"],
-  subjectLine:      ["glm-4.7-flash", "glm-4.5-flash"],
-  followUp:         ["glm-4.7-flash", "glm-4.5-flash"],
+  storyAnalysis:    [NVIDIA_LIGHT, NVIDIA_PRIMARY, "glm-4.7-flash", "glm-4.5-flash"],
+  matchExplanation: [NVIDIA_LIGHT, NVIDIA_PRIMARY, "glm-4.7-flash", "glm-4.5-flash"],
+  // quality tier — user-facing prose. Add glm-5.3-flash (paid) to the head if
+  // free capacity ever becomes the bottleneck.
+  pitchDraft:       [NVIDIA_PRIMARY, NVIDIA_LIGHT, "glm-4.7-flash", "glm-4.5-flash"],
+  pitchRewrite:     [NVIDIA_PRIMARY, NVIDIA_LIGHT, "glm-4.7-flash", "glm-4.5-flash"],
+  subjectLine:      [NVIDIA_LIGHT, NVIDIA_PRIMARY, "glm-4.7-flash", "glm-4.5-flash"],
+  followUp:         [NVIDIA_PRIMARY, NVIDIA_LIGHT, "glm-4.7-flash", "glm-4.5-flash"],
 };
 
 const SYSTEM = {
-  storyAnalysis:    "Extract structured fields from a press story. Reply with JSON only: {theme,vertical,region,angle,urgency,summary,audience,subtopics:[],mediaHooks:[]}.",
-  matchExplanation: "Write one plain sentence explaining why a journalist fits a story, using only the facts given.",
-  pitchDraft:       "Write concise, respectful media pitches grounded only in the facts given. No hype, no invented details. Return SUBJECT: <line>\\nSHORT: <text>\\nLONG: <text>.",
-  pitchRewrite:     "Rewrite the pitch to the requested tone, keeping every fact. Return SUBJECT/SHORT/LONG.",
-  subjectLine:      "Write 3 short, specific email subject lines, one per line.",
-  followUp:         "Write a brief, polite follow-up email.",
+  storyAnalysis:
+    "Extract structured fields from a press story. Reply with ONLY a JSON object, no prose, no markdown fences. " +
+    "Keys and allowed values: " +
+    "theme (short noun phrase), " +
+    "vertical (one of: ai, developer tools, consumer, fintech, general tech), " +
+    "region (one of: US, EU, Global), " +
+    "angle (one of: product launch, funding, acquisition, hire, partnership, general news), " +
+    "urgency (one of: standard, time-sensitive), " +
+    "summary (<=220 chars), " +
+    "audience (one of: Developers, Founders & investors, Businesses & teams, Consumers), " +
+    "subtopics (array of <=5 short strings), " +
+    "mediaHooks (array of <=4 short phrases: why a journalist would care).",
+  matchExplanation:
+    "Write ONE plain sentence explaining why a journalist fits a story, using only the facts given. No markdown.",
+  pitchDraft:
+    "Write a concise, respectful media pitch grounded ONLY in the facts given — no hype, no invented details. " +
+    "Output EXACTLY this format, plain text, no markdown, no asterisks, no headers:\n" +
+    "SUBJECT: <one line>\nSHORT: <2-3 sentence pitch>\nLONG: <1-2 short paragraph pitch>",
+  pitchRewrite:
+    "Rewrite the pitch to the requested tone, keeping every fact. Same plain format: SUBJECT: / SHORT: / LONG:. No markdown.",
+  subjectLine:
+    "Write 3 short, specific email subject lines, one per line. No numbering, no markdown.",
+  followUp:
+    "Write a brief, polite follow-up email. Plain text.",
 };
 
 export default {
@@ -73,7 +102,7 @@ export default {
     ];
     const temperature = tier === "fast" ? 0.2 : 0.6;
 
-    let lastErr = "no providers";
+    const errs = [];
     for (const model of TASK_MODELS[task]) {
       try {
         const out = await callModel(model, messages, temperature, env);
@@ -81,12 +110,13 @@ export default {
         ctx.waitUntil(cache.put(cachedURL, json(payload, 200, 60 * 60 * 6))); // 6h
         return json(payload);
       } catch (e) {
-        lastErr = `${model}: ${e.message || e}`;
-        // 4xx that isn't 429 -> don't bother failing over
-        if (e.status && e.status >= 400 && e.status < 500 && e.status !== 429) break;
+        const line = `${model}: ${e.message || e}`;
+        errs.push(line);
+        console.log("provider failed:", line);
+        if (e.status === 401 || e.status === 403) break;
       }
     }
-    return json({ error: "all providers failed", detail: lastErr }, 502);
+    return json({ error: "all providers failed", detail: errs }, 502);
   },
 };
 
@@ -94,7 +124,7 @@ async function callModel(model, messages, temperature, env) {
   let baseURL, apiKey, realModel;
   if (model.startsWith("nvidia:")) {
     baseURL = "https://integrate.api.nvidia.com/v1";
-    apiKey = env.NVIDIA_API_KEY;
+    apiKey = env.NVIDIA_API_KEY || env.NVIDIA_API_Key;   // tolerate the secret-name casing
     realModel = model.slice("nvidia:".length);
   } else {
     baseURL = "https://api.z.ai/api/paas/v4";
@@ -105,11 +135,18 @@ async function callModel(model, messages, temperature, env) {
 
   const res = await fetch(`${baseURL}/chat/completions`, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: realModel, messages, temperature }),
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      // Aliyun-fronted APIs (z.ai) 405 requests without a UA.
+      "User-Agent": "Pitchwire/1.0 (+https://github.com/AvaJ845/Pitchwire)",
+    },
+    body: JSON.stringify({ model: realModel, messages, temperature, stream: false }),
   });
   if (!res.ok) {
-    const err = new Error(`HTTP ${res.status}`);
+    const body = (await res.text().catch(() => "")).slice(0, 300);
+    const err = new Error(`HTTP ${res.status} ${body}`);
     err.status = res.status;
     throw err;
   }
