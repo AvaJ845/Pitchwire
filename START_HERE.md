@@ -54,7 +54,8 @@ Reference screenshots of the loop are in `BeatMatch/Screenshots/`.
 BeatMatch/
   project.yml                 XcodeGen spec (deployment target, bundle id, targets)
   Sources/                    Models/ Services/ Data/ Views/ + BeatMatchApp.swift
-  UITests/CoreLoopUITests.swift   one smoke test: paste → analyze → confirm → match → detail → draft
+  UITests/CoreLoopUITests.swift   smoke test: paste → analyze → confirm → match → detail → draft
+  UnitTests/EntitlementsTests.swift   entitlement limits, period reset, feature gates, AI tiers
   Screenshots/                reference captures of each step
 ```
 
@@ -93,12 +94,17 @@ Built against the product direction (story-first workflow) + the AI Infrastructu
   each tagged `ProvenanceSourceType` (claimed / publisher / licensed / public-signal / sample) with a
   coverage basis. `evidenceConfidence` (high / moderate / exploratory) is derived from the best
   source + how recently it was verified, and shown on every match card and the detail view.
-- **AI provider seam** (`Services/AIProvider.swift`) — `ModelTier` (fast/quality) + an `AIProvider`
-  protocol. `OfflineAIProvider` ships today (always throws → deterministic fallback). Per the deck:
-  the app never holds a key; a real provider talks to a backend that routes to GLM-5.3-Flash.
-  `TemplatePitchDraftingService` already calls through the seam and falls back.
+- **AI infrastructure** (`Sources/AI/`) — one chokepoint (`AIClient.run`), typed `AITask`s,
+  `ModelTier` per task, `AIGateway` boundary (`OfflineGateway` ships, `HTTPGateway` ready),
+  `AIConfiguration` holds only a scoped client token (no provider key), `AITelemetry` on every call.
+- **Entitlements** (`Sources/Entitlements/`) — features ask `Entitlements.can/remaining/consume`,
+  never `if plan == .free`. All limits/features/trials live in `LocalEntitlementStore.catalog`
+  (one place). Swappable `EntitlementStore` protocol for a StoreKit/server-backed store later.
+  Gates wired on story analysis + AI pitch drafts; shown as "N of M left" in Home and Profile.
+
+Both layers have unit tests (`UnitTests/EntitlementsTests.swift`). See `docs/DIRECTION.md`.
 
 ## Next
-See `ARCHITECTURE.md` for the full reasoning. Not yet built: the backend / AI router itself,
-real journalist ingestion (Layers A–D), URL & file story input, Share Extension, iPad 3-pane
-workspace, accounts.
+Not yet built: the backend / AI router itself, real journalist ingestion (Layers A–D), URL &
+file story input, Share Extension, iPad 3-pane workspace, accounts, a paid `EntitlementStore`
++ StoreKit products.

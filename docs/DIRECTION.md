@@ -37,14 +37,36 @@ provenance, verification dates. Those come from structured data and deterministi
 
 ## AI infrastructure (non-negotiable from day one)
 
-- **Provider abstraction.** Never hard-code to one AI provider. `Services/AIProvider.swift` is
-  the seam — `ModelTier` (fast/quality) + `AIProvider`. Default model when a backend exists:
-  GLM-5.3-Flash via a server-side router; quality-tier fallback to another provider.
-- **Keys server-side only.** The app holds a scoped client token, never a provider key.
-- **Cost control.** Ingest once → structure once → store facts → retrieve relevant evidence →
-  generate only when needed. Summaries, not full text. Cache.
-- **Defer:** multi-model routing, self-hosting (GLM is MIT/open-weight — a *future* option,
+Implemented in `Sources/AI/`:
+
+- **One chokepoint, typed tasks.** Every LLM call goes through `AIClient.run(AIRequest)`.
+  Requests are typed by `AITask` (`storyAnalysis`, `pitchDraft`, …), never free-form prompts
+  from random call sites. `ModelTier` (fast/quality) is chosen per task via `AITask.defaultTier`.
+- **Provider abstraction.** `AIGateway` is the boundary. `OfflineGateway` ships (always throws →
+  deterministic fallback). `HTTPGateway` is ready — talks only to the Pitchwire backend, never a
+  provider. `AIClient.configure(_:)` swaps the gateway at runtime.
+- **Keys server-side only.** `AIConfiguration` holds `baseURL` + a scoped per-user `clientToken`.
+  There is no field for a provider key. Ship with `baseURL: nil`.
+- **Observable.** `AIClient` times every call and emits an `AIEvent` (task, tier, model, latency,
+  cached, ok/error) through one `AITelemetry` hook — vendor-neutral, `print` today.
+- **Cost control.** `AIResponse` carries `cached` + `usage`; the gateway contract lets the backend
+  do retrieval-before-generation and return summaries. Fast tier for extraction, quality for prose.
+- **Defer:** multi-model routing policy, self-hosting (GLM is MIT/open-weight — a *future* option,
   not an MVP trigger), GPU/inference ops.
+
+## Commercial model = data, not code (`Sources/Entitlements/`)
+
+No feature ever checks `if plan == .free`. Features ask `Entitlements`:
+`can(.exportPitch)` / `remaining(.storyAnalysis)` / `consume(.aiPitchDraft)`.
+
+- **One config object.** `LocalEntitlementStore.catalog` is the only place plan limits, features,
+  and trial lengths live. Change pricing / free limits / Pro entitlements / trials / AI caps there;
+  no other code moves.
+- **Swappable store.** `EntitlementStore` protocol. `LocalEntitlementStore` (Free plan + UserDefaults
+  metering) is the default; a StoreKit- or server-entitlement-backed store replaces it behind the
+  same protocol.
+- **Wired gates:** `.storyAnalysis` (Home), `.aiPitchDraft` (journalist detail). `.activeCampaign`
+  is in the catalog, not yet enforced.
 
 ## Data strategy (layered, safest first)
 
@@ -67,10 +89,13 @@ saves / drafts / acts on them. Not downloads.
 
 ## Build status
 
-Done (Slice 0 + 1): the full loop runs offline — story intake, richer story understanding, the
+Done (Slice 0–2): the full loop runs offline — story intake, richer story understanding, the
 "what we understood" confirmation screen, deterministic matching with confidence tiers +
-evidence-confidence labels, multi-source provenance on every profile, template pitch drafting
-through the AI-provider seam, campaign / draft / follow-up persistence (SwiftData, local-only).
+evidence-confidence labels, multi-source provenance on every profile, pitch drafting through
+the typed AI gateway, campaign / draft / follow-up persistence (SwiftData, local-only). Plus
+the AI infrastructure (`Sources/AI/`) and the entitlements layer (`Sources/Entitlements/`)
+above, with 7 unit tests + 1 UI smoke test.
 
-Not built: the backend + AI router, real ingestion for Layers A–D, URL & file story input,
-Share Extension, iPad 3-pane workspace, accounts, subscriptions.
+Not built: the backend + AI router itself, real ingestion for Layers A–D, URL & file story
+input, Share Extension, iPad 3-pane workspace, accounts, a paid `EntitlementStore` + StoreKit
+products, a real telemetry sink.

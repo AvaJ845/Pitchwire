@@ -3,7 +3,37 @@ import SwiftData
 
 @main
 struct BeatMatchApp: App {
-    var sharedModelContainer: ModelContainer = {
+    @State private var aiClient: AIClient
+    @State private var entitlements: Entitlements
+
+    let sharedModelContainer: ModelContainer
+
+    init() {
+        let resetForTests = ProcessInfo.processInfo.arguments.contains("-uitest-reset")
+
+        // AI layer — offline until a backend + client token exist. No provider key
+        // is ever present in the app (see AIConfiguration).
+        aiClient = AIClient(configuration: .offline)
+
+        // Entitlements — one config object, swappable store. Feature code never
+        // checks the plan directly.
+        let entitlementStore = LocalEntitlementStore()
+        if resetForTests { entitlementStore.resetUsage() }
+        entitlements = Entitlements(store: entitlementStore)
+
+        sharedModelContainer = Self.makeContainer(wipeFirst: resetForTests)
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            RootTabView()
+                .environment(aiClient)
+                .environment(entitlements)
+        }
+        .modelContainer(sharedModelContainer)
+    }
+
+    private static func makeContainer(wipeFirst: Bool) -> ModelContainer {
         let schema = Schema([
             Story.self,
             Campaign.self,
@@ -16,29 +46,30 @@ struct BeatMatchApp: App {
             FollowUpTask.self
         ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
+        func wipeStore() {
+            let url = configuration.url
+            for suffix in ["", "-shm", "-wal"] {
+                try? FileManager.default.removeItem(
+                    at: url.deletingPathExtension().appendingPathExtension("store\(suffix)")
+                )
+            }
+            try? FileManager.default.removeItem(at: url)
+        }
+
+        if wipeFirst { wipeStore() }
+
         do {
             return try ModelContainer(for: schema, configurations: [configuration])
         } catch {
-            // Pre-1.0, local-only, no accounts: if the on-disk store predates a schema
-            // change we can't migrate, wipe it and start clean rather than crash on launch.
-            // (A real migration plan replaces this before there is user data worth keeping.)
-            if let url = configuration.url as URL?, FileManager.default.fileExists(atPath: url.path) {
-                try? FileManager.default.removeItem(at: url)
-                try? FileManager.default.removeItem(at: url.deletingPathExtension().appendingPathExtension("store-shm"))
-                try? FileManager.default.removeItem(at: url.deletingPathExtension().appendingPathExtension("store-wal"))
-            }
+            // Pre-1.0, local-only, no accounts: if the on-disk store predates a
+            // schema change we can't migrate, wipe it rather than crash on launch.
+            wipeStore()
             do {
                 return try ModelContainer(for: schema, configurations: [configuration])
             } catch {
                 fatalError("Could not create Pitchwire's SwiftData container: \(error)")
             }
         }
-    }()
-
-    var body: some Scene {
-        WindowGroup {
-            RootTabView()
-        }
-        .modelContainer(sharedModelContainer)
     }
 }

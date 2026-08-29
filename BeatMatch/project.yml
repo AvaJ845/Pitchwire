@@ -10,6 +10,9 @@ settings:
     # ALWAYS_SEARCH_USER_PATHS=YES implies. This project has no bridging headers
     # or user header search paths, so turn it off explicitly.
     ALWAYS_SEARCH_USER_PATHS: NO
+  configs:
+    debug:
+      ENABLE_TESTABILITY: YES   # @testable import Pitchwire from the unit tests
 targets:
   BeatMatch:
     type: application
@@ -44,12 +47,30 @@ targets:
         GENERATE_INFOPLIST_FILE: true
     dependencies:
       - target: BeatMatch
+  BeatMatchUnitTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: UnitTests
+    settings:
+      base:
+        PRODUCT_NAME: PitchwireUnitTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.avaresearch.pitchwireUnitTests
+        SWIFT_VERSION: "5.0"
+        CODE_SIGNING_ALLOWED: false
+        GENERATE_INFOPLIST_FILE: true
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Pitchwire.app/Pitchwire"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    dependencies:
+      - target: BeatMatch
 schemes:
   BeatMatch:
     build:
       targets:
         BeatMatch: all
         BeatMatchUITests: [test]
+        BeatMatchUnitTests: [test]
     test:
       targets:
+        - BeatMatchUnitTests
         - BeatMatchUITests

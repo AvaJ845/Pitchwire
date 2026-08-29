@@ -4,17 +4,29 @@ protocol PitchDraftingService {
     func draft(story: StoryAnalysisResult, rawText: String, for candidate: MatchCandidate) async throws -> PitchDraft
 }
 
-/// Pitch drafting goes through the quality model tier when a backend is configured,
-/// and falls back to a grounded template offline. The template is never worse than
-/// "a bare number with no reason" — every pitch says *why* this journalist.
-struct TemplatePitchDraftingService: PitchDraftingService {
-    var provider: AIProvider = OfflineAIProvider()
+/// Pitch drafting runs the `.pitchDraft` task through the AI gateway (quality
+/// tier) when a backend is configured, and falls back to a grounded template
+/// offline. The template is never worse than "a bare number with no reason" —
+/// every pitch says *why* this journalist.
+struct DefaultPitchDraftingService: PitchDraftingService {
+    var ai: AIClient = AIClient()
 
     func draft(story: StoryAnalysisResult, rawText: String, for candidate: MatchCandidate) async throws -> PitchDraft {
         let name = candidate.journalist.name
 
-        if let generated = try? await provider.generate(prompt: Self.prompt(story: story, rawText: rawText, candidate: candidate), tier: .quality),
-           let parsed = Self.parse(generated, recipient: name) {
+        let request = AIRequest(
+            task: .pitchDraft,
+            input: [
+                "recipient": name,
+                "story": String(rawText.prefix(2000)),
+                "angle": story.angle,
+                "audience": story.audience,
+                "hooks": story.mediaHooks.joined(separator: ", "),
+                "whyThisJournalist": candidate.explanation.reasonText
+            ],
+            prompt: "Draft a media pitch. Return: SUBJECT: <line>\\nSHORT: <text>\\nLONG: <text>"
+        )
+        if let generated = await ai.text(for: request), let parsed = Self.parse(generated) {
             return parsed
         }
 
@@ -49,17 +61,7 @@ struct TemplatePitchDraftingService: PitchDraftingService {
         return PitchDraft(subject: subject, shortBody: shortBody, longBody: longBody)
     }
 
-    private static func prompt(story: StoryAnalysisResult, rawText: String, candidate: MatchCandidate) -> String {
-        """
-        Draft a short and a long media pitch to \(candidate.journalist.name).
-        Story: \(rawText.prefix(1500))
-        Angle: \(story.angle). Audience: \(story.audience). Hooks: \(story.mediaHooks.joined(separator: ", ")).
-        Why this journalist: \(candidate.explanation.reasonText)
-        Return: SUBJECT: <line>\\nSHORT: <text>\\nLONG: <text>
-        """
-    }
-
-    private static func parse(_ text: String, recipient: String) -> PitchDraft? {
+    private static func parse(_ text: String) -> PitchDraft? {
         func section(_ tag: String) -> String? {
             guard let range = text.range(of: "\(tag):", options: .caseInsensitive) else { return nil }
             let rest = text[range.upperBound...]

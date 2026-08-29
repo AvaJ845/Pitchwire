@@ -16,13 +16,29 @@ protocol StoryAnalysisService {
     func analyze(rawText: String) async throws -> StoryAnalysisResult
 }
 
-/// Deterministic, offline implementation so the app runs with zero configuration.
-/// The LLM-backed implementation (fast tier — see `ModelTier`) takes an `AIProvider`
-/// and produces the same struct; no UI code changes when it's swapped in. The model
-/// only ever *interprets* the pasted text — the journalist/outlet data stays
-/// authoritative elsewhere.
-struct StubStoryAnalysisService: StoryAnalysisService {
+/// Runs the `.storyAnalysis` task through the AI gateway (fast tier) when a
+/// backend is configured, and falls back to deterministic extraction otherwise —
+/// so the product works with zero configuration. The model only ever *interprets*
+/// the pasted text; journalist/outlet data stays authoritative elsewhere.
+struct DefaultStoryAnalysisService: StoryAnalysisService {
+    var ai: AIClient = AIClient()
+
     func analyze(rawText: String) async throws -> StoryAnalysisResult {
+        let request = AIRequest(
+            task: .storyAnalysis,
+            input: ["story": String(rawText.prefix(4000))],
+            prompt: "Extract theme, vertical, region, angle, urgency, summary, audience, "
+                + "subtopics[], mediaHooks[] as JSON matching the StoryAnalysisResult schema."
+        )
+        if let json = await ai.text(for: request),
+           let data = json.data(using: .utf8),
+           let parsed = try? JSONDecoder().decode(StoryAnalysisResult.self, from: data) {
+            return parsed
+        }
+        return Self.deterministic(rawText)
+    }
+
+    private static func deterministic(_ rawText: String) -> StoryAnalysisResult {
         let lowered = rawText.lowercased()
         let vertical = Self.detectVertical(in: lowered)
         let angle = Self.detectAngle(in: lowered)

@@ -3,13 +3,18 @@ import SwiftData
 
 struct JournalistDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AIClient.self) private var aiClient
+    @Environment(Entitlements.self) private var entitlements
     let target: MediaTarget
     let campaign: Campaign
 
     @State private var draft: PitchDraft?
     @State private var isDrafting = false
+    @State private var draftError: String?
 
-    private let draftingService: PitchDraftingService = TemplatePitchDraftingService()
+    private var draftingService: PitchDraftingService {
+        DefaultPitchDraftingService(ai: aiClient)
+    }
 
     private var journalist: JournalistProfile? { target.journalist }
 
@@ -85,6 +90,14 @@ struct JournalistDetailView: View {
                 }
                 .buttonStyle(.borderedProminent)
 
+                if let draftError {
+                    Text(draftError)
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                }
+
+                AllowanceFooter(key: .aiPitchDraft)
+
                 if let draft {
                     NavigationLink("View draft") {
                         PitchDraftView(draft: draft)
@@ -99,6 +112,13 @@ struct JournalistDetailView: View {
 
     private func generateDraft() async {
         guard let journalist, let story = campaign.story else { return }
+
+        draftError = nil
+        guard entitlements.consume(.aiPitchDraft) else {
+            draftError = "You've used all \(entitlements.plan.limit(for: .aiPitchDraft) ?? 0) AI pitch drafts on the \(entitlements.plan.tier.displayName) plan this period."
+            return
+        }
+
         isDrafting = true
         defer { isDrafting = false }
 

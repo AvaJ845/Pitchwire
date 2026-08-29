@@ -3,12 +3,17 @@ import SwiftData
 
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AIClient.self) private var aiClient
+    @Environment(Entitlements.self) private var entitlements
+
     @State private var storyText: String = ""
     @State private var isAnalyzing = false
     @State private var activeCampaign: Campaign?
     @State private var errorMessage: String?
 
-    private let analysisService: StoryAnalysisService = StubStoryAnalysisService()
+    private var analysisService: StoryAnalysisService {
+        DefaultStoryAnalysisService(ai: aiClient)
+    }
 
     var body: some View {
         NavigationStack {
@@ -45,6 +50,8 @@ struct HomeView: View {
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                     .disabled(storyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isAnalyzing)
+
+                    AllowanceFooter(key: .storyAnalysis)
                 }
                 .padding()
             }
@@ -57,6 +64,12 @@ struct HomeView: View {
 
     private func analyze() async {
         errorMessage = nil
+
+        guard entitlements.consume(.storyAnalysis) else {
+            errorMessage = "You've used all \(entitlements.plan.limit(for: .storyAnalysis) ?? 0) story analyses on the \(entitlements.plan.tier.displayName) plan this period."
+            return
+        }
+
         isAnalyzing = true
         defer { isAnalyzing = false }
 
@@ -73,6 +86,26 @@ struct HomeView: View {
             activeCampaign = campaign
         } catch {
             errorMessage = "Couldn't analyze that story: \(error.localizedDescription)"
+        }
+    }
+}
+
+/// "N of M story analyses left this period" — reads through Entitlements, never
+/// the plan directly.
+struct AllowanceFooter: View {
+    @Environment(Entitlements.self) private var entitlements
+    let key: UsageKey
+
+    var body: some View {
+        if entitlements.isUnlimited(key) {
+            Text("\(key.displayName): unlimited on \(entitlements.plan.tier.displayName)")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        } else if let remaining = entitlements.remaining(key) {
+            let limit = entitlements.plan.limit(for: key) ?? 0
+            Text("\(remaining) of \(limit) \(key.displayName.lowercased()) left this period")
+                .font(.footnote)
+                .foregroundStyle(remaining == 0 ? .orange : .secondary)
         }
     }
 }
