@@ -98,14 +98,7 @@ struct JournalistDetailView: View {
         isDrafting = true
         defer { isDrafting = false }
 
-        let analysis = StoryAnalysisResult(
-            theme: story.theme ?? "",
-            vertical: story.vertical ?? "",
-            region: story.region ?? "",
-            angle: story.angle ?? "",
-            urgency: story.urgency ?? "",
-            summary: story.summary ?? ""
-        )
+        let analysis = story.analysisResult
         let candidate = MatchCandidate(
             journalist: journalist,
             confidenceTier: target.confidenceTier,

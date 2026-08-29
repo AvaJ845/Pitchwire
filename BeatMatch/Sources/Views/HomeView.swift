@@ -64,13 +64,7 @@ struct HomeView: View {
         do {
             let story = Story(rawText: storyText, sourceType: .pastedText)
             let analysis = try await analysisService.analyze(rawText: storyText)
-            story.theme = analysis.theme
-            story.vertical = analysis.vertical
-            story.region = analysis.region
-            story.angle = analysis.angle
-            story.urgency = analysis.urgency
-            story.summary = analysis.summary
-            story.analysisStatus = .analyzed
+            story.apply(analysis)
 
             let campaign = Campaign(name: analysis.theme, story: story)
             modelContext.insert(campaign)

@@ -38,3 +38,28 @@ final class Story {
         self.analysisStatus = .pending
     }
 }
+
+extension Story {
+    /// Single place that maps between `Story`'s stored fields and `StoryAnalysisResult`.
+    /// Add a new analysis field here, not at every call site.
+    func apply(_ analysis: StoryAnalysisResult) {
+        theme = analysis.theme
+        vertical = analysis.vertical
+        region = analysis.region
+        angle = analysis.angle
+        urgency = analysis.urgency
+        summary = analysis.summary
+        analysisStatus = .analyzed
+    }
+
+    var analysisResult: StoryAnalysisResult {
+        StoryAnalysisResult(
+            theme: theme ?? "",
+            vertical: vertical ?? "",
+            region: region ?? "",
+            angle: angle ?? "",
+            urgency: urgency ?? "",
+            summary: summary ?? ""
+        )
+    }
+}

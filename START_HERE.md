@@ -54,12 +54,13 @@ BeatMatch/
   Sources/                    the 22 Swift files — Models/ Services/ Data/ Views/ + BeatMatchApp.swift
   UITests/CoreLoopUITests.swift   one smoke test: paste → analyze → match → detail → draft
   Screenshots/                reference captures of each step
-BeatMatch-Source/             original hand-off copy, kept in sync with Sources/
 ```
 
 ## What's real vs. placeholder
 - The 15 journalists in `Data/SampleJournalists.swift` are fictional — clearly marked as sample
   data, not real people. Real ingestion (Fellow 4's job) replaces this file's `seedPool()` later.
+- The `Story` ↔ `StoryAnalysisResult` mapping lives in one place — `Story.apply(_:)` and
+  `Story.analysisResult` (in `Models/Story.swift`). Add a new analysis field there, not at call sites.
 - Story analysis and pitch drafting are deterministic/template-based (`StubStoryAnalysisService`,
   `TemplatePitchDraftingService`) so the app runs with zero API keys. Both sit behind protocols —
   swap in an LLM-backed implementation without touching any view code (see ARCHITECTURE.md, section 4).
@@ -72,6 +73,7 @@ BeatMatch-Source/             original hand-off copy, kept in sync with Sources/
 - `StubStoryAnalysisService` now renders "AI" / "Fintech" etc. as proper display names instead of
   `"ai".capitalized` → "Ai" leaking into campaign names and pitch subjects.
 - Added `UITests/CoreLoopUITests.swift` — one smoke test covering the whole loop.
+- Removed the duplicate `BeatMatch-Source/` tree — `BeatMatch/Sources/` is the single source of truth.
 
 ## Next
 See `ARCHITECTURE.md` for the full reasoning (MVP scope, challenged assumptions, deferred work).
