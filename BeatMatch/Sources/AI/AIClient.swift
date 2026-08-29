@@ -35,17 +35,29 @@ final class AIClient {
     private(set) var configuration: AIConfiguration
     private var gateway: AIGateway
     private let telemetry: AITelemetry
+    private weak var log: LLMLog?
 
-    init(configuration: AIConfiguration = .offline, telemetry: AITelemetry = LoggingTelemetry()) {
+    init(
+        configuration: AIConfiguration = .offline,
+        log: LLMLog? = nil,
+        telemetry: AITelemetry? = nil
+    ) {
         self.configuration = configuration
-        self.telemetry = telemetry
-        self.gateway = Self.makeGateway(for: configuration)
+        self.log = log
+        if let telemetry {
+            self.telemetry = telemetry
+        } else if let log {
+            self.telemetry = CompositeTelemetry(sinks: [LoggingTelemetry(), CapturingTelemetry(log: log)])
+        } else {
+            self.telemetry = LoggingTelemetry()
+        }
+        self.gateway = Self.makeGateway(for: configuration, log: log)
     }
 
     /// Swap the backend at runtime (e.g. after sign-in issues a client token).
     func configure(_ configuration: AIConfiguration) {
         self.configuration = configuration
-        self.gateway = Self.makeGateway(for: configuration)
+        self.gateway = Self.makeGateway(for: configuration, log: log)
     }
 
     var isConfigured: Bool { configuration.isConfigured }
@@ -80,7 +92,10 @@ final class AIClient {
         ))
     }
 
-    private static func makeGateway(for config: AIConfiguration) -> AIGateway {
+    private static func makeGateway(for config: AIConfiguration, log: LLMLog?) -> AIGateway {
+        // Production: one hop to our backend, which runs the real
+        // GLM → GLM → NVIDIA failover chain itself. `FallbackGateway` is the
+        // tested shape of that chain; see FallbackGateway / DIRECTION.md.
         config.isConfigured ? HTTPGateway(config: config) : OfflineGateway()
     }
 }

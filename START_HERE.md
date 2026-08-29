@@ -97,6 +97,10 @@ Built against the product direction (story-first workflow) + the AI Infrastructu
 - **AI infrastructure** (`Sources/AI/`) — one chokepoint (`AIClient.run`), typed `AITask`s,
   `ModelTier` per task, `AIGateway` boundary (`OfflineGateway` ships, `HTTPGateway` ready),
   `AIConfiguration` holds only a scoped client token (no provider key), `AITelemetry` on every call.
+  `FallbackGateway` is the failover chain (GLM-4.7 → GLM-4.5 → NVIDIA NIM, all free), which runs
+  **in the backend** — the app makes one call and never sees the failover. `OpenAICompatibleGateway`
+  is the shared z.ai/NVIDIA client (backend/keyed-dev only). DEBUG build: Profile → Developer has an
+  **LLM log** (every call + failover) with a capture toggle.
 - **Entitlements** (`Sources/Entitlements/`) — features ask `Entitlements.can/remaining/consume`,
   never `if plan == .free`. All limits/features/trials live in `LocalEntitlementStore.catalog`
   (one place). Swappable `EntitlementStore` protocol for a StoreKit/server-backed store later.

@@ -3,6 +3,9 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(Entitlements.self) private var entitlements
     @Environment(AIClient.self) private var aiClient
+    #if DEBUG
+    @Environment(LLMLog.self) private var llmLog
+    #endif
 
     var body: some View {
         NavigationStack {
@@ -46,6 +49,24 @@ struct ProfileView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
+
+                #if DEBUG
+                Section {
+                    Toggle("Capture LLM logs", isOn: Binding(
+                        get: { llmLog.isCapturing },
+                        set: { llmLog.isCapturing = $0 }
+                    ))
+                    NavigationLink {
+                        DebugLLMLogView()
+                    } label: {
+                        LabeledContent("LLM log", value: "\(llmLog.failures.count) failures")
+                    }
+                } header: {
+                    Text("Developer")
+                } footer: {
+                    Text("DEBUG builds only. Records every AI call and every provider failover.")
+                }
+                #endif
             }
             .navigationTitle("Profile")
         }

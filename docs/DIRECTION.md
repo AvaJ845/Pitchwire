@@ -45,10 +45,21 @@ Implemented in `Sources/AI/`:
 - **Provider abstraction.** `AIGateway` is the boundary. `OfflineGateway` ships (always throws →
   deterministic fallback). `HTTPGateway` is ready — talks only to the Pitchwire backend, never a
   provider. `AIClient.configure(_:)` swaps the gateway at runtime.
+- **Failover.** `FallbackGateway` tries a chain of gateways in order and returns the first
+  success, logging each failed hop. In production this lives **in the backend** — the app makes
+  one call to `HTTPGateway` and the backend runs the chain, so a z.ai rate-limit is invisible to
+  the user:
+  `GLM-4.7-Flash (z.ai, free)` → `GLM-4.5-Flash (z.ai, free)` → `NVIDIA NIM (free, ~40 rpm)`.
+  `OpenAICompatibleGateway` is the shared client for z.ai and NVIDIA NIM (both OpenAI-compatible);
+  it holds a real key so it is **backend / keyed-dev only**, never shipped in the app.
+  ⚠️ Verify NVIDIA's free-tier ToS permits commercial use before wiring it in the backend.
 - **Keys server-side only.** `AIConfiguration` holds `baseURL` + a scoped per-user `clientToken`.
   There is no field for a provider key. Ship with `baseURL: nil`.
 - **Observable.** `AIClient` times every call and emits an `AIEvent` (task, tier, model, latency,
-  cached, ok/error) through one `AITelemetry` hook — vendor-neutral, `print` today.
+  cached, ok/error) through one `AITelemetry` hook — vendor-neutral, `print` today. A DEBUG-only
+  **LLM log** (`LLMLog` + a viewer in Profile → Developer, compiled out of release) captures every
+  call and every provider failover, with a capture toggle. Expected offline `notConfigured` states
+  are filtered out.
 - **Cost control.** `AIResponse` carries `cached` + `usage`; the gateway contract lets the backend
   do retrieval-before-generation and return summaries. Fast tier for extraction, quality for prose.
 - **Defer:** multi-model routing policy, self-hosting (GLM is MIT/open-weight — a *future* option,

@@ -13,6 +13,9 @@ settings:
   configs:
     debug:
       ENABLE_TESTABILITY: YES   # @testable import Pitchwire from the unit tests
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG   # xcodegen doesn't add this like Xcode's template does
+      GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
+      ONLY_ACTIVE_ARCH: YES
 targets:
   BeatMatch:
     type: application

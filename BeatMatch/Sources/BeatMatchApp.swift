@@ -5,15 +5,20 @@ import SwiftData
 struct BeatMatchApp: App {
     @State private var aiClient: AIClient
     @State private var entitlements: Entitlements
+    @State private var llmLog: LLMLog
 
     let sharedModelContainer: ModelContainer
 
     init() {
         let resetForTests = ProcessInfo.processInfo.arguments.contains("-uitest-reset")
 
+        // Developer LLM log — DEBUG-only viewer, capture toggle in Settings.
+        let log = LLMLog()
+        llmLog = log
+
         // AI layer — offline until a backend + client token exist. No provider key
         // is ever present in the app (see AIConfiguration).
-        aiClient = AIClient(configuration: .offline)
+        aiClient = AIClient(configuration: .offline, log: log)
 
         // Entitlements — one config object, swappable store. Feature code never
         // checks the plan directly.
@@ -29,6 +34,7 @@ struct BeatMatchApp: App {
             RootTabView()
                 .environment(aiClient)
                 .environment(entitlements)
+                .environment(llmLog)
         }
         .modelContainer(sharedModelContainer)
     }
