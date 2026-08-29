@@ -69,7 +69,8 @@ final class AIClient {
             emit(request, model: response.model, start: start, cached: response.cached, ok: true, error: nil)
             return response
         } catch {
-            emit(request, model: configuration.defaultModel, start: start, cached: false, ok: false, error: error)
+            // The call never reached a model, so there is no model name to report.
+            emit(request, model: "—", start: start, cached: false, ok: false, error: error)
             throw error
         }
     }

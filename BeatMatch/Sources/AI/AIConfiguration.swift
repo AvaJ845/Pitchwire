@@ -11,13 +11,12 @@ import Foundation
 struct AIConfiguration {
     var baseURL: URL?
     var clientToken: String?
-    /// Advisory only — the backend router has the final say.
-    var defaultModel: String
 
-    // Advisory only — the backend task→model map is the real router. MVP starts on
-    // the free tier (GLM-4.7-Flash / 4.5-Flash); a paid model (GLM-5.3-Flash) is
-    // routed per-task server-side later, no app change. See docs/DIRECTION.md.
-    static let offline = AIConfiguration(baseURL: nil, clientToken: nil, defaultModel: "glm-4.7-flash")
+    // No model field on purpose. The app declares AITask + ModelTier; the backend
+    // owns the task→model map and the failover chain (MVP: free GLM-4.7/4.5-Flash;
+    // GLM-5.3-Flash paid, routed per-task server-side later). Which model answered
+    // a call is only knowable from AIResponse.model. See docs/DIRECTION.md.
+    static let offline = AIConfiguration(baseURL: nil, clientToken: nil)
 
     var isConfigured: Bool { baseURL != nil && clientToken != nil }
 }

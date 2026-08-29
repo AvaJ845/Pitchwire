@@ -83,9 +83,11 @@ owns this map:
 
 Add the paid tier only when (1) free-tier rate limits actually bite under real usage **and**
 (2) there's evidence users care about draft polish specifically (vs. match quality). It's a
-one-line change in the backend task→model map. `AIConfiguration.defaultModel` is `glm-4.7-flash`,
-advisory only. **Re-check z.ai's pricing page for the current free-model lineup when wiring the
-backend** — it changes.
+one-line change in the backend task→model map. **The app carries no model name** — not in config,
+not in the UI (`AIConfiguration` has no `model` field; Profile shows only "Status: On-device only /
+Connected"). The DEBUG LLM log shows `AIResponse.model` per entry — the actual model that answered,
+for failover debugging. **Re-check z.ai's pricing page for the current free-model lineup when
+wiring the backend** — it changes.
 
 **Vision (GLM-4.6V-Flash) — not MVP.** Its only fit is story intake from a screenshot / PDF /
 image-heavy page, and that intake path is itself deferred (MVP is paste-text). When file/URL

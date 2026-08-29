@@ -19,6 +19,13 @@ final class DebugLogUITests: XCTestCase {
         }
         XCTAssertTrue(logLink.exists, "Developer / LLM log row should be in Profile (DEBUG)")
         XCTAssertTrue(app.switches["Capture LLM logs"].exists)
+        XCTAssertFalse(app.staticTexts["Default model"].exists, "no model name in user-facing UI")
+        XCTAssertTrue(app.staticTexts["Status"].exists)
+
+        let profileShot = XCTAttachment(screenshot: app.screenshot())
+        profileShot.name = "07-profile"
+        profileShot.lifetime = .keepAlways
+        add(profileShot)
 
         logLink.tap()
         XCTAssertTrue(app.navigationBars["LLM log"].waitForExistence(timeout: 5))

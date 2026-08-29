@@ -15,6 +15,13 @@ final class FallbackGatewayTests: XCTestCase {
 
     private func request() -> AIRequest { AIRequest(task: .pitchDraft, prompt: "x") }
 
+    /// A log that always captures, independent of the DEBUG default.
+    private func capturingLog() -> LLMLog {
+        let log = LLMLog(defaults: UserDefaults(suiteName: "t.\(UUID())")!)
+        log.isCapturing = true
+        return log
+    }
+
     func testReturnsFirstSuccessAndAttributesTheProvider() async throws {
         let gw = FallbackGateway(steps: [
             .init(name: "glm-4.7-flash", gateway: FakeGateway(result: .success("primary"))),
@@ -26,7 +33,7 @@ final class FallbackGatewayTests: XCTestCase {
     }
 
     func testFailsOverAndLogsEachHop() async throws {
-        let log = LLMLog()
+        let log = capturingLog()
         let gw = FallbackGateway(steps: [
             .init(name: "glm-4.7-flash", gateway: FakeGateway(result: .failure(AIGatewayError.server(status: 429)))),
             .init(name: "glm-4.5-flash", gateway: FakeGateway(result: .failure(AIGatewayError.server(status: 429)))),
@@ -43,7 +50,7 @@ final class FallbackGatewayTests: XCTestCase {
     }
 
     func testAllProvidersDownThrowsAndLogsFinalAsFailed() async {
-        let log = LLMLog()
+        let log = capturingLog()
         let gw = FallbackGateway(steps: [
             .init(name: "glm", gateway: FakeGateway(result: .failure(AIGatewayError.server(status: 500)))),
             .init(name: "nvidia", gateway: FakeGateway(result: .failure(AIGatewayError.notConfigured)))

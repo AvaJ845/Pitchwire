@@ -37,9 +37,8 @@ struct ProfileView: View {
                 }
 
                 Section("AI") {
-                    LabeledContent("Backend", value: aiClient.isConfigured ? "Connected" : "Offline (deterministic)")
-                    LabeledContent("Default model", value: aiClient.configuration.defaultModel)
-                    Text("Analysis and drafting run through a provider-independent gateway. No AI keys are stored in the app.")
+                    LabeledContent("Status", value: aiClient.isConfigured ? "Connected" : "On-device only")
+                    Text("Analysis and drafting run through a provider-independent gateway. The model is chosen server-side; no AI keys are stored in the app.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
