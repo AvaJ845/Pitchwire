@@ -36,13 +36,14 @@ enum EditorialSeedLoader {
 
 /// Mirrors `editorial_seed.json`. Deliberately has **no** field for email, phone,
 /// social handles or any other contact data — that is not what this product holds.
-struct SeedFile: Decodable {
+struct SeedFile: Codable {
     var generatedAt: String
     var method: String
+    var verticals: [String]?
     var profiles: [SeedProfile]
 }
 
-struct SeedProfile: Decodable {
+struct SeedProfile: Codable {
     var name: String
     var outlet: String
     var outletURL: String?
@@ -80,7 +81,7 @@ struct SeedProfile: Decodable {
             provenance: ProvenanceType(rawValue: provenance) ?? .publicEditorialSignal,
             evidenceSummary: evidenceSummary,
             sourceURL: sourceURL,
-            verificationDate: verificationDate.flatMap { JSONDecoder.seedDate.date(from: $0) },
+            verificationDate: verificationDate.flatMap { SeedDate.string.date(from: $0) },
             verifiedBy: verifiedBy,
             confidence: confidence.flatMap(EvidenceConfidence.init(rawValue:)) ?? .exploratory,
             pitchPreference: publishedPitchPreference
@@ -91,7 +92,7 @@ struct SeedProfile: Decodable {
     }
 }
 
-struct SeedArticle: Decodable {
+struct SeedArticle: Codable {
     var title: String
     var url: String
     var publishedAt: String?
@@ -101,21 +102,25 @@ struct SeedArticle: Decodable {
         CoverageEvidence(
             title: title,
             url: url,
-            publishedAt: publishedAt.flatMap { JSONDecoder.seedDate.date(from: $0) },
+            publishedAt: publishedAt.flatMap { SeedDate.string.date(from: $0) },
             topics: topics ?? [],
             outletName: outletName
         )
     }
 }
 
-private extension JSONDecoder {
-    static let seed = JSONDecoder()
-    /// The seed file uses plain `yyyy-MM-dd` dates.
-    static let seedDate: DateFormatter = {
+/// The seed file uses plain `yyyy-MM-dd` dates (UTC), never guessed.
+enum SeedDate {
+    static let string: DateFormatter = {
         let f = DateFormatter()
         f.calendar = Calendar(identifier: .iso8601)
         f.timeZone = TimeZone(identifier: "UTC")
         f.dateFormat = "yyyy-MM-dd"
         return f
     }()
+    static func format(_ date: Date?) -> String? { date.map { string.string(from: $0) } }
+}
+
+private extension JSONDecoder {
+    static let seed = JSONDecoder()
 }

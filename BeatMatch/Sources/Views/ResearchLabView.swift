@@ -11,8 +11,10 @@ import SwiftData
 /// real article + a reviewer name; a rejected profile is excluded from matching.
 struct ResearchLabView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage("lab.reviewer") private var reviewer = ""
     @Query(sort: \JournalistProfile.name) private var directory: [JournalistProfile]
     @Query(sort: \RemovalRequest.requestedAt, order: .reverse) private var removals: [RemovalRequest]
+    @State private var exportURL: URL?
 
     private var candidates: [JournalistProfile] { directory.filter { $0.evidenceState == .candidate } }
     private var verified: [JournalistProfile]   { directory.filter { $0.evidenceState == .verified } }
@@ -53,6 +55,27 @@ struct ResearchLabView: View {
             group("Candidates", candidates)
             group("Verified", verified)
             group("Rejected", rejected)
+
+            Section {
+                Button {
+                    let json = DirectoryExporter.json(for: directory, reviewer: reviewer)
+                    let url = FileManager.default.temporaryDirectory.appendingPathComponent("editorial_seed.json")
+                    try? json.data(using: .utf8)?.write(to: url)
+                    UIPasteboard.general.string = json
+                    exportURL = url
+                } label: {
+                    Label("Export directory as editorial_seed.json", systemImage: "square.and.arrow.up")
+                }
+                if let exportURL {
+                    ShareLink(item: exportURL) { Label("Share exported file", systemImage: "doc") }
+                    Text("Also copied to the clipboard. Replace BeatMatch/Resources/editorial_seed.json and commit.")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
+            } header: {
+                Text("Export")
+            } footer: {
+                Text("Verified records carry verificationDate + verifiedBy. Rejected records are dropped. Same fields as the input — no contact data.")
+            }
         }
         .navigationTitle("Research Lab")
         .navigationBarTitleDisplayMode(.inline)

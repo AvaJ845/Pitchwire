@@ -56,23 +56,26 @@ final class ConcurrencyStressUITests: XCTestCase {
         }
 
         // Draft a pitch (concurrent backend call) while enrichment may still run.
+        // The template is synchronous, so "View draft" should appear promptly.
         let firstRow = matchRows(app).firstMatch
         XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
         firstRow.tap()
         XCTAssertTrue(app.staticTexts["Why this match"].waitForExistence(timeout: 5))
         app.buttons["Draft pitch"].tap()
-        XCTAssertTrue(app.buttons["View draft"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["View draft"].waitForExistence(timeout: 15))
+        app.buttons["View draft"].tap()
+        XCTAssertTrue(app.navigationBars["Pitch draft"].waitForExistence(timeout: 5))
 
-        // Back to the list, open another, draft again.
-        back(app)
+        // Back through to the list, open another, draft again — best-effort; the
+        // point of the test is "no crash under concurrent AI + navigation".
+        back(app); back(app)
         _ = list.waitForExistence(timeout: 5)
         let anotherRow = matchRows(app).element(boundBy: 1)
         if anotherRow.waitForExistence(timeout: 5) {
             anotherRow.tap()
-            _ = app.staticTexts["Why this match"].waitForExistence(timeout: 5)
-            if app.buttons["Draft pitch"].waitForExistence(timeout: 3) {
+            if app.buttons["Draft pitch"].waitForExistence(timeout: 5) {
                 app.buttons["Draft pitch"].tap()
-                _ = app.buttons["View draft"].waitForExistence(timeout: 20)
+                _ = app.buttons["View draft"].waitForExistence(timeout: 15)
             }
         }
 
