@@ -82,6 +82,8 @@ struct OpenAICompatibleGateway: AIGateway {
             return "You write short, specific email subject lines. One per line."
         case .followUp:
             return "You write a brief, polite follow-up email."
+        case .verificationBrief:
+            return "You suggest how a researcher should verify a candidate — checks and searches. You have no web access and conclude nothing."
         }
     }
 

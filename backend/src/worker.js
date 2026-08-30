@@ -47,6 +47,7 @@ const TASK_MODELS = {
   storyAnalysis:    [OR_MINIMAX3, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
   matchExplanation: [OR_MINIMAX3, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
   subjectLine:      [OR_MINIMAX3, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
+  verificationBrief: [OR_MINIMAX3, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
   // quality tier — user-facing prose. minimax-m2.7 has been answering pitchDraft
   // in a few seconds; NV_120 / GLM are quality fallbacks behind the 13s per-model
   // timeout. Add glm-5.3-flash (paid) to the head if free capacity ever bottlenecks.
@@ -64,6 +65,7 @@ const MAX_TOKENS = {
   pitchDraft:       700,
   pitchRewrite:     700,
   followUp:         450,
+  verificationBrief: 320,
 };
 
 // Give up on an upstream model after this and fail over to the next in the chain,
@@ -98,6 +100,13 @@ const SYSTEM = {
     "Write 3 short, specific email subject lines, one per line. No numbering, no markdown.",
   followUp:
     "Write a brief, polite follow-up email. Plain text.",
+  verificationBrief:
+    "You are helping a human researcher VERIFY whether an editorial professional is a real, active, on-beat match. " +
+    "You have no web access and must not invent facts, article titles, URLs or dates. " +
+    "Output plain text, no markdown, exactly two labelled blocks:\n" +
+    "CHECKS:\n- <3 concrete things to confirm on their author/staff page (still there? still this beat? recent on-topic work?)>\n" +
+    "SEARCHES:\n- <3 specific web search queries that would surface their recent relevant coverage>\n" +
+    "Keep each line short. The researcher opens the page and runs the searches themselves — you never conclude anything.",
 };
 
 export default {

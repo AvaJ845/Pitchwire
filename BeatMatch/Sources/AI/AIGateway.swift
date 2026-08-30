@@ -17,12 +17,15 @@ enum AITask: String, Codable, CaseIterable {
     case pitchRewrite
     case subjectLine
     case followUp
+    /// Research Lab only: drafts *how to verify* a candidate — what to check on
+    /// their author page, what to search for. Guidance, never evidence.
+    case verificationBrief
 
     /// Default tier for this task. Extraction/classification is cheap; anything
     /// the user reads is quality.
     var defaultTier: ModelTier {
         switch self {
-        case .storyAnalysis, .matchExplanation: return .fast
+        case .storyAnalysis, .matchExplanation, .verificationBrief: return .fast
         case .pitchDraft, .pitchRewrite, .subjectLine, .followUp: return .quality
         }
     }

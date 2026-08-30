@@ -86,12 +86,15 @@ struct ResearchLabView: View {
 
 struct CandidateReviewView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AIClient.self) private var aiClient
     @Bindable var profile: JournalistProfile
     @AppStorage("lab.reviewer") private var reviewer = ""
     @State private var confidence: EvidenceConfidence = .moderate
     @State private var showArticleEditor = false
     @State private var confirmReject = false
     @State private var confirmClaim = false
+    @State private var brief: VerificationBrief?
+    @State private var loadingBrief = false
 
     private var record: EditorialEvidenceRecord? { profile.primaryEvidence }
     private var canVerify: Bool {
@@ -134,6 +137,43 @@ struct CandidateReviewView: View {
                     Text(summary).font(.footnote)
                 } header: { Text("AI-drafted assessment") }
                 footer: { Text("Not evidence. Verify every claim against the author page above.") }
+            }
+
+            Section {
+                if let brief, !brief.isEmpty {
+                    if !brief.checks.isEmpty {
+                        Text("Check on the author page").font(.caption.weight(.semibold))
+                        ForEach(brief.checks, id: \.self) { Label($0, systemImage: "checkmark.circle").font(.footnote) }
+                    }
+                    if !brief.searches.isEmpty {
+                        Text("Searches to run").font(.caption.weight(.semibold)).padding(.top, 4)
+                        ForEach(brief.searches, id: \.self) { q in
+                            if let u = URL(string: "https://www.google.com/search?q=" +
+                                (q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")) {
+                                Link(destination: u) { Label(q, systemImage: "magnifyingglass").font(.footnote) }
+                            }
+                        }
+                    }
+                }
+                Button {
+                    Task {
+                        loadingBrief = true
+                        brief = await VerificationBriefService.draft(for: profile, using: aiClient)
+                        loadingBrief = false
+                    }
+                } label: {
+                    if loadingBrief {
+                        HStack(spacing: 8) { ProgressView(); Text("Drafting…") }
+                    } else {
+                        Label(brief == nil ? "Get verification brief" : "Regenerate brief",
+                              systemImage: "sparkles")
+                    }
+                }
+                .disabled(loadingBrief || !aiClient.isConfigured)
+            } header: {
+                Text("How to verify — AI guidance")
+            } footer: {
+                Text("The model has no web access. It suggests what to check and search for — it concludes nothing, and this isn't saved.")
             }
 
             Section {

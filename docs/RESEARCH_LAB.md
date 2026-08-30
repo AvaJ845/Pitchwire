@@ -33,13 +33,17 @@ AI discovers → AI organizes → AI scores → HUMAN VERIFIES (here) → Pitchw
 
 ## The verify checklist (what a researcher actually does)
 
-1. Open the candidate. Tap **Open author page**.
-2. Confirm the beat matches what the page shows. Fix `beatTopics` if needed (edit
-   the seed / model — a Lab field for this is a future nicety).
-3. Find 2–3 recent on-topic pieces. For each: **Add article** → paste the real
-   headline + URL, set the date (leave blank if genuinely unknown — never guess).
-4. Set your initials + a confidence level.
-5. **Verify.** Or **Reject** if the candidate doesn't hold up (wrong beat, left
+1. Open the candidate. Tap **Get verification brief** — the model drafts what to
+   confirm on the author page and what to search for (it has no web access and
+   concludes nothing; the brief isn't saved).
+2. Tap **Open author page**. Work through the brief's checks.
+3. Correct **Beat & fit** (beat topics / audiences / covered angles / do-not-pitch)
+   against what the page actually shows — edit inline.
+4. Find 2–3 recent on-topic pieces (the brief's searches help). For each:
+   **Add article** → real headline + https URL, set the date (leave blank if
+   genuinely unknown — never guess).
+5. Set your initials + a confidence level.
+6. **Verify.** Or **Reject** if the candidate doesn't hold up (wrong beat, left
    journalism, no recent relevant work).
 
 ## Claimed profiles
@@ -49,11 +53,21 @@ journalist has confirmed they claimed it (e.g. by email). A self-serve claim flo
 (the journalist signs in and edits their own beat + do-not-pitch list) needs
 accounts, which don't exist yet; it's the intended Layer-A path (see `SEED_SET.md`).
 
+## The verification brief (`AITask.verificationBrief`)
+
+A `.fast`-tier call that returns two plain blocks — `CHECKS:` and `SEARCHES:` —
+parsed by `VerificationBriefService`. The system prompt forbids inventing article
+titles, URLs or dates and forbids concluding anything; the model has no web
+access. It's `origin: .userInitiated` so it preempts background enrichment. The
+output is shown, not stored — regenerate any time. This is the spec's "review the
+AI-generated relevance assessment" step, turned into something actionable.
+
 ## Not done yet
 
-- Removal requests are a **local** queue. Before any public release, "Report an
-  issue" must also POST to a monitored inbox with a real **48-hour SLA**, and the
-  in-app copy already promises that window.
-- No Lab editing of `beatTopics` / `audiences` / `coveredAngles` (edit the seed).
+- Removal requests: the Worker route + optional webhook exist; a **monitored
+  inbox with a real 48-hour SLA is the operator's job** (the in-app copy promises
+  it).
 - No bulk import of a session-discovered candidate JSON beyond the bundled seed.
 - Not gated behind a real admin auth — it's `#if DEBUG`, compiled out of release.
+- Enrichment still warms only the top 3 matches on the list (`enrichOne` covers
+  any card opened). Widening that is worth it once profiles carry real articles.
