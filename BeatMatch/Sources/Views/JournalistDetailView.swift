@@ -245,11 +245,15 @@ struct JournalistDetailView: View {
                     Button("Report an issue / request removal") {
                         Haptics.tap()
                         for record in journalist.evidenceRecords { record.issueReported = true }
-                        modelContext.insert(RemovalRequest(
+                        let request = RemovalRequest(
                             journalistName: journalist.name,
                             journalistID: journalist.id,
-                            reason: "Reported from the profile screen"))
+                            reason: "Reported from the profile screen")
+                        modelContext.insert(request)
                         try? modelContext.save()
+                        let name = journalist.name, id = journalist.id, config = aiClient.configuration
+                        Task { await RemovalReporter.send(name: name, journalistID: id,
+                                                          reason: request.reason, using: config) }
                     }
                     .font(.footnote)
                     .foregroundStyle(Palette.inkSecondary)

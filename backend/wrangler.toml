@@ -8,6 +8,9 @@ preview_urls = false   # only the one workers.dev route; no extra public surface
 #   NVIDIA_API_KEY         NVIDIA build.nvidia.com key (free; only the gpt-oss models are serverless-free)
 #   ZAI_API_KEY            z.ai API key (Aliyun-fronted → blocked from Cloudflare; kept for a non-CF host)
 #   PITCHWIRE_CLIENT_TOKEN a long random string the app sends as `Authorization: Bearer <...>` (rotatable; NOT a provider key)
+#   REMOVAL_WEBHOOK_URL    OPTIONAL — a Slack/Discord/Zapier incoming-webhook URL. POST /v1/removal-request
+#                          forwards `{text}` there. Without it the request is still logged (wrangler tail).
+#                          A monitored inbox + 48-hour takedown SLA is the operator's responsibility.
 
 [vars]
 RATE_LIMIT_PER_MIN = "20"

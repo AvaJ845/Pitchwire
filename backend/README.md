@@ -68,6 +68,15 @@ Cloudflare-blocked so z.ai's GLM models become reachable through it too.
 Privacy → allow "providers that may train on your inputs". Then add those model
 ids to `TASK_MODELS` in `src/worker.js`.
 
+### Removal / issue reports
+
+`POST /v1/removal-request` (same `Authorization: Bearer` token) —
+`{ journalistName, journalistID, reason }`, **editorial context only, no user
+data**. Logged (`wrangler tail`) and, if `REMOVAL_WEBHOOK_URL` is set, forwarded
+as `{text}` to that Slack/Discord/Zapier webhook. The app also keeps a local
+copy in the Research Lab. **A monitored inbox + real 48-hour takedown is on the
+operator** — the app already promises that window in its UI.
+
 ### Debug
 
 `POST /v1/generate?only=nvidia:openai/gpt-oss-20b` forces one provider and skips

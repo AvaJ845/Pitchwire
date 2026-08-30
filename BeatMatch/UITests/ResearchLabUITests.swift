@@ -25,8 +25,10 @@ final class ResearchLabUITests: XCTestCase {
         XCTAssertTrue(firstCandidate.waitForExistence(timeout: 5))
         firstCandidate.tap()
 
-        // Attach an article.
+        // Attach an article (the button is below the beat/fit section — scroll to it).
         let addArticle = app.buttons["Add article"]
+        var s = 0
+        while !addArticle.isHittable && s < 6 { app.swipeUp(); s += 1 }
         XCTAssertTrue(addArticle.waitForExistence(timeout: 5))
         addArticle.tap()
 
@@ -37,12 +39,14 @@ final class ResearchLabUITests: XCTestCase {
         urlField.tap(); urlField.typeText("https://example.com/article")
         app.buttons["Add"].tap()
 
-        // Set reviewer + verify.
+        // Set reviewer + verify (scroll down to the Verify section).
         let reviewer = app.textFields["Reviewer (your initials)"]
+        var r = 0
+        while !reviewer.isHittable && r < 6 { app.swipeUp(); r += 1 }
         XCTAssertTrue(reviewer.waitForExistence(timeout: 5))
         reviewer.tap(); reviewer.typeText("DJ")
         let verify = app.buttons["Verify this profile"]
-        XCTAssertTrue(verify.isEnabled)
+        XCTAssertTrue(verify.waitForExistence(timeout: 5))
         verify.tap()
 
         XCTAssertTrue(app.staticTexts["Verified"].waitForExistence(timeout: 5),

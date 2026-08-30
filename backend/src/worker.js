@@ -104,7 +104,6 @@ export default {
   async fetch(request, env, ctx) {
     if (request.method !== "POST") return json({ error: "POST only" }, 405);
     const url = new URL(request.url);
-    if (url.pathname !== "/v1/generate") return json({ error: "not found" }, 404);
 
     // Auth — a scoped, rotatable client token (NOT a provider key).
     const auth = request.headers.get("Authorization") || "";
@@ -115,6 +114,34 @@ export default {
     // Light abuse protection: per-IP rate limit via the Cache API.
     const ip = request.headers.get("CF-Connecting-IP") || "anon";
     if (await rateLimited(ip, env)) return json({ error: "rate limited" }, 429);
+
+    // Removal / issue reports. Editorial context only — no user PII in the body.
+    // Forwarded to REMOVAL_WEBHOOK_URL (Slack/Discord/Zapier) if set, always logged.
+    // A monitored inbox + 48h SLA is the operator's responsibility.
+    if (url.pathname === "/v1/removal-request") {
+      let r;
+      try { r = await request.json(); } catch { return json({ error: "bad json" }, 400); }
+      const record = {
+        kind: "removal-request",
+        journalist: String(r.journalistName || "").slice(0, 200),
+        journalistId: String(r.journalistID || "").slice(0, 64),
+        reason: String(r.reason || "").slice(0, 500),
+        at: new Date().toISOString(),
+      };
+      console.log("removal-request:", JSON.stringify(record));
+      if (env.REMOVAL_WEBHOOK_URL) {
+        ctx.waitUntil(fetch(env.REMOVAL_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: `Pitchwire removal request — ${record.journalist} (${record.journalistId})\nReason: ${record.reason}\n${record.at}`,
+          }),
+        }).catch((e) => console.log("webhook failed:", String(e))));
+      }
+      return json({ received: true, sla: "48h" });
+    }
+
+    if (url.pathname !== "/v1/generate") return json({ error: "not found" }, 404);
 
     let body;
     try { body = await request.json(); } catch { return json({ error: "bad json" }, 400); }

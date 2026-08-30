@@ -118,9 +118,15 @@ struct CandidateReviewView: View {
                 }
             }
 
-            Section("Beat") {
-                Text(profile.beatTopics.joined(separator: ", "))
-                    .font(.subheadline).foregroundStyle(.secondary)
+            Section {
+                listField("Beat topics", get: { profile.beatTopics }, set: { profile.beatTopics = $0 })
+                listField("Audiences", get: { profile.audiences }, set: { profile.audiences = $0 })
+                listField("Covered angles", get: { profile.coveredAngles }, set: { profile.coveredAngles = $0 })
+                listField("Do not pitch", get: { profile.doNotPitch }, set: { profile.doNotPitch = $0 })
+            } header: {
+                Text("Beat & fit")
+            } footer: {
+                Text("Comma-separated. Correct these against the author page before verifying.")
             }
 
             if let summary = record?.evidenceSummary, !summary.isEmpty {
@@ -208,6 +214,27 @@ struct CandidateReviewView: View {
             Text("Only if they've confirmed it, e.g. by email. This sets provenance to CLAIMED_PROFILE.")
         }
         .onAppear { confidence = record?.confidence ?? .moderate }
+    }
+
+    /// A comma-separated editor over a `[String]` model field. Commits on every
+    /// edit; empty entries are dropped.
+    private func listField(_ label: String, get: @escaping () -> [String],
+                           set: @escaping ([String]) -> Void) -> some View {
+        let binding = Binding(
+            get: { get().joined(separator: ", ") },
+            set: { raw in
+                let list = raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                    .filter { !$0.isEmpty }
+                set(list)
+                try? modelContext.save()
+            }
+        )
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.caption).foregroundStyle(.secondary)
+            TextField(label, text: binding, axis: .vertical)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+        }
     }
 
     private func resolveRemovals(resolution: String) {
