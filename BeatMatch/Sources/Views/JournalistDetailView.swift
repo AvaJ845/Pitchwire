@@ -236,13 +236,19 @@ struct JournalistDetailView: View {
                 Divider().overlay(Palette.hairline)
 
                 if journalist.hasReportedIssue {
-                    Label("Reported — thanks, we'll review this.", systemImage: "checkmark.circle.fill")
+                    Label("Received — we aim to review removal requests within 48 hours.",
+                          systemImage: "checkmark.circle.fill")
                         .font(.caption)
                         .foregroundStyle(Palette.evidence(.high))
+                        .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Button("Report an issue with this profile") {
+                    Button("Report an issue / request removal") {
                         Haptics.tap()
                         for record in journalist.evidenceRecords { record.issueReported = true }
+                        modelContext.insert(RemovalRequest(
+                            journalistName: journalist.name,
+                            journalistID: journalist.id,
+                            reason: "Reported from the profile screen"))
                         try? modelContext.save()
                     }
                     .font(.footnote)

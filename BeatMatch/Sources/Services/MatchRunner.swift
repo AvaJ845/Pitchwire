@@ -12,26 +12,25 @@ enum MatchRunner {
     ) {
         guard let story = campaign.story else { return }
 
-        // Re-runnable: clear any targets from a previous pass.
-        for target in campaign.mediaTargets { context.delete(target) }
+        // Re-runnable: clear this campaign's targets (and their explanations).
+        // Journalists live in the shared directory — never touched here.
+        for target in campaign.mediaTargets {
+            if let explanation = target.explanation { context.delete(explanation) }
+            context.delete(target)
+        }
         campaign.mediaTargets.removeAll()
 
-        let pool = EditorialSeedLoader.seedPool()
+        JournalistDirectory.ensureSeeded(context)
+        let pool = JournalistDirectory.matchable(context)
         let candidates = service.match(analysis: story.analysisResult, against: pool)
 
         for candidate in candidates {
-            context.insert(candidate.journalist)
-            if let outlet = candidate.journalist.outlet { context.insert(outlet) }
-            for record in candidate.journalist.evidenceRecords {
-                context.insert(record)
-                for article in record.articles { context.insert(article) }
-            }
-            context.insert(candidate.explanation)
+            context.insert(candidate.explanation)   // one per (campaign, journalist), rebuilt each run
 
             let target = MediaTarget(
                 confidenceTier: candidate.confidenceTier,
                 confidenceScore: candidate.confidenceScore,
-                journalist: candidate.journalist,
+                journalist: candidate.journalist,   // an existing directory record
                 explanation: candidate.explanation
             )
             target.campaign = campaign

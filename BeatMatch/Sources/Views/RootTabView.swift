@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct RootTabView: View {
+    @Environment(\.modelContext) private var modelContext
+
     var body: some View {
         TabView {
             HomeView()
@@ -16,5 +18,6 @@ struct RootTabView: View {
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
         }
         .tint(Palette.accent)
+        .task { JournalistDirectory.ensureSeeded(modelContext) }
     }
 }

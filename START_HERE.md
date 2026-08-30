@@ -77,6 +77,12 @@ BeatMatch/
   `SampleDataTests` enforce the honesty (and that no contact field ever enters the schema).
 - **Matching quality is the milestone, not headcount.** `docs/EVAL.md` + `EditorialRelevanceEvalTests`
   are the living benchmark — every match must explain itself with a real beat + a grounded reason.
+- **Research Lab (Slice 4b, DEBUG-only)** — Profile → Developer → Research Lab. The persistent
+  `JournalistDirectory` is seeded once and shared by every campaign; a researcher opens a
+  candidate's source, attaches real dated articles, and **verifies or rejects** it. AI never
+  verifies. Rejected → excluded from matching. "Report an issue / request removal" feeds a
+  local queue (monitored-inbox POST still TODO). See `docs/RESEARCH_LAB.md`,
+  `docs/DATA_PROVIDER_INTAKE.md`.
 - The `Story` ↔ `StoryAnalysisResult` mapping lives in one place — `Story.apply(_:)` and
   `Story.analysisResult` (in `Models/Story.swift`). Add a new analysis field there, not at call sites.
 - Story analysis and pitch drafting are deterministic/template-based (`StubStoryAnalysisService`,

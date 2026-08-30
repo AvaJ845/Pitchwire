@@ -141,12 +141,14 @@ enum ProfileEvidenceState {
     case verified          // a human reviewed the sources
     case candidate         // real person, evidence not yet human-verified
     case demo              // fictional stand-in
+    case rejected          // a researcher rejected it (Lab only — never in matching)
 
     var tagText: String {
         switch self {
         case .verified:  return "Verified"
         case .candidate: return "Candidate"
         case .demo:      return "Demo"
+        case .rejected:  return "Rejected"
         }
     }
 
@@ -155,6 +157,7 @@ enum ProfileEvidenceState {
         case .verified:  return Palette.evidence(.high)
         case .candidate: return Palette.accent
         case .demo:      return Palette.warning
+        case .rejected:  return Palette.inkTertiary
         }
     }
 
@@ -163,12 +166,14 @@ enum ProfileEvidenceState {
         case .verified:  return "checkmark.seal.fill"
         case .candidate: return "magnifyingglass"
         case .demo:      return "flask.fill"
+        case .rejected:  return "xmark.circle"
         }
     }
 }
 
 extension JournalistProfile {
     var evidenceState: ProfileEvidenceState {
+        if isRejected { return .rejected }
         if isFictional { return .demo }
         if isVerified { return .verified }
         return .candidate
@@ -201,6 +206,8 @@ struct VerificationBadge: View {
             return "Not yet verified — candidate profile"
         case .demo:
             return "Fictional demo profile"
+        case .rejected:
+            return "Rejected in review"
         }
     }
 }
@@ -316,6 +323,7 @@ struct EvidenceNoticeBanner: View {
         case .verified:  return "Verified editorial evidence"
         case .candidate: return "Candidate profiles — not yet verified"
         case .demo:      return "Demo data"
+        case .rejected:  return "Rejected"
         }
     }
 
@@ -327,6 +335,8 @@ struct EvidenceNoticeBanner: View {
             return "These are real editorial professionals compiled from public bylines, pending human verification. Check each profile's sources before you rely on it."
         case .demo:
             return "These profiles are fictional stand-ins — names, outlets and coverage are demo data, not real people."
+        case .rejected:
+            return "This profile was rejected in review."
         }
     }
 }

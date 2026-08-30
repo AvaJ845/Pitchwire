@@ -132,16 +132,27 @@ database is large.
 
 ---
 
-## Slice 4b — the Research Lab (next)
+## Slice 4b — the Research Lab (built)
 
-A DEBUG-only admin surface (Profile → Developer) that lets a researcher:
+`Profile → Developer → Research Lab` (DEBUG-only). Full detail: `docs/RESEARCH_LAB.md`.
 
-1. Define a vertical.
-2. Load session-discovered candidates (or paste a candidate JSON).
-3. Review supporting sources (open each `sourceURL`).
-4. Review the AI-generated relevance assessment.
-5. **Approve or reject** each candidate.
-6. On approve: attach real dated articles, set `verificationDate` / `verifiedBy`,
-   write the `EditorialEvidenceRecord`.
+- `JournalistDirectory` — the persistent pool matching scores against; seeded once
+  from the seed file, shared by every campaign. `MatchRunner` reads it and never
+  grows or mutates it.
+- A researcher opens a candidate's `sourceURL`, attaches real dated articles
+  (headline + https URL + date + topics — **no other fields exist**), sets their
+  initials + a confidence, and **Verifies** or **Rejects**.
+- `LabActions.verify` returns false without ≥1 article and a reviewer name. AI
+  never calls it — it's wired to a button.
+- **Rejected** → `isRejected` → excluded from `JournalistDirectory.matchable`.
+- **Removal requests** — "Report an issue / request removal" on any profile
+  creates a `RemovalRequest`; the Lab surfaces the open queue; the in-app copy
+  promises a 48-hour review (the monitored-inbox POST is still TODO — see
+  `RESEARCH_LAB.md`).
+- **Claimed profiles** — `Mark as claimed` sets `CLAIMED_PROFILE`, for when a
+  journalist has confirmed by email. Self-serve claim needs accounts (deferred).
 
-AI cannot autonomously approve. The human step is the product's integrity.
+## Data providers
+
+If a licensed provider is ever considered: `docs/DATA_PROVIDER_INTAKE.md` is the
+gate. No provider is integrated because its database is large.

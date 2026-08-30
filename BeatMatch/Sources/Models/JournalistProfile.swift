@@ -48,6 +48,12 @@ final class JournalistProfile {
     var coveredAngles: [String] = []    // product launch / funding / acquisition / hire / partnership
     var doNotPitch: [String] = []       // angles or topics they've publicly said not to pitch
 
+    /// A researcher rejected this candidate in the Research Lab — excluded from
+    /// all matching, kept only so it isn't re-imported from the seed.
+    var isRejected: Bool = false
+    /// The vertical this record was researched under (from the seed file).
+    var vertical: String?
+
     @Relationship(deleteRule: .cascade, inverse: \EditorialEvidenceRecord.profile)
     var evidenceRecords: [EditorialEvidenceRecord] = []
 
@@ -59,7 +65,8 @@ final class JournalistProfile {
         audiences: [String] = [],
         regions: [String] = [],
         coveredAngles: [String] = [],
-        doNotPitch: [String] = []
+        doNotPitch: [String] = [],
+        vertical: String? = nil
     ) {
         self.id = UUID()
         self.name = name
@@ -70,6 +77,7 @@ final class JournalistProfile {
         self.regions = regions
         self.coveredAngles = coveredAngles
         self.doNotPitch = doNotPitch
+        self.vertical = vertical
     }
 }
 

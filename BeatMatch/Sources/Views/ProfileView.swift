@@ -51,6 +51,9 @@ struct ProfileView: View {
 
                 #if DEBUG
                 Section {
+                    NavigationLink { ResearchLabView() } label: {
+                        Label("Research Lab", systemImage: "flask")
+                    }
                     Toggle("Capture LLM logs", isOn: Binding(
                         get: { llmLog.isCapturing },
                         set: { llmLog.isCapturing = $0 }
@@ -63,7 +66,7 @@ struct ProfileView: View {
                 } header: {
                     Text("Developer")
                 } footer: {
-                    Text("DEBUG builds only. Records every AI call and every provider failover — metadata only, secrets redacted.")
+                    Text("DEBUG builds only. The Research Lab is the human verify/approve step for editorial evidence. The LLM log records every AI call and failover — metadata only, secrets redacted.")
                 }
 
                 Section {

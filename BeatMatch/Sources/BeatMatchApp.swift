@@ -60,7 +60,8 @@ struct BeatMatchApp: App {
             PitchDraft.self,
             EditorialEvidenceRecord.self,
             CoverageEvidence.self,
-            FollowUpTask.self
+            FollowUpTask.self,
+            RemovalRequest.self
         ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

@@ -73,7 +73,8 @@ struct SeedProfile: Decodable {
             audiences: audiences ?? [],
             regions: regions ?? [],
             coveredAngles: coveredAngles ?? [],
-            doNotPitch: []
+            doNotPitch: [],
+            vertical: vertical
         )
         let record = EditorialEvidenceRecord(
             provenance: ProvenanceType(rawValue: provenance) ?? .publicEditorialSignal,
