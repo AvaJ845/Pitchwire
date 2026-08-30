@@ -24,23 +24,52 @@ struct LoggingTelemetry: AITelemetry {
     }
 }
 
+/// Serializes AI calls to one in-flight request, and hands the pipeline to a
+/// person before a background sweep. Without this, an `ExplanationEnricher` run
+/// (many calls, tens of seconds against slow free models) starves a user's
+/// "Draft pitch" until it times out.
+private actor RequestPipeline {
+    private var busy = false
+    private var userWaiters: [CheckedContinuation<Void, Never>] = []
+    private var bgWaiters: [CheckedContinuation<Void, Never>] = []
+
+    func acquire(_ origin: RequestOrigin) async {
+        guard busy else { busy = true; return }
+        await withCheckedContinuation { c in
+            switch origin {
+            case .userInitiated: userWaiters.append(c)
+            case .background:     bgWaiters.append(c)
+            }
+        }
+    }
+
+    func release() {
+        if !userWaiters.isEmpty { userWaiters.removeFirst().resume() }
+        else if !bgWaiters.isEmpty { bgWaiters.removeFirst().resume() }
+        else { busy = false }
+    }
+}
+
 /// The single seam every feature uses for AI. Features never touch a gateway or a
 /// provider — they call `client.run(...)` and fall back if it throws.
 ///
 /// - Centralized observability: every call is timed and emitted as an `AIEvent`.
 /// - Replaceable: `configure(_:)` swaps the underlying gateway with no feature changes.
 /// - Provider-independent: the app has no concept of GLM / OpenAI / Anthropic.
+/// - Serialized: one call at a time, user-initiated before background.
 @Observable
 final class AIClient {
     private(set) var configuration: AIConfiguration
     private var gateway: AIGateway
     private let telemetry: AITelemetry
     private weak var log: LLMLog?
+    private let pipeline = RequestPipeline()
 
     init(
         configuration: AIConfiguration = .offline,
         log: LLMLog? = nil,
-        telemetry: AITelemetry? = nil
+        telemetry: AITelemetry? = nil,
+        gatewayOverride: AIGateway? = nil
     ) {
         self.configuration = configuration
         self.log = log
@@ -52,7 +81,7 @@ final class AIClient {
         } else {
             self.telemetry = LoggingTelemetry()
         }
-        self.gateway = Self.makeGateway(for: configuration, log: log)
+        self.gateway = gatewayOverride ?? Self.makeGateway(for: configuration, log: log)
     }
 
     /// Swap the backend at runtime (e.g. after sign-in issues a client token).
@@ -65,6 +94,18 @@ final class AIClient {
     var isConfigured: Bool { configuration.isConfigured }
 
     func run(_ request: AIRequest) async throws -> AIResponse {
+        await pipeline.acquire(request.origin)
+        do {
+            let response = try await perform(request)
+            await pipeline.release()
+            return response
+        } catch {
+            await pipeline.release()
+            throw error
+        }
+    }
+
+    private func perform(_ request: AIRequest) async throws -> AIResponse {
         let start = Date()
         do {
             let response = try await gateway.run(request)

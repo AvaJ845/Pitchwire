@@ -28,6 +28,14 @@ enum AITask: String, Codable, CaseIterable {
     }
 }
 
+/// Who is waiting on a call. A person tapping "Draft pitch" must not queue behind
+/// a background enrichment sweep — `AIClient` grants the pipeline to `.userInitiated`
+/// requests before `.background` ones.
+enum RequestOrigin {
+    case userInitiated
+    case background
+}
+
 /// A typed request into the gateway. `input` is structured evidence; `prompt` is
 /// the instruction. The backend is free to ignore `prompt` and build its own from
 /// `task` + `input` — the app does not assume how generation happens.
@@ -36,12 +44,15 @@ struct AIRequest {
     var tier: ModelTier
     var input: [String: String]
     var prompt: String
+    var origin: RequestOrigin
 
-    init(task: AITask, tier: ModelTier? = nil, input: [String: String] = [:], prompt: String) {
+    init(task: AITask, tier: ModelTier? = nil, input: [String: String] = [:],
+         prompt: String, origin: RequestOrigin = .userInitiated) {
         self.task = task
         self.tier = tier ?? task.defaultTier
         self.input = input
         self.prompt = prompt
+        self.origin = origin
     }
 }
 

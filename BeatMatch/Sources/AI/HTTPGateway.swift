@@ -11,7 +11,18 @@ import Foundation
 ///   200:   { "text", "model", "cached", "usage": { "inputTokens", "outputTokens" } }
 struct HTTPGateway: AIGateway {
     let config: AIConfiguration
-    var session: URLSession = .shared
+    var session: URLSession = HTTPGateway.defaultSession
+
+    /// 25s, not URLSession's default 60s. The backend runs a failover chain with
+    /// its own per-model timeout; if nothing has answered in 25s the app should
+    /// stop waiting and use its deterministic fallback.
+    static let defaultSession: URLSession = {
+        let c = URLSessionConfiguration.default
+        c.timeoutIntervalForRequest = 25
+        c.timeoutIntervalForResource = 30
+        c.waitsForConnectivity = false
+        return URLSession(configuration: c)
+    }()
 
     func run(_ request: AIRequest) async throws -> AIResponse {
         guard let baseURL = config.baseURL, let token = config.clientToken else {

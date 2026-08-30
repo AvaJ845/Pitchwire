@@ -3,10 +3,14 @@ import SwiftData
 
 struct PitchDraftView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AIClient.self) private var aiClient
     @Bindable var draft: PitchDraft
     @State private var length: Length = .short
     @State private var copied = false
     @State private var offerFollowUp = false
+    @State private var polishing = false
+
+    private var draftingService: PitchDraftingService { DefaultPitchDraftingService(ai: aiClient) }
 
     enum Length: String, CaseIterable { case short = "Short", long = "Long" }
 
@@ -21,7 +25,19 @@ struct PitchDraftView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Card {
                     VStack(alignment: .leading, spacing: 6) {
-                        SectionLabel(title: "Subject")
+                        HStack {
+                            SectionLabel(title: "Subject")
+                            Spacer()
+                            if polishing {
+                                Label("Polishing…", systemImage: "sparkles")
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(Palette.inkTertiary)
+                            } else if draft.aiEnhanced {
+                                Label("AI", systemImage: "sparkles")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(Palette.accent)
+                            }
+                        }
                         TextField("Subject", text: $draft.subject, axis: .vertical)
                             .font(.headline)
                             .foregroundStyle(Palette.ink)
@@ -105,6 +121,29 @@ struct PitchDraftView: View {
         } message: {
             Text("Add a follow-up so this doesn't go quiet.")
         }
+        .task(id: draft.id) { await polishIfNeeded() }
+    }
+
+    /// The grounded template is already on screen. If a backend is configured and
+    /// this draft hasn't been rewritten yet, ask the model — in place, no blocking.
+    private func polishIfNeeded() async {
+        guard !draft.aiEnhanced, aiClient.isConfigured,
+              let story = draft.campaign?.story else { return }
+        let analysis = story.analysisResult
+        let rawText = story.rawText
+        let name = recipientName
+        let matchReason = draft.mediaTarget?.explanation?.reasonText ?? ""
+
+        polishing = true
+        defer { polishing = false }
+        guard let polished = await draftingService.polish(
+            story: analysis, rawText: rawText, recipientName: name, matchReason: matchReason)
+        else { return }
+        withAnimation(.snappy) {
+            draft.apply(polished)
+            draft.aiEnhanced = true
+        }
+        try? modelContext.save()
     }
 
     private var recipientName: String {

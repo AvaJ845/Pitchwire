@@ -9,7 +9,6 @@ struct JournalistDetailView: View {
     let campaign: Campaign
 
     @State private var draft: PitchDraft?
-    @State private var isDrafting = false
     @State private var draftError: String?
 
     private var draftingService: PitchDraftingService {
@@ -50,6 +49,14 @@ struct JournalistDetailView: View {
         .navigationTitle("Match")
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) { draftBar }
+        .task(id: target.id) {
+            // Enrich the reason for the card the user actually opened (if the
+            // list didn't warm it). Background priority — yields to a pitch draft.
+            guard let story = campaign.story else { return }
+            await ExplanationEnricher.enrichOne(
+                target: target, analysis: story.analysisResult,
+                using: aiClient, context: modelContext)
+        }
     }
 
     private var header: some View {
@@ -260,16 +267,11 @@ struct JournalistDetailView: View {
                 .buttonStyle(.pitchwire)
             } else {
                 Button {
-                    Task { await generateDraft() }
+                    generateDraft()
                 } label: {
-                    if isDrafting {
-                        HStack(spacing: 8) { ProgressView().tint(.white); Text("Writing…") }
-                    } else {
-                        Label("Draft pitch", systemImage: "square.and.pencil")
-                    }
+                    Label("Draft pitch", systemImage: "square.and.pencil")
                 }
                 .buttonStyle(.pitchwire)
-                .disabled(isDrafting)
             }
             AllowanceFooter(key: .aiPitchDraft)
         }
@@ -277,7 +279,7 @@ struct JournalistDetailView: View {
         .background(.bar)
     }
 
-    private func generateDraft() async {
+    private func generateDraft() {
         guard let journalist, let story = campaign.story else { return }
 
         draftError = nil
@@ -287,29 +289,24 @@ struct JournalistDetailView: View {
             return
         }
 
-        isDrafting = true
-        defer { isDrafting = false }
-
-        // Read every @Model field on the main actor, before the await.
+        // Read every @Model field on the main actor.
         let analysis = story.analysisResult
         let rawText = story.rawText
         let recipientName = journalist.name
         let matchReason = target.explanation?.reasonText ?? ""
 
-        do {
-            let newDraft = try await draftingService.draft(
-                story: analysis, rawText: rawText,
-                recipientName: recipientName, matchReason: matchReason)
-            newDraft.mediaTarget = target
-            newDraft.campaign = campaign
-            modelContext.insert(newDraft)
-            campaign.pitchDrafts.append(newDraft)
-            try modelContext.save()
-            Haptics.success()
-            withAnimation(.snappy) { draft = newDraft }
-        } catch {
-            draftError = "Couldn't draft that pitch. Try again."
-        }
+        // Instant: build the grounded template and navigate straight to it.
+        // PitchDraftView polishes it in place — no spinner here.
+        let content = draftingService.template(
+            story: analysis, rawText: rawText,
+            recipientName: recipientName, matchReason: matchReason)
+        let newDraft = PitchDraft(content: content, mediaTarget: target)
+        newDraft.campaign = campaign
+        modelContext.insert(newDraft)
+        campaign.pitchDrafts.append(newDraft)
+        try? modelContext.save()
+        Haptics.success()
+        withAnimation(.snappy) { draft = newDraft }
     }
 }
 

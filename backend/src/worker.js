@@ -42,16 +42,34 @@ const OR_MINIMAX3 = "openrouter:minimax/minimax-m3:free";
 const OR_DOTS    = "openrouter:dots-studio/dots-3-note-preview:free";
 const GLM_DIRECT = ["glm-4.7-flash", "glm-4.5-flash"];   // Aliyun-blocked from Cloudflare; kept for a non-CF host
 const TASK_MODELS = {
-  // fast tier — extraction / classification
-  storyAnalysis:    [NV_20, OR_MINIMAX3, OR_GLM, NV_120, ...GLM_DIRECT],
-  matchExplanation: [NV_20, OR_MINIMAX3, OR_GLM, NV_120, ...GLM_DIRECT],
-  subjectLine:      [NV_20, OR_MINIMAX3, OR_GLM, NV_120, ...GLM_DIRECT],
-  // quality tier — user-facing prose. Add glm-5.3-flash (paid) to the head if
-  // free capacity ever becomes the bottleneck.
-  pitchDraft:       [OR_GLM, NV_120, OR_MINIMAX, OR_DOTS, NV_20, ...GLM_DIRECT],
-  pitchRewrite:     [OR_GLM, NV_120, OR_MINIMAX, OR_DOTS, NV_20, ...GLM_DIRECT],
-  followUp:         [OR_GLM, NV_120, OR_MINIMAX, NV_20, ...GLM_DIRECT],
+  // fast tier — extraction / classification. Lead with the models that have been
+  // answering in ~3s; gpt-oss is a fallback (it's been slow/flaky).
+  storyAnalysis:    [OR_MINIMAX3, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
+  matchExplanation: [OR_MINIMAX3, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
+  subjectLine:      [OR_MINIMAX3, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
+  // quality tier — user-facing prose. minimax-m2.7 has been answering pitchDraft
+  // in a few seconds; NV_120 / GLM are quality fallbacks behind the 13s per-model
+  // timeout. Add glm-5.3-flash (paid) to the head if free capacity ever bottlenecks.
+  pitchDraft:       [OR_MINIMAX, NV_120, OR_GLM, OR_MINIMAX3, OR_DOTS, NV_20, ...GLM_DIRECT],
+  pitchRewrite:     [OR_MINIMAX, NV_120, OR_GLM, OR_MINIMAX3, OR_DOTS, NV_20, ...GLM_DIRECT],
+  followUp:         [OR_MINIMAX3, NV_20, NV_120, OR_GLM, ...GLM_DIRECT],
 };
+
+// Output budget per task. A one-sentence explanation does not need 900 tokens —
+// on slow free models that is the difference between a 3s and a 15s call.
+const MAX_TOKENS = {
+  storyAnalysis:    500,
+  matchExplanation: 220,
+  subjectLine:      220,
+  pitchDraft:       700,
+  pitchRewrite:     700,
+  followUp:         450,
+};
+
+// Give up on an upstream model after this and fail over to the next in the chain,
+// so one slow provider can't blow the whole request. The app's own timeout is
+// 25s, so keep this low enough that at least two models get a turn.
+const MODEL_TIMEOUT_MS = 13_000;
 
 const SYSTEM = {
   storyAnalysis:
@@ -127,11 +145,12 @@ export default {
       { role: "user", content: buildUserContent(prompt, input) },
     ];
     const temperature = tier === "fast" ? 0.2 : 0.6;
+    const maxTokens = MAX_TOKENS[task] || 500;
 
     const errs = [];
     for (const model of chain) {
       try {
-        const out = await callModel(model, messages, temperature, env);
+        const out = await callModel(model, messages, temperature, maxTokens, env);
         const payload = { text: out.text, model: out.model, cached: false, usage: out.usage };
         if (!only) ctx.waitUntil(cache.put(cachedURL, json(payload, 200, 60 * 60 * 6))); // 6h
         return json(payload);
@@ -146,7 +165,7 @@ export default {
   },
 };
 
-async function callModel(model, messages, temperature, env) {
+async function callModel(model, messages, temperature, maxTokens, env) {
   let baseURL, apiKey, realModel;
   const extraHeaders = {};
   if (model.startsWith("nvidia:")) {
@@ -166,18 +185,30 @@ async function callModel(model, messages, temperature, env) {
   }
   if (!apiKey) { const err = new Error(`no key for ${model}`); err.status = 500; throw err; }
 
-  const res = await fetch(`${baseURL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      // Aliyun-fronted APIs (z.ai) 405 requests without a UA.
-      "User-Agent": "Pitchwire/1.0 (+https://github.com/AvaJ845/Pitchwire)",
-      ...extraHeaders,
-    },
-    body: JSON.stringify({ model: realModel, messages, temperature, stream: false, max_tokens: 900 }),
-  });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), MODEL_TIMEOUT_MS);
+  let res;
+  try {
+    res = await fetch(`${baseURL}/chat/completions`, {
+      method: "POST",
+      signal: ctrl.signal,
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        // Aliyun-fronted APIs (z.ai) 405 requests without a UA.
+        "User-Agent": "Pitchwire/1.0 (+https://github.com/AvaJ845/Pitchwire)",
+        ...extraHeaders,
+      },
+      body: JSON.stringify({ model: realModel, messages, temperature, stream: false, max_tokens: maxTokens }),
+    });
+  } catch (e) {
+    const err = new Error(e.name === "AbortError" ? `timeout after ${MODEL_TIMEOUT_MS}ms` : String(e));
+    err.status = 504;
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) {
     const body = (await res.text().catch(() => "")).slice(0, 300);
     const err = new Error(`HTTP ${res.status} ${body}`);

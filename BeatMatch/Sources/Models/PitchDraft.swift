@@ -14,6 +14,9 @@ final class PitchDraft {
     var longBody: String
     var status: PitchDraftStatus
     var createdAt: Date
+    /// The grounded template shows instantly; this flips true once the model has
+    /// rewritten it in place.
+    var aiEnhanced: Bool = false
 
     var mediaTarget: MediaTarget?
     var campaign: Campaign?
@@ -26,5 +29,16 @@ final class PitchDraft {
         self.status = .draft
         self.createdAt = Date()
         self.mediaTarget = mediaTarget
+    }
+
+    convenience init(content: PitchContent, mediaTarget: MediaTarget? = nil) {
+        self.init(subject: content.subject, shortBody: content.shortBody,
+                  longBody: content.longBody, mediaTarget: mediaTarget)
+    }
+
+    func apply(_ content: PitchContent) {
+        subject = content.subject
+        shortBody = content.shortBody
+        longBody = content.longBody
     }
 }
