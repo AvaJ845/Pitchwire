@@ -25,6 +25,9 @@ targets:
       - path: Config
         buildPhase: resources
         optional: true
+      - path: Resources
+        buildPhase: resources
+        optional: true
     settings:
       base:
         PRODUCT_NAME: Pitchwire

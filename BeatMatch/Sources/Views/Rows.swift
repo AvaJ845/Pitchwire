@@ -74,9 +74,10 @@ struct MatchRow: View {
                                 .font(.subheadline)
                                 .foregroundStyle(Palette.inkSecondary)
                         }
-                        if target.journalist?.isSampleData == true {
-                            Tag(text: "Sample", color: Palette.warning)
-                        } else if let c = target.journalist?.evidenceConfidence {
+                        if let state = target.journalist?.evidenceState {
+                            Tag(text: state.tagText, icon: state.tagIcon, color: state.tagColor)
+                        }
+                        if let c = target.journalist?.evidenceConfidence {
                             EvidenceDot(confidence: c, showsLabel: false)
                         }
                     }

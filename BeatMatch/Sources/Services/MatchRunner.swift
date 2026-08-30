@@ -16,13 +16,16 @@ enum MatchRunner {
         for target in campaign.mediaTargets { context.delete(target) }
         campaign.mediaTargets.removeAll()
 
-        let pool = SampleJournalists.seedPool()
+        let pool = EditorialSeedLoader.seedPool()
         let candidates = service.match(analysis: story.analysisResult, against: pool)
 
         for candidate in candidates {
             context.insert(candidate.journalist)
             if let outlet = candidate.journalist.outlet { context.insert(outlet) }
-            for record in candidate.journalist.provenanceRecords { context.insert(record) }
+            for record in candidate.journalist.evidenceRecords {
+                context.insert(record)
+                for article in record.articles { context.insert(article) }
+            }
             context.insert(candidate.explanation)
 
             let target = MediaTarget(

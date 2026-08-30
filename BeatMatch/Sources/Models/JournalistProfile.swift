@@ -3,10 +3,10 @@ import SwiftData
 
 /// How current / trustworthy a profile's evidence is right now. Shown next to
 /// matches so the recommendation reads as honest, not authoritative-by-fiat.
-enum EvidenceConfidence: String, Codable {
-    case high
-    case moderate
+enum EvidenceConfidence: String, Codable, CaseIterable, Comparable {
     case exploratory
+    case moderate
+    case high
 
     var label: String {
         switch self {
@@ -15,14 +15,30 @@ enum EvidenceConfidence: String, Codable {
         case .exploratory: return "Exploratory"
         }
     }
+
+    private var rank: Int {
+        switch self {
+        case .exploratory: return 0
+        case .moderate:    return 1
+        case .high:        return 2
+        }
+    }
+
+    static func < (lhs: EvidenceConfidence, rhs: EvidenceConfidence) -> Bool {
+        lhs.rank < rhs.rank
+    }
 }
 
+/// An editorial professional (reporter, editor, newsletter author) and the public
+/// editorial context that makes them relevant to a story. **No contact data** —
+/// not modelled, not stored, not inferred. Kept as an internal codename; the
+/// product language is "editorial professional", never "journalist contact".
 @Model
 final class JournalistProfile {
     var id: UUID
     var name: String
+    var role: String?                   // "Senior Reporter, AI" — as the outlet lists it
     var beatTopics: [String]
-    var recentBylineTitles: [String]
     var outlet: Outlet?
 
     // Signals for the relevance engine. All from public editorial context —
@@ -30,15 +46,15 @@ final class JournalistProfile {
     var audiences: [String] = []        // Developers / Founders / Consumers / Businesses
     var regions: [String] = []          // US / EU / Global
     var coveredAngles: [String] = []    // product launch / funding / acquisition / hire / partnership
-    var doNotPitch: [String] = []       // angles or topics they've said not to pitch
+    var doNotPitch: [String] = []       // angles or topics they've publicly said not to pitch
 
-    @Relationship(deleteRule: .cascade)
-    var provenanceRecords: [ProvenanceRecord] = []
+    @Relationship(deleteRule: .cascade, inverse: \EditorialEvidenceRecord.profile)
+    var evidenceRecords: [EditorialEvidenceRecord] = []
 
     init(
         name: String,
+        role: String? = nil,
         beatTopics: [String] = [],
-        recentBylineTitles: [String] = [],
         outlet: Outlet? = nil,
         audiences: [String] = [],
         regions: [String] = [],
@@ -47,8 +63,8 @@ final class JournalistProfile {
     ) {
         self.id = UUID()
         self.name = name
+        self.role = role
         self.beatTopics = beatTopics
-        self.recentBylineTitles = recentBylineTitles
         self.outlet = outlet
         self.audiences = audiences
         self.regions = regions
@@ -58,42 +74,66 @@ final class JournalistProfile {
 }
 
 extension JournalistProfile {
+    /// Every sourced article across all evidence records, most recent first.
+    /// Articles with no known date sort last.
+    var allCoverage: [CoverageEvidence] {
+        evidenceRecords.flatMap(\.articles).sorted {
+            ($0.publishedAt ?? .distantPast) > ($1.publishedAt ?? .distantPast)
+        }
+    }
+
+    /// Titles only — kept for the relevance engine's text matching and the
+    /// pitch-draft context. Derived, never stored.
+    var recentBylineTitles: [String] { allCoverage.map(\.title) }
+
     /// The most authoritative record — what the profile "is" first.
-    var primaryProvenance: ProvenanceRecord? {
-        provenanceRecords.max { $0.sourceType.authority < $1.sourceType.authority }
+    var primaryEvidence: EditorialEvidenceRecord? {
+        evidenceRecords.max { $0.provenance.authority < $1.provenance.authority }
     }
 
     /// Records ordered most to least authoritative, for the detail view.
-    var orderedProvenance: [ProvenanceRecord] {
-        provenanceRecords.sorted { $0.sourceType.authority > $1.sourceType.authority }
+    var orderedEvidence: [EditorialEvidenceRecord] {
+        evidenceRecords.sorted { $0.provenance.authority > $1.provenance.authority }
     }
 
     var pitchPreference: String? {
-        orderedProvenance.compactMap(\.pitchPreference).first
+        orderedEvidence.compactMap(\.pitchPreference).first
     }
 
     var hasReportedIssue: Bool {
-        provenanceRecords.contains(where: \.issueReported)
+        evidenceRecords.contains(where: \.issueReported)
     }
 
-    /// True while this profile is a fictional stand-in (every source is sample
-    /// data). Real ingestion replaces these records with real ones and this
-    /// flips to false — the sample banners then disappear on their own.
-    var isSampleData: Bool {
-        !provenanceRecords.isEmpty && provenanceRecords.allSatisfy { $0.sourceType == .sampleData }
+    /// A fictional stand-in — every record is `.fictionalSample`. Real ingestion
+    /// replaces these and the demo banners disappear on their own.
+    var isFictional: Bool {
+        !evidenceRecords.isEmpty && evidenceRecords.allSatisfy { $0.provenance == .fictionalSample }
     }
 
-    /// Confidence = how authoritative the best source is + how recently it was verified.
+    /// A real professional whose evidence no human has verified yet. Shown as a
+    /// "candidate" everywhere — never as "verified".
+    var isUnverifiedCandidate: Bool {
+        !isFictional && !evidenceRecords.isEmpty && evidenceRecords.allSatisfy { !$0.isVerified }
+    }
+
+    var isVerified: Bool {
+        !isFictional && evidenceRecords.contains(where: \.isVerified)
+    }
+
+    /// The date a human last verified this profile's primary source, if ever.
+    var verificationDate: Date? {
+        orderedEvidence.compactMap(\.verificationDate).max()
+    }
+
+    /// Confidence = the record's stated confidence, but **capped** by how it was
+    /// obtained. Fictional data and unverified candidates never present above
+    /// exploratory; a verified record decays toward moderate as it ages.
     var evidenceConfidence: EvidenceConfidence {
-        guard let primary = primaryProvenance else { return .exploratory }
-        let days = Calendar.current.dateComponents([.day], from: primary.lastVerifiedAt, to: Date()).day ?? 9_999
-        switch primary.sourceType {
-        case .claimedProfile, .publisherPartner:
-            return days <= 120 ? .high : .moderate
-        case .licensedDataset, .publicSignal:
-            return days <= 120 ? .moderate : .exploratory
-        case .sampleData:
-            return .exploratory
-        }
+        guard let primary = primaryEvidence else { return .exploratory }
+        if primary.provenance == .fictionalSample { return .exploratory }
+        guard let verifiedAt = primary.verificationDate else { return .exploratory }
+        let days = Calendar.current.dateComponents([.day], from: verifiedAt, to: Date()).day ?? 9_999
+        if days > 180 { return min(primary.confidence, .moderate) }
+        return primary.confidence
     }
 }

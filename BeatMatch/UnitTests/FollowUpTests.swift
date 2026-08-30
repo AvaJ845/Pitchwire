@@ -9,7 +9,7 @@ final class FollowUpTests: XCTestCase {
         let schema = Schema([
             Story.self, Campaign.self, MediaTarget.self, Outlet.self,
             JournalistProfile.self, MatchExplanation.self, PitchDraft.self,
-            ProvenanceRecord.self, FollowUpTask.self,
+            EditorialEvidenceRecord.self, CoverageEvidence.self, FollowUpTask.self,
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         return ModelContext(try ModelContainer(for: schema, configurations: [config]))

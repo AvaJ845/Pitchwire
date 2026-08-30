@@ -28,33 +28,19 @@ struct JournalistDetailView: View {
             VStack(alignment: .leading, spacing: 16) {
                 header
 
+                if let journalist, !journalist.beatTopics.isEmpty {
+                    coversCard(journalist)
+                }
+
                 whyCard
 
                 if let relevance {
                     scoreCard(relevance)
                 }
 
-                if let bylines = journalist?.recentBylineTitles, !bylines.isEmpty {
-                    Card {
-                        VStack(alignment: .leading, spacing: 10) {
-                            SectionLabel(title: "Recent bylines")
-                            ForEach(bylines, id: \.self) { title in
-                                HStack(alignment: .top, spacing: 8) {
-                                    Image(systemName: "text.append")
-                                        .font(.caption)
-                                        .foregroundStyle(Palette.accent)
-                                        .padding(.top, 2)
-                                    Text(title)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Palette.ink)
-                                }
-                            }
-                        }
-                    }
-                }
-
                 if let journalist {
-                    provenanceCard(journalist)
+                    evidenceCard(journalist)
+                    sourcesCard(journalist)
                 }
             }
             .padding(Metrics.gutter)
@@ -71,23 +57,61 @@ struct JournalistDetailView: View {
             HStack(spacing: 14) {
                 Monogram(name: journalist?.name ?? "?", size: 56)
                 VStack(alignment: .leading, spacing: 3) {
+                    // WHO
                     Text(journalist?.name ?? "Unknown")
                         .font(.title2.bold())
                         .foregroundStyle(Palette.ink)
-                    if let outlet = journalist?.outlet?.name {
-                        Text(outlet)
-                            .font(.subheadline)
-                            .foregroundStyle(Palette.inkSecondary)
+                    if let role = journalist?.role {
+                        Text(role)
+                            .font(.caption)
+                            .foregroundStyle(Palette.inkTertiary)
                     }
+                    // WHERE THEY PUBLISH
+                    outletLine
                 }
                 Spacer(minLength: 0)
             }
             HStack(spacing: 8) {
                 ConfidencePill(tier: target.confidenceTier)
-                if journalist?.isSampleData == true {
-                    Tag(text: "Sample data", icon: "flask", color: Palette.warning)
-                } else if let c = journalist?.evidenceConfidence {
+                if let state = journalist?.evidenceState {
+                    Tag(text: state.tagText, icon: state.tagIcon, color: state.tagColor)
+                }
+                // CONFIDENCE
+                if let c = journalist?.evidenceConfidence {
                     EvidenceDot(confidence: c)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var outletLine: some View {
+        if let outlet = journalist?.outlet {
+            if let urlString = outlet.url, let url = URL(string: urlString), !urlString.isEmpty {
+                Link(destination: url) {
+                    HStack(spacing: 4) {
+                        Text(outlet.name)
+                        Image(systemName: "arrow.up.right").font(.caption2)
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(Palette.accent)
+                }
+            } else {
+                Text(outlet.name)
+                    .font(.subheadline)
+                    .foregroundStyle(Palette.inkSecondary)
+            }
+        }
+    }
+
+    // WHAT THEY COVER
+    private func coversCard(_ journalist: JournalistProfile) -> some View {
+        Card {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(title: "Covers")
+                FlowLayout(spacing: 6) {
+                    ForEach(journalist.beatTopics, id: \.self) { topic in
+                        Tag(text: topic, color: Palette.inkSecondary)
+                    }
                 }
             }
         }
@@ -137,6 +161,9 @@ struct JournalistDetailView: View {
                         }
                     }
                     .padding(.top, 2)
+                    Text(result.relevanceDisclaimer)
+                        .font(.caption2)
+                        .foregroundStyle(Palette.inkTertiary)
                     Text("A weighted read of structured beat, coverage and preference data — no AI, no guesswork.")
                         .font(.caption2)
                         .foregroundStyle(Palette.inkTertiary)
@@ -145,13 +172,58 @@ struct JournalistDetailView: View {
         }
     }
 
-    private func provenanceCard(_ journalist: JournalistProfile) -> some View {
+    // EVIDENCE + SOURCE + VERIFICATION DATE
+    private func evidenceCard(_ journalist: JournalistProfile) -> some View {
+        Card {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    SectionLabel(title: "Evidence")
+                    Spacer()
+                    VerificationBadge(state: journalist.evidenceState, date: journalist.verificationDate)
+                }
+
+                let coverage = journalist.allCoverage
+                if coverage.isEmpty {
+                    Text("No article-level evidence recorded yet.")
+                        .font(.footnote)
+                        .foregroundStyle(Palette.inkTertiary)
+                } else {
+                    ForEach(coverage) { article in
+                        EvidenceLinkRow(
+                            title: article.title,
+                            dateLabel: article.publishedLabel,
+                            url: article.url
+                        )
+                    }
+                }
+
+                if let record = journalist.primaryEvidence {
+                    Divider().overlay(Palette.hairline)
+                    Text(record.evidenceSummary)
+                        .font(.caption)
+                        .foregroundStyle(Palette.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let src = record.sourceURL, let url = URL(string: src), !src.isEmpty {
+                        Link(destination: url) {
+                            Label("View source: \(url.host()?.replacingOccurrences(of: "www.", with: "") ?? src)",
+                                  systemImage: "link")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Palette.accent)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Provenance detail + report
+    private func sourcesCard(_ journalist: JournalistProfile) -> some View {
         Card {
             VStack(alignment: .leading, spacing: 14) {
                 SectionLabel(title: "About this profile")
 
-                ForEach(journalist.orderedProvenance) { record in
-                    ProvenanceRow(record: record)
+                ForEach(journalist.orderedEvidence) { record in
+                    EvidenceRow(record: record)
                 }
 
                 Divider().overlay(Palette.hairline)
@@ -163,7 +235,7 @@ struct JournalistDetailView: View {
                 } else {
                     Button("Report an issue with this profile") {
                         Haptics.tap()
-                        for record in journalist.provenanceRecords { record.issueReported = true }
+                        for record in journalist.evidenceRecords { record.issueReported = true }
                         try? modelContext.save()
                     }
                     .font(.footnote)
@@ -283,42 +355,48 @@ private struct SignalRow: View {
     }
 }
 
-private struct ProvenanceRow: View {
-    let record: ProvenanceRecord
+private struct EvidenceRow: View {
+    let record: EditorialEvidenceRecord
 
     private var tint: Color {
-        switch record.sourceType {
-        case .claimedProfile: return Palette.evidence(.high)
-        case .publisherPartner: return Color(hex: 0x2563C9)
-        case .licensedDataset: return Palette.warning
-        case .publicSignal: return Palette.inkSecondary
-        case .sampleData: return Palette.inkTertiary
+        switch record.provenance {
+        case .claimedProfile:        return Palette.evidence(.high)
+        case .publisherProvided:     return Color(hex: 0x2563C9)
+        case .licensedSource:        return Palette.warning
+        case .publicEditorialSignal: return Palette.inkSecondary
+        case .userProvided:          return Palette.accent
+        case .fictionalSample:       return Palette.inkTertiary
         }
     }
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            Image(systemName: record.sourceType.systemImage)
+            Image(systemName: record.provenance.systemImage)
                 .font(.footnote)
                 .foregroundStyle(tint)
                 .frame(width: 22, height: 22)
                 .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(record.sourceType.label)
+                Text(record.provenance.label)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Palette.ink)
-                Text(record.detail)
+                Text(record.evidenceSummary)
                     .font(.footnote)
                     .foregroundStyle(Palette.inkSecondary)
-                if let basis = record.coverageBasis {
-                    Text(basis).font(.caption).foregroundStyle(Palette.inkTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let verifiedAt = record.verificationDate {
+                    Text("Verified \(verifiedAt.formatted(date: .abbreviated, time: .omitted))"
+                         + (record.verifiedBy.map { " · \($0)" } ?? ""))
+                        .font(.caption)
+                        .foregroundStyle(Palette.inkTertiary)
+                } else {
+                    Text("Not yet verified")
+                        .font(.caption)
+                        .foregroundStyle(Palette.inkTertiary)
                 }
-                Text("Last verified \(record.lastVerifiedAt.formatted(date: .abbreviated, time: .omitted))")
-                    .font(.caption)
-                    .foregroundStyle(Palette.inkTertiary)
                 if let pref = record.pitchPreference {
-                    Text("Prefers: \(pref)")
+                    Text("Published pitch note: \(pref)")
                         .font(.caption)
                         .foregroundStyle(Palette.inkSecondary)
                         .padding(.top, 1)

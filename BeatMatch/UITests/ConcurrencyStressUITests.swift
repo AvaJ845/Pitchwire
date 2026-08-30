@@ -13,10 +13,10 @@ final class ConcurrencyStressUITests: XCTestCase {
     override func setUp() { continueAfterFailure = false }
 
     private func matchRows(_ app: XCUIApplication) -> XCUIElementQuery {
-        // Match rows carry a "Sample" tag in their combined a11y label; the story
-        // card and the honesty banner do not.
+        // Match rows carry an evidence-state tag ("Demo" / "Candidate" / "Verified")
+        // in their combined a11y label; the story card and honesty banner do not.
         app.collectionViews.firstMatch.buttons
-            .matching(NSPredicate(format: "label CONTAINS[c] %@", "Sample"))
+            .matching(NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@", "Demo", "Candidate"))
     }
 
     private func back(_ app: XCUIApplication) {

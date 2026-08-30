@@ -1,7 +1,8 @@
 import Foundation
 
-/// One weighted factor in a match score. Deterministic and inspectable — every
-/// number here can be shown to the user and traced to structured data.
+/// One weighted factor in an editorial-relevance score. Deterministic and
+/// inspectable — every number here can be shown to the user and traced to
+/// structured editorial data.
 struct RelevanceSignal: Identifiable {
     let id = UUID()
     let name: String
@@ -22,8 +23,13 @@ struct RelevanceResult {
         return signals.map(\.contribution).reduce(0, +) / w
     }
 
+    /// Editorial-relevance tier. An "excellent" match must show a *pattern* of
+    /// coverage, not a single lucky headline.
     var tier: ConfidenceTier {
-        total >= 0.68 ? .excellent : (total >= 0.42 ? .strong : .possible)
+        let repeated = signals.first { $0.name == Signal.repeatedCoverage }?.score ?? 0
+        if total >= 0.68 && repeated >= 0.5 { return .excellent }
+        if total >= 0.42 { return .strong }
+        return .possible
     }
 
     /// The signals that actually drove the score, strongest first.
@@ -33,58 +39,101 @@ struct RelevanceResult {
     }
 
     var isDisqualified: Bool {
-        signals.contains { $0.name == "Pitch preference" && $0.score == 0 }
+        signals.contains { $0.name == Signal.pitchPreference && $0.score == 0 }
+    }
+
+    /// Shown wherever the score appears. The score is about editorial fit — it is
+    /// explicitly **not** a prediction of a reply or of coverage.
+    var relevanceDisclaimer: String {
+        "Editorial relevance — how closely their published work matches your story. "
+            + "Not a prediction that they will respond or cover it."
+    }
+
+    enum Signal {
+        static let topicMatch = "Topic match"
+        static let recentCoverage = "Recent coverage"
+        static let repeatedCoverage = "Repeated coverage"
+        static let angleFit = "Angle fit"
+        static let audienceFit = "Audience fit"
+        static let publication = "Publication relevance"
+        static let geography = "Geography"
+        static let pitchPreference = "Pitch preference"
+        static let evidence = "Evidence & verification"
     }
 }
 
-/// Scores a journalist against an analyzed story on weighted, explainable
-/// signals — the "relevance engine" from the brief. The model never runs here;
-/// this reads structured beat / coverage / preference data only.
+/// Scores an editorial professional against an analyzed story on weighted,
+/// explainable signals. The model never runs here — this reads structured beat /
+/// coverage / preference data only, so every recommendation is traceable.
 enum RelevanceEngine {
+    typealias Signal = RelevanceResult.Signal
 
     static func score(analysis: StoryAnalysisResult, journalist j: JournalistProfile) -> RelevanceResult {
         let storyTerms = terms(analysis.subtopics + [analysis.vertical, analysis.theme])
         let beatTerms = terms(j.beatTopics)
-        let bylineTerms = terms(j.recentBylineTitles)
+        let coverage = j.allCoverage
 
-        // 1. Beat match — do their declared topics overlap the story?
+        // 1. Topic match — do their declared beat topics overlap the story?
         let beatOverlap = beatTerms.intersection(storyTerms)
-        let beatScore = beatTerms.isEmpty ? 0 : min(1, Double(beatOverlap.count) / 2.0)
-        let beatNote = beatOverlap.isEmpty ? nil
+        let topicScore = beatTerms.isEmpty ? 0 : min(1, Double(beatOverlap.count) / 2.0)
+        let topicNote = beatOverlap.isEmpty ? nil
             : "covers \(display(j.beatTopics, matching: beatOverlap))"
 
-        // 2. Recent coverage — have they written on this lately? (byline titles,
-        //    recency approximated by position: earlier = more recent.)
-        var coverageScore = 0.0
-        var coverageHit: String?
-        for (i, title) in j.recentBylineTitles.prefix(4).enumerated() {
-            let hit = terms([title]).intersection(storyTerms)
-            if !hit.isEmpty {
-                let recencyWeight = 1.0 - (Double(i) * 0.2)
-                coverageScore = max(coverageScore, recencyWeight)
-                if coverageHit == nil { coverageHit = "\u{201C}\(title)\u{201D}" }
-            }
+        // On-topic articles: title terms OR tagged topics overlap the story.
+        let onTopic = coverage.filter { article in
+            !terms([article.title]).isDisjoint(with: storyTerms)
+                || !terms(article.topics).isDisjoint(with: storyTerms)
         }
-        let coverageNote = coverageHit.map { "wrote \($0) recently" }
 
-        // 3. Angle fit — do they cover this kind of story (launch vs funding vs …)?
-        let angleScore: Double = j.coveredAngles.isEmpty ? 0.5
-            : (j.coveredAngles.contains(analysis.angle) ? 1.0 : 0.15)
-        let angleNote = j.coveredAngles.contains(analysis.angle)
-            ? "works the \(analysis.angle) beat" : nil
+        // 2. Recent coverage — recency of their most recent on-topic article,
+        //    from real publish dates (not byline position).
+        let recencyScore = onTopic.map { recency(of: $0.publishedAt) }.max() ?? 0
+        let recentNote: String? = {
+            guard recencyScore >= 0.35 else { return nil }
+            // Only quote a headline when the headline itself is on-topic — a
+            // tag-only match shouldn't put a mismatched title in the reason.
+            if let byTitle = onTopic.first(where: { !terms([$0.title]).isDisjoint(with: storyTerms) }) {
+                let when = byTitle.publishedLabel.map { " (\($0))" } ?? ""
+                return "wrote \u{201C}\(byTitle.title)\u{201D}\(when)"
+            }
+            return "has recent coverage in this area"
+        }()
 
-        // 4. Audience fit
-        let audienceScore: Double = j.audiences.isEmpty ? 0.5
-            : (j.audiences.contains(analysis.audience) ? 1.0 : 0.3)
-        let audienceNote = j.audiences.contains(analysis.audience)
-            ? "writes for \(analysis.audience.lowercased())" : nil
+        // 3. Repeated coverage — a real beat writes about this more than once.
+        let repeatedScore: Double = {
+            switch onTopic.count {
+            case 0: return 0
+            case 1: return 0.4
+            case 2: return 0.75
+            default: return 1.0
+            }
+        }()
+        let repeatedNote = onTopic.count >= 2
+            ? "has covered this repeatedly (\(onTopic.count) recent pieces)" : nil
 
-        // 5. Geography
+        // 4. Angle fit — do they cover this kind of story (launch vs funding vs …)?
+        let coversAngle = j.coveredAngles.contains(analysis.angle)
+        let angleScore: Double = j.coveredAngles.isEmpty ? 0.5 : (coversAngle ? 1.0 : 0.15)
+        let angleNote = coversAngle ? "works the \(analysis.angle) beat" : nil
+
+        // 5. Audience fit
+        let servesAudience = j.audiences.contains(analysis.audience)
+        let audienceScore: Double = j.audiences.isEmpty ? 0.5 : (servesAudience ? 1.0 : 0.3)
+        let audienceNote = servesAudience ? "writes for \(analysis.audience.lowercased())" : nil
+
+        // 6. Publication relevance — is the outlet itself in this space?
+        let outletTerms = terms(j.outlet?.verticals ?? [])
+        let outletOverlap = outletTerms.intersection(storyTerms)
+        let publicationScore: Double = outletTerms.isEmpty ? 0.5
+            : (outletOverlap.isEmpty ? 0.35 : min(1, 0.6 + 0.4 * Double(outletOverlap.count)))
+        let publicationNote = (!outletOverlap.isEmpty && j.outlet != nil)
+            ? "at \(j.outlet!.name), which covers this space" : nil
+
+        // 7. Geography
         let geoScore: Double = j.regions.isEmpty ? 0.6
             : (j.regions.contains(analysis.region) || j.regions.contains("Global") ? 1.0 : 0.35)
 
-        // 6. Declared pitch preference — a hard filter, not a nudge.
-        //    "no funding pitches" etc. zeroes it out.
+        // 8. Declared pitch preference — a hard filter, not a nudge.
         let blocked = j.doNotPitch.contains { dnp in
             analysis.angle.localizedCaseInsensitiveContains(dnp)
                 || dnp.localizedCaseInsensitiveContains(analysis.angle)
@@ -92,7 +141,8 @@ enum RelevanceEngine {
         }
         let prefScore: Double = blocked ? 0.0 : 1.0
 
-        // 7. Evidence freshness — a small tilt toward better-sourced profiles.
+        // 9. Evidence & verification — a small tilt toward better-sourced,
+        //    human-verified profiles. Unverified candidates never get elevated.
         let evidenceScore: Double = {
             switch j.evidenceConfidence {
             case .high: return 1.0
@@ -102,13 +152,15 @@ enum RelevanceEngine {
         }()
 
         let signals = [
-            RelevanceSignal(name: "Beat match",       score: beatScore,     weight: 0.28, note: beatNote),
-            RelevanceSignal(name: "Recent coverage",  score: coverageScore, weight: 0.24, note: coverageNote),
-            RelevanceSignal(name: "Angle fit",        score: angleScore,    weight: 0.16, note: angleNote),
-            RelevanceSignal(name: "Audience fit",     score: audienceScore, weight: 0.12, note: audienceNote),
-            RelevanceSignal(name: "Geography",        score: geoScore,      weight: 0.06, note: nil),
-            RelevanceSignal(name: "Pitch preference", score: prefScore,     weight: 0.06, note: blocked ? "they've asked not to be pitched this angle" : nil),
-            RelevanceSignal(name: "Evidence",         score: evidenceScore, weight: 0.08, note: nil),
+            RelevanceSignal(name: Signal.topicMatch,       score: topicScore,       weight: 0.24, note: topicNote),
+            RelevanceSignal(name: Signal.recentCoverage,   score: recencyScore,     weight: 0.18, note: recentNote),
+            RelevanceSignal(name: Signal.repeatedCoverage, score: repeatedScore,    weight: 0.14, note: repeatedNote),
+            RelevanceSignal(name: Signal.angleFit,         score: angleScore,       weight: 0.10, note: angleNote),
+            RelevanceSignal(name: Signal.audienceFit,      score: audienceScore,    weight: 0.10, note: audienceNote),
+            RelevanceSignal(name: Signal.publication,      score: publicationScore, weight: 0.08, note: publicationNote),
+            RelevanceSignal(name: Signal.geography,        score: geoScore,         weight: 0.04, note: nil),
+            RelevanceSignal(name: Signal.pitchPreference,  score: prefScore,        weight: 0.06, note: blocked ? "they've asked not to be pitched this angle" : nil),
+            RelevanceSignal(name: Signal.evidence,         score: evidenceScore,    weight: 0.06, note: nil),
         ]
         return RelevanceResult(signals: signals)
     }
@@ -139,6 +191,19 @@ enum RelevanceEngine {
 
     // MARK: - helpers
 
+    /// Recency weight from a real publish date. Unknown date → treated as stale.
+    private static func recency(of date: Date?) -> Double {
+        guard let date else { return 0.2 }
+        let days = Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 9_999
+        switch days {
+        case ..<0:    return 0.9      // future-dated (bad data) — don't reward fully
+        case 0..<60:  return 1.0
+        case 60..<180: return 0.7
+        case 180..<365: return 0.4
+        default:      return 0.2
+        }
+    }
+
     private static let stop: Set<String> = ["the", "and", "for", "with", "your", "a", "an", "of", "to", "in", "on", "is", "are"]
 
     private static func terms(_ strings: [String]) -> Set<String> {
@@ -164,7 +229,6 @@ enum RelevanceEngine {
         case "cli": return "the CLI"
         case "ios": return "iOS"
         default:
-            // Uppercase a standalone "ai" inside a phrase ("vertical ai" -> "vertical AI").
             return raw
                 .split(separator: " ")
                 .map { $0 == "ai" ? "AI" : String($0) }

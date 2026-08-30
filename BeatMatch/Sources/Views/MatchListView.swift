@@ -24,8 +24,12 @@ struct MatchListView: View {
 
     private var hiddenCount: Int { campaign.mediaTargets.filter { $0.status == .hidden }.count }
 
-    private var hasSampleData: Bool {
-        visibleTargets.contains { $0.journalist?.isSampleData == true }
+    /// The least-verified state present — drives the honesty banner.
+    private var evidenceState: ProfileEvidenceState? {
+        let states = visibleTargets.compactMap { $0.journalist?.evidenceState }
+        if states.contains(.demo) { return .demo }
+        if states.contains(.candidate) { return .candidate }
+        return nil   // all verified — no banner needed
     }
 
     var body: some View {
@@ -42,9 +46,9 @@ struct MatchListView: View {
                 }
             }
 
-            if hasSampleData {
+            if let evidenceState {
                 Section {
-                    SampleDataBanner()
+                    EvidenceNoticeBanner(state: evidenceState)
                         .listRowInsets(EdgeInsets(top: 4, leading: Metrics.gutter, bottom: 8, trailing: Metrics.gutter))
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)

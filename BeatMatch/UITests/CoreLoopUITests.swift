@@ -43,13 +43,15 @@ final class CoreLoopUITests: XCTestCase {
 
         // Match list
         XCTAssertTrue(app.staticTexts["Excellent match"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Sample data"].exists, "sample-data honesty banner must show")
+        XCTAssertTrue(app.staticTexts["Demo data"].exists, "evidence-honesty banner must show")
         snap(app, "03-match-list")
-        let list = app.collectionViews.firstMatch
-        let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Morgan Ito")).firstMatch
-        var tries = 0
-        while !row.exists && tries < 8 { list.swipeUp(); tries += 1 }
-        XCTAssertTrue(row.exists, "Morgan Ito should be among the matches")
+        // Open the top match — an evidence-state tag ("Demo"/"Candidate"/"Verified")
+        // is in every match row's combined a11y label but not the story card.
+        let row = app.collectionViews.firstMatch.buttons
+            .matching(NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@ OR label CONTAINS[c] %@",
+                                  "Demo", "Candidate", "Verified"))
+            .firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 5), "at least one match must be listed")
         row.tap()
 
         // Detail: "why this match" + provenance are non-negotiable per the brief

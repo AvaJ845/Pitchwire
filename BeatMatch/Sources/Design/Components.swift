@@ -133,6 +133,125 @@ struct EvidenceDot: View {
     }
 }
 
+// MARK: - Evidence & verification
+
+/// The three honest states a profile can be in. Drives every "is this real?"
+/// surface so the language never drifts.
+enum ProfileEvidenceState {
+    case verified          // a human reviewed the sources
+    case candidate         // real person, evidence not yet human-verified
+    case demo              // fictional stand-in
+
+    var tagText: String {
+        switch self {
+        case .verified:  return "Verified"
+        case .candidate: return "Candidate"
+        case .demo:      return "Demo"
+        }
+    }
+
+    var tagColor: Color {
+        switch self {
+        case .verified:  return Palette.evidence(.high)
+        case .candidate: return Palette.accent
+        case .demo:      return Palette.warning
+        }
+    }
+
+    var tagIcon: String {
+        switch self {
+        case .verified:  return "checkmark.seal.fill"
+        case .candidate: return "magnifyingglass"
+        case .demo:      return "flask.fill"
+        }
+    }
+}
+
+extension JournalistProfile {
+    var evidenceState: ProfileEvidenceState {
+        if isFictional { return .demo }
+        if isVerified { return .verified }
+        return .candidate
+    }
+}
+
+/// The verification line in the evidence card — a date when verified, an honest
+/// "not yet verified" otherwise.
+struct VerificationBadge: View {
+    let state: ProfileEvidenceState
+    var date: Date?
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: state.tagIcon).font(.caption2)
+            Text(label)
+        }
+        .font(.caption.weight(.medium))
+        .foregroundStyle(state.tagColor)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+    }
+
+    private var label: String {
+        switch state {
+        case .verified:
+            let when = date?.formatted(date: .abbreviated, time: .omitted) ?? "recently"
+            return "Verified \(when)"
+        case .candidate:
+            return "Not yet verified — candidate profile"
+        case .demo:
+            return "Fictional demo profile"
+        }
+    }
+}
+
+/// One article row that opens its source. Falls back to plain text when there is
+/// no URL (demo data).
+struct EvidenceLinkRow: View {
+    let title: String
+    var dateLabel: String?
+    var url: String?
+
+    var body: some View {
+        Group {
+            if let url, let link = URL(string: url), !url.isEmpty {
+                Link(destination: link) { content(external: true) }
+                    .buttonStyle(.plain)
+            } else {
+                content(external: false)
+            }
+        }
+    }
+
+    private func content(external: Bool) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "doc.text")
+                .font(.caption)
+                .foregroundStyle(Palette.accent)
+                .padding(.top, 2)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundStyle(Palette.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let dateLabel {
+                    Text(dateLabel)
+                        .font(.caption2)
+                        .foregroundStyle(Palette.inkTertiary)
+                }
+            }
+            Spacer(minLength: 0)
+            if external {
+                Image(systemName: "arrow.up.right")
+                    .font(.caption2)
+                    .foregroundStyle(Palette.inkTertiary)
+                    .padding(.top, 2)
+            }
+        }
+        .contentShape(Rectangle())
+    }
+}
+
 // MARK: - Primary button
 
 struct PitchwireButtonStyle: ButtonStyle {
@@ -161,23 +280,25 @@ extension ButtonStyle where Self == PitchwireButtonStyle {
     static var pitchwireQuiet: PitchwireButtonStyle { PitchwireButtonStyle(prominent: false) }
 }
 
-// MARK: - Sample data notice
+// MARK: - Evidence notice
 
-/// Shown wherever sample journalists appear, until real ingestion exists.
+/// Shown above a match list to set expectations about the data behind it.
 /// Honesty is a product surface, not a footnote.
-struct SampleDataBanner: View {
+struct EvidenceNoticeBanner: View {
+    /// The strongest (least-verified) state present in the list.
+    let state: ProfileEvidenceState
     var compact = false
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: "flask.fill")
-                .foregroundStyle(Palette.warning)
+            Image(systemName: state.tagIcon)
+                .foregroundStyle(state.tagColor)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Sample data")
+                Text(headline)
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(Palette.ink)
                 if !compact {
-                    Text("These journalists are fictional stand-ins. Real matching isn't wired up yet — names, outlets and coverage are demo data.")
+                    Text(detail)
                         .font(.caption)
                         .foregroundStyle(Palette.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -186,8 +307,27 @@ struct SampleDataBanner: View {
             Spacer(minLength: 0)
         }
         .padding(12)
-        .background(Palette.warning.opacity(0.10), in: RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous))
+        .background(state.tagColor.opacity(0.10), in: RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous))
         .accessibilityElement(children: .combine)
+    }
+
+    private var headline: String {
+        switch state {
+        case .verified:  return "Verified editorial evidence"
+        case .candidate: return "Candidate profiles — not yet verified"
+        case .demo:      return "Demo data"
+        }
+    }
+
+    private var detail: String {
+        switch state {
+        case .verified:
+            return "Every match below is backed by editorial evidence a person has reviewed. Open any profile to see the sources."
+        case .candidate:
+            return "These are real editorial professionals compiled from public bylines, pending human verification. Check each profile's sources before you rely on it."
+        case .demo:
+            return "These profiles are fictional stand-ins — names, outlets and coverage are demo data, not real people."
+        }
     }
 }
 

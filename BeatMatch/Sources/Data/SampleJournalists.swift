@@ -1,16 +1,14 @@
 import Foundation
 
-/// Fictional sample data — **not real journalists.** These stand in for the real
-/// ingestion pipeline (public editorial signals + publisher partnerships +
-/// licensed data + claimed profiles) so the analyze → match → explain → draft
-/// loop can be built and shown. Every profile carries only `.sampleData`
-/// provenance, so `JournalistProfile.isSampleData` is true and the UI shows a
-/// clear "sample data" state everywhere a match appears.
+/// Fictional demo data — **not real people.** The offline fallback when no
+/// `editorial_seed.json` is bundled, so the analyze → match → explain → draft loop
+/// can be built and shown with zero real data. Every profile carries a single
+/// `.fictionalSample` evidence record, so `JournalistProfile.isFictional` is true
+/// and the UI shows a clear "demo profile" state everywhere a match appears.
 ///
-/// The beat / audience / angle / byline fields are shaped like what real public
-/// editorial signals would produce, so the relevance engine has something real
-/// to score against. When real ingestion lands it writes real `ProvenanceRecord`s
-/// with real source types; `isSampleData` flips to false and the banners vanish.
+/// The beat / audience / angle / article fields are shaped like what real public
+/// editorial signals produce, so the relevance engine has realistic input. When
+/// `EditorialSeedLoader` finds a real seed file, this pool is not used.
 enum SampleJournalists {
     private struct Entry {
         let name: String
@@ -103,29 +101,41 @@ enum SampleJournalists {
         ]
 
         var outletCache: [String: Outlet] = [:]
+        let now = Date()
 
         return entries.map { entry in
-            let outlet = outletCache[entry.outlet] ?? Outlet(name: entry.outlet, verticals: [])
+            let outlet = outletCache[entry.outlet]
+                ?? Outlet(name: entry.outlet, verticals: Array(entry.topics.prefix(3)))
             outletCache[entry.outlet] = outlet
 
             let journalist = JournalistProfile(
                 name: entry.name,
                 beatTopics: entry.topics,
-                recentBylineTitles: entry.bylines,
                 outlet: outlet,
                 audiences: entry.audiences,
                 regions: entry.regions,
                 coveredAngles: entry.angles,
                 doNotPitch: entry.doNotPitch
             )
-            journalist.provenanceRecords = [
-                ProvenanceRecord(
-                    sourceType: .sampleData,
-                    detail: "Fictional profile — a stand-in until real journalist ingestion is built. This is not a real person.",
-                    coverageBasis: "Demo beat topics and article titles, not real coverage",
-                    lastVerifiedAt: Date()
+
+            // Demo articles carry no real URL (there is nothing to open) and a
+            // staggered recent date so the recency signal has something to read.
+            let articles = entry.bylines.enumerated().map { i, title in
+                CoverageEvidence(
+                    title: title,
+                    url: "",
+                    publishedAt: Calendar.current.date(byAdding: .day, value: -(14 + i * 21), to: now),
+                    topics: Array(entry.topics.prefix(3)),
+                    outletName: entry.outlet
                 )
-            ]
+            }
+            let record = EditorialEvidenceRecord(
+                provenance: .fictionalSample,
+                evidenceSummary: "Fictional profile — a stand-in until real editorial research is loaded. This is not a real person; article titles are demo data, not real coverage.",
+                confidence: .exploratory
+            )
+            record.articles = articles
+            journalist.evidenceRecords = [record]
             return journalist
         }
     }

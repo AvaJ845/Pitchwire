@@ -58,7 +58,8 @@ struct BeatMatchApp: App {
             JournalistProfile.self,
             MatchExplanation.self,
             PitchDraft.self,
-            ProvenanceRecord.self,
+            EditorialEvidenceRecord.self,
+            CoverageEvidence.self,
             FollowUpTask.self
         ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
