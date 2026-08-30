@@ -1,5 +1,13 @@
 # Building the real seed set — fellows recommendation
 
+> **Status (2026-08-30):** acted on. `Resources/editorial_seed.json` now holds a
+> 25-record **candidate** seed set (public editorial signals, no contact data,
+> `verificationDate: null`) built exactly on the two-track plan below. See
+> `docs/EDITORIAL_RESEARCH_ENGINE.md` for the shipped model and
+> `docs/EVAL.md` for how matching quality is measured. This doc is kept for the
+> Legal/Policy + Data Fellow rationale.
+
+
 The app runs on 15 fictional journalists. To judge whether the matching is any
 good, we need ~15–20 **real** ones. DJ doesn't have a press list — but that's not
 the blocker people assume it is. A journalist's beat and bylines are public

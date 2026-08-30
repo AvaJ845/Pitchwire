@@ -16,7 +16,7 @@ final class FollowUpsUITests: XCTestCase {
         app.buttons["Analyze"].tap()
         XCTAssertTrue(app.buttons["Find journalists"].waitForExistence(timeout: 10))
         app.buttons["Find journalists"].tap()
-        XCTAssertTrue(app.staticTexts["Excellent match"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Candidate profiles — not yet verified"].waitForExistence(timeout: 10))
 
         // Open Follow-ups from the match list toolbar
         app.buttons["Follow-ups"].tap()

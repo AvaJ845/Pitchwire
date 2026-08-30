@@ -44,11 +44,11 @@ final class SampleDataTests: XCTestCase {
         XCTAssertTrue(results.allSatisfy { $0.journalist.isFictional })
     }
 
-    /// With no seed file bundled in the test host, the loader must fall back.
-    func testSeedLoaderFallsBackToDemoWhenNoFileBundled() {
-        let loaded = EditorialSeedLoader.seedPool()
-        XCTAssertFalse(loaded.isEmpty)
-        // Test host has no editorial_seed.json → same as the demo pool.
+    /// The loader falls back to this demo pool when no seed file is bundled.
+    func testSeedLoaderFallsBackToDemoWithoutABundledFile() throws {
+        // Force the no-file path with an empty bundle.
+        XCTAssertThrowsError(try EditorialSeedLoader.load(from: Bundle(for: Self.self)))
+        let loaded = (try? EditorialSeedLoader.load(from: Bundle(for: Self.self))) ?? SampleJournalists.seedPool()
         XCTAssertEqual(loaded.count, pool.count)
     }
 

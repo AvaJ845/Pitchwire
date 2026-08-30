@@ -5,8 +5,11 @@ Synthesized from the product-direction brief and `AI_Infrastructure_Direction_GL
 
 ## North Star
 
-**An AI press agent in your pocket.** "Tell us what you're launching, and we'll tell you who is
-most likely to care, why they matter, and what to say."
+**An editorial-relevance research assistant — an AI press agent in your pocket.**
+"Tell us what you're launching, and we'll tell you which editorial professionals cover this,
+why their published work makes them relevant, and what to say." **The intelligence is the
+product; personal contact data is not — it is never modelled, collected, or inferred.**
+Full spec: `docs/EDITORIAL_RESEARCH_ENGINE.md`.
 
 The product is a story-first workflow, not a database:
 
@@ -121,23 +124,28 @@ No feature ever checks `if plan == .free`. Features ask `Entitlements`:
 - **Wired gates:** `.storyAnalysis` (Home), `.aiPitchDraft` (journalist detail). `.activeCampaign`
   is in the catalog, not yet enforced.
 
-## Data strategy (layered, safest first)
+## Data strategy — provenance taxonomy + verification gate
 
-| Layer | Source | Status |
-|---|---|---|
-| A | Claimed journalist profiles (journalist edits their own beat / pitch rules / do-not-pitch) | `ProvenanceSourceType.claimedProfile` modeled; **no real data yet** |
-| B | Publisher / network partnerships (first-party editorial context) | `.publisherPartner` modeled; **no real data yet** |
-| C | Licensed professional datasets (only where rights are explicit) | `.licensedDataset` modeled; **no real data yet** |
-| D | Public editorial signals (bylines, author pages, RSS, topic patterns) | `.publicSignal` modeled; **no real data yet** |
+Full spec: `docs/EDITORIAL_RESEARCH_ENGINE.md`.
 
-**Today every match is fictional.** `SampleJournalists.seedPool()` returns 15 made-up profiles,
-each carrying only `.sampleData` provenance, so `JournalistProfile.isSampleData` is true. The app
-says so, loudly: a `SampleDataBanner` on the match list, a "Sample" tag on every card, a "Sample
-data" pill on the detail header, and an honest "Fictional profile — this is not a real person"
-provenance record. Sample profiles always score `.exploratory` evidence confidence — nothing
-about "verified" data inflates them. When real ingestion writes real `ProvenanceRecord`s,
-`isSampleData` flips false and every banner disappears on its own. (`SampleDataTests` enforces
-this.)
+`EditorialEvidenceRecord` provenance `rawValue`s: `PUBLIC_EDITORIAL_SIGNAL`, `PUBLISHER_PROVIDED`,
+`CLAIMED_PROFILE`, `LICENSED_SOURCE`, `USER_PROVIDED`, `FICTIONAL_SAMPLE` (dev only). Article-level
+evidence is `CoverageEvidence` (title / url / publishedAt / topics). **No contact fields exist
+anywhere in the model or the seed schema** — `EditorialSeedTests` fails the build if one appears.
+
+**Verification gate:** `verificationDate` / `verifiedBy` are `nil` until a human approves a record
+in the Research Lab. `isVerified == (verificationDate != nil)`. AI discovers / organises / scores;
+**AI never verifies.** `evidenceConfidence` caps unverified + fictional profiles at `.exploratory`.
+
+**Seed set — `Resources/editorial_seed.json`:** 25 real editorial professionals across 4 verticals
+(AI & dev tools, privacy & security, fintech & personal finance, indie iOS & consumer apps). A
+**gold-standard eval set, not a database.** All ship as **candidates** (`verificationDate: null`,
+`PUBLIC_EDITORIAL_SIGNAL`, `confidence: exploratory`) with a real `sourceURL` anchor; `articles`
+fills in at Lab verification. Because none are verified, **no seed match scores above "Strong"** —
+correct by design. `EditorialSeedLoader` falls back to 15 fictional demo profiles
+(`FICTIONAL_SAMPLE` → `isFictional`) when no file is bundled. The UI labels every profile
+**Verified / Candidate / Demo** with a matching honesty banner (`EvidenceNoticeBanner`).
+Do not expand the dataset until matching quality is demonstrated — see `docs/EVAL.md`.
 
 App Store guideline **5.1.1(viii)** — apps compiling personal info from sources not provided by
 the user, "even public databases," are not permitted — is the strategic constraint the whole
@@ -168,22 +176,29 @@ saves / drafts / acts on them. Not downloads.
 
 ## Relevance engine (`Sources/Services/RelevanceEngine.swift`)
 
-Matching is a **weighted, inspectable** score — not keyword intersection. Seven signals,
-each 0–1 with a weight and a human fragment:
+Matching is a **weighted, inspectable** editorial-relevance score — not keyword intersection.
+Nine signals, each 0–1 with a weight and a human fragment:
 
 | Signal | Weight | What it reads |
 |---|---:|---|
-| Beat match | 28% | declared beat topics vs the story |
-| Recent coverage | 24% | byline titles that overlap the story, recency-weighted |
-| Angle fit | 16% | do they cover this kind of story (launch / funding / …) |
-| Audience fit | 12% | who they write for vs the story's audience |
-| Geography | 6% | region overlap |
-| Pitch preference | 6% | a **hard filter** — a declared "no funding pitches" zeroes the match |
-| Evidence | 8% | small tilt toward better-sourced profiles |
+| Topic match | 24% | declared beat topics vs the story |
+| Recent coverage | 18% | on-topic articles, recency from real `CoverageEvidence.publishedAt` |
+| Repeated coverage | 14% | count of on-topic articles — a beat, not a one-off |
+| Angle fit | 10% | do they cover this kind of story (launch / funding / …) |
+| Audience fit | 10% | who they write for vs the story's audience |
+| Publication relevance | 8% | `Outlet.verticals` vs the story vertical |
+| Geography | 4% | region overlap |
+| Pitch preference | 6% | a **hard filter** — a published "don't pitch me X" zeroes the match |
+| Evidence & verification | 6% | freshness + verified state; unverified never elevates |
 
 `WeightedRelevanceService` applies it over the pool; the "why this match" prose is built
 from the signals that actually drove the score. Journalist detail has a **"How we scored
 this"** breakdown (score bar + per-signal bars). Ranking is fully deterministic.
+
+**The score is editorial relevance — never a probability of a reply or of coverage.**
+`RelevanceResult.relevanceDisclaimer` carries that line; it is shown on the score card.
+An **"Excellent"** tier now requires *repeated* on-topic coverage — one headline is at most
+"Strong". `docs/EVAL.md` + `EditorialRelevanceEvalTests` are the living quality benchmark.
 
 **Explanations are progressively enhanced.** The grounded one-liner shows instantly; when a
 backend is configured, `ExplanationEnricher` runs on the match list and rewrites the top ~8

@@ -66,12 +66,17 @@ BeatMatch/
 ```
 
 ## What's real vs. placeholder
-- **Every match is fictional.** The 15 journalists in `Data/SampleJournalists.swift` are made up
-  and carry only `.sampleData` provenance. The app says so everywhere they appear — a banner on the
-  match list, a "Sample" tag per card, a pill on the detail header, an honest "not a real person"
-  provenance record. Sample profiles always score `.exploratory` confidence. When real ingestion
-  writes real `ProvenanceRecord`s, `JournalistProfile.isSampleData` flips false and the banners
-  vanish. `SampleDataTests` enforces the honesty.
+- **Pitchwire is an editorial-relevance research assistant, not a contact database.** No personal
+  contact data is modelled, collected, or inferred — full spec `docs/EDITORIAL_RESEARCH_ENGINE.md`.
+- **The match pool is a 25-record *candidate* seed set** — `Resources/editorial_seed.json`, 25 real
+  editorial professionals across 4 verticals, compiled from public author pages. Every record ships
+  unverified (`verificationDate: null`); AI can discover but **never verify** — that's the Research
+  Lab's job (Slice 4b). Because none are verified, no seed match scores above "Strong". The UI
+  labels every profile **Verified / Candidate / Demo**. `EditorialSeedLoader` falls back to 15
+  fictional `FICTIONAL_SAMPLE` demo profiles when no file is bundled. `EditorialSeedTests` +
+  `SampleDataTests` enforce the honesty (and that no contact field ever enters the schema).
+- **Matching quality is the milestone, not headcount.** `docs/EVAL.md` + `EditorialRelevanceEvalTests`
+  are the living benchmark — every match must explain itself with a real beat + a grounded reason.
 - The `Story` ↔ `StoryAnalysisResult` mapping lives in one place — `Story.apply(_:)` and
   `Story.analysisResult` (in `Models/Story.swift`). Add a new analysis field there, not at call sites.
 - Story analysis and pitch drafting are deterministic/template-based (`StubStoryAnalysisService`,

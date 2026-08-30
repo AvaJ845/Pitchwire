@@ -68,9 +68,10 @@ final class EditorialRelevanceEvalTests: XCTestCase {
             XCTAssertFalse(results.isEmpty, "#\(s.n) returned no matches")
 
             for r in results {
-                // Invariant 1 — every match is explained.
-                XCTAssertFalse(r.journalist.allCoverage.isEmpty,
-                               "#\(s.n): \(r.journalist.name) has no article evidence")
+                // Invariant 1 — every match is explained: a real beat and a real reason,
+                // never a bare score.
+                XCTAssertFalse(r.journalist.beatTopics.isEmpty,
+                               "#\(s.n): \(r.journalist.name) has no beat")
                 XCTAssertGreaterThan(r.explanation.reasonText.trimmingCharacters(in: .whitespaces).count, 10,
                                      "#\(s.n): \(r.journalist.name) has no real reason")
 
@@ -79,6 +80,15 @@ final class EditorialRelevanceEvalTests: XCTestCase {
                     let repeated = r.relevance?.signals.first { $0.name == "Repeated coverage" }?.score ?? 0
                     XCTAssertGreaterThanOrEqual(repeated, 0.5,
                         "#\(s.n): \(r.journalist.name) is 'excellent' without repeated coverage")
+                }
+
+                // A profile no human has verified must not present as verified, and
+                // (having no verified coverage) must not reach the top tier.
+                if usingRealSeed {
+                    XCTAssertFalse(r.journalist.isVerified,
+                        "#\(s.n): \(r.journalist.name) is an unverified candidate but reads as verified")
+                    XCTAssertNotEqual(r.confidenceTier, .excellent,
+                        "#\(s.n): \(r.journalist.name) is 'excellent' without verified repeated coverage")
                 }
             }
 

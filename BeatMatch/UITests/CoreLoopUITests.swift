@@ -41,9 +41,10 @@ final class CoreLoopUITests: XCTestCase {
         snap(app, "02-story-summary")
         app.buttons["Find journalists"].tap()
 
-        // Match list
-        XCTAssertTrue(app.staticTexts["Excellent match"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Demo data"].exists, "evidence-honesty banner must show")
+        // Match list — the candidate seed set ships unverified, so the honesty
+        // banner and a tiered section (Strong / Possible) must appear.
+        XCTAssertTrue(app.staticTexts["Candidate profiles — not yet verified"].waitForExistence(timeout: 10),
+                      "evidence-honesty banner must show")
         snap(app, "03-match-list")
         // Open the top match — an evidence-state tag ("Demo"/"Candidate"/"Verified")
         // is in every match row's combined a11y label but not the story card.

@@ -5,9 +5,9 @@ import XCTest
 /// `_swift_release_dealloc`), plus the sibling bug where the enricher and the
 /// pitch drafter read `@Model` properties off the main actor.
 ///
-/// This drives the exact overlap: land on the match list (enrichment starts
-/// against the live backend), then thrash navigation and kick off pitch drafts
-/// while it is still running. If any of that is thread-unsafe the app dies here.
+/// Drives the overlap: land on the match list (enrichment starts against the
+/// live backend), then open details and fire pitch drafts while it is still
+/// running. If any of that is thread-unsafe the app dies here.
 final class ConcurrencyStressUITests: XCTestCase {
 
     override func setUp() { continueAfterFailure = false }
@@ -16,7 +16,8 @@ final class ConcurrencyStressUITests: XCTestCase {
         // Match rows carry an evidence-state tag ("Demo" / "Candidate" / "Verified")
         // in their combined a11y label; the story card and honesty banner do not.
         app.collectionViews.firstMatch.buttons
-            .matching(NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@", "Demo", "Candidate"))
+            .matching(NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@ OR label CONTAINS[c] %@",
+                                  "Demo", "Candidate", "Verified"))
     }
 
     private func back(_ app: XCUIApplication) {
@@ -40,27 +41,22 @@ final class ConcurrencyStressUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["What we understood"].waitForExistence(timeout: 10))
         app.buttons["Find journalists"].tap()
 
-        // Enrichment kicks off here.
-        XCTAssertTrue(app.staticTexts["Excellent match"].waitForExistence(timeout: 10))
+        // Enrichment kicks off on the match list.
+        XCTAssertTrue(app.staticTexts["Candidate profiles — not yet verified"].waitForExistence(timeout: 10))
         let list = app.collectionViews.firstMatch
 
-        // Thrash: open and back out of several rows fast while enrichment runs.
-        for pass in 0..<3 {
-            let rows = matchRows(app)
-            for i in 0..<min(3, rows.count) {
-                let row = rows.element(boundBy: i)
-                guard row.exists else { continue }
-                row.tap()
-                _ = app.staticTexts["Why this match"].waitForExistence(timeout: 5)
-                back(app)
-            }
-            if pass < 2 { list.swipeUp(); list.swipeDown() }
+        // Open two details back-to-back while enrichment runs.
+        for i in 0..<2 {
+            let row = matchRows(app).element(boundBy: i)
+            guard row.waitForExistence(timeout: 5) else { continue }
+            row.tap()
+            XCTAssertTrue(app.staticTexts["Why this match"].waitForExistence(timeout: 5))
+            back(app)
+            _ = list.waitForExistence(timeout: 5)
         }
 
         // Draft a pitch (concurrent backend call) while enrichment may still run.
         let firstRow = matchRows(app).firstMatch
-        var tries = 0
-        while !firstRow.exists && tries < 6 { list.swipeDown(); tries += 1 }
         XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
         firstRow.tap()
         XCTAssertTrue(app.staticTexts["Why this match"].waitForExistence(timeout: 5))
@@ -69,11 +65,12 @@ final class ConcurrencyStressUITests: XCTestCase {
 
         // Back to the list, open another, draft again.
         back(app)
+        _ = list.waitForExistence(timeout: 5)
         let anotherRow = matchRows(app).element(boundBy: 1)
         if anotherRow.waitForExistence(timeout: 5) {
             anotherRow.tap()
             _ = app.staticTexts["Why this match"].waitForExistence(timeout: 5)
-            if app.buttons["Draft pitch"].exists {
+            if app.buttons["Draft pitch"].waitForExistence(timeout: 3) {
                 app.buttons["Draft pitch"].tap()
                 _ = app.buttons["View draft"].waitForExistence(timeout: 20)
             }

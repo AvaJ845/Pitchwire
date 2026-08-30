@@ -1,0 +1,999 @@
+{
+  "generatedAt": "2026-08-30",
+  "method": "AI discovery in a Claude research session — web search of public author/staff pages and newsletter about-pages. These are CANDIDATES for human verification, not verified records. Every 'sourceURL' is a real page found in search and is the anchor a researcher opens to verify beat + pull real article URLs and dates. 'articles' is intentionally empty: article-level evidence (title + URL + date) is added by a human during Research Lab verification (Slice 4b), never guessed here. 'verificationDate' is null on every record. No contact data of any kind is collected or stored — that is not what this product holds.",
+  "verticals": [
+    "ai-dev-tools",
+    "privacy-security",
+    "fintech-personal-finance",
+    "indie-ios-consumer"
+  ],
+  "profiles": [
+    {
+      "name": "Maxwell Zeff",
+      "outlet": "WIRED",
+      "outletURL": "https://www.wired.com/",
+      "outletVerticals": [
+        "ai",
+        "developer tools",
+        "consumer",
+        "general tech"
+      ],
+      "role": "Senior Writer, AI — author of the Model Behavior newsletter",
+      "beatTopics": [
+        "ai",
+        "machine learning",
+        "llm",
+        "ai models",
+        "ai industry",
+        "openai"
+      ],
+      "audiences": [
+        "Developers",
+        "Founders & investors",
+        "Businesses & teams"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "partnership",
+        "general news"
+      ],
+      "vertical": "ai-dev-tools",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.wired.com/author/maxwell-zeff/",
+      "evidenceSummary": "WIRED author page compiled 2026-08-30. Covers AI models, labs and the AI industry; writes the Model Behavior newsletter. Previously AI senior reporter at TechCrunch. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Rebecca Bellan",
+      "outlet": "TechCrunch",
+      "outletURL": "https://techcrunch.com/",
+      "outletVerticals": [
+        "ai",
+        "developer tools",
+        "consumer",
+        "fintech",
+        "general tech"
+      ],
+      "role": "Senior Reporter — AI business, policy and emerging trends",
+      "beatTopics": [
+        "ai",
+        "ai policy",
+        "ai business",
+        "autonomous vehicles",
+        "ai agents"
+      ],
+      "audiences": [
+        "Founders & investors",
+        "Businesses & teams",
+        "Developers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "funding",
+        "partnership",
+        "general news"
+      ],
+      "vertical": "ai-dev-tools",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://techcrunch.com/author/rebecca-bellan/",
+      "evidenceSummary": "TechCrunch author page compiled 2026-08-30. Covers the business, policy and emerging trends shaping AI. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Casey Newton",
+      "outlet": "Platformer",
+      "outletURL": "https://www.platformer.news/",
+      "outletVerticals": [
+        "ai",
+        "consumer",
+        "general tech"
+      ],
+      "role": "Founder & Editor — AI, social platforms and tech governance",
+      "beatTopics": [
+        "ai",
+        "social platforms",
+        "tech policy",
+        "content moderation",
+        "ai and society"
+      ],
+      "audiences": [
+        "Founders & investors",
+        "Businesses & teams",
+        "Consumers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news",
+        "partnership"
+      ],
+      "vertical": "ai-dev-tools",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.platformer.news/author/casey-newton/",
+      "evidenceSummary": "Platformer author/about pages compiled 2026-08-30. Independent newsletter on AI, social platforms and the politics of technology; former Silicon Valley editor of The Verge. Verify recent posts and dates from the author archive.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Simon Willison",
+      "outlet": "Simon Willison's Weblog",
+      "outletURL": "https://simonwillison.net/",
+      "outletVerticals": [
+        "ai",
+        "developer tools",
+        "open source"
+      ],
+      "role": "Independent writer and open-source developer — LLM tooling and applied AI",
+      "beatTopics": [
+        "ai",
+        "llm",
+        "developer tools",
+        "open source",
+        "prompt engineering",
+        "python",
+        "apis"
+      ],
+      "audiences": [
+        "Developers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "general news"
+      ],
+      "vertical": "ai-dev-tools",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://simonwillison.net/",
+      "evidenceSummary": "Long-running personal weblog compiled 2026-08-30. Detailed hands-on coverage of LLM tooling, AI-assisted development, open source and APIs; creator of the `llm` CLI and Datasette. Verify recent entries and dates from the blog archive.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Gergely Orosz",
+      "outlet": "The Pragmatic Engineer",
+      "outletURL": "https://newsletter.pragmaticengineer.com/",
+      "outletVerticals": [
+        "developer tools",
+        "ai",
+        "general tech"
+      ],
+      "role": "Author — software engineering practice, developer tooling and the tech industry",
+      "beatTopics": [
+        "developer tools",
+        "software engineering",
+        "ai coding tools",
+        "engineering leadership",
+        "tech industry",
+        "startups"
+      ],
+      "audiences": [
+        "Developers",
+        "Businesses & teams"
+      ],
+      "regions": [
+        "US",
+        "EU",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news",
+        "funding"
+      ],
+      "vertical": "ai-dev-tools",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://newsletter.pragmaticengineer.com/archive",
+      "evidenceSummary": "Newsletter archive + about page compiled 2026-08-30. Deep dives on engineering practice, developer tooling, AI coding tools and industry news (The Pulse). Verify recent issues and dates from the archive.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Jason Koebler",
+      "outlet": "404 Media",
+      "outletURL": "https://www.404media.co/",
+      "outletVerticals": [
+        "ai",
+        "consumer",
+        "privacy",
+        "general tech"
+      ],
+      "role": "Co-founder & Editor — AI, platforms, right-to-repair, internet culture",
+      "beatTopics": [
+        "ai",
+        "generative ai",
+        "right to repair",
+        "platforms",
+        "internet culture",
+        "ai and labor"
+      ],
+      "audiences": [
+        "Consumers",
+        "Developers",
+        "Businesses & teams"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news"
+      ],
+      "vertical": "ai-dev-tools",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.404media.co/author/jason-koebler/",
+      "evidenceSummary": "404 Media author page compiled 2026-08-30. Reporter-owned outlet; Koebler covers generative AI, platforms and right-to-repair. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Anna Heim",
+      "outlet": "TechCrunch",
+      "outletURL": "https://techcrunch.com/",
+      "outletVerticals": [
+        "ai",
+        "fintech",
+        "developer tools",
+        "general tech"
+      ],
+      "role": "Reporter (freelance) — startups, AI, SaaS and global venture",
+      "beatTopics": [
+        "startups",
+        "ai",
+        "saas",
+        "developer tools",
+        "pricing",
+        "venture capital"
+      ],
+      "audiences": [
+        "Founders & investors",
+        "Developers",
+        "Businesses & teams"
+      ],
+      "regions": [
+        "US",
+        "EU",
+        "Global"
+      ],
+      "coveredAngles": [
+        "funding",
+        "product launch",
+        "partnership"
+      ],
+      "vertical": "ai-dev-tools",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://techcrunch.com/author/anna-heim/",
+      "evidenceSummary": "TechCrunch author page compiled 2026-08-30. Covers a broad range of startup topics including AI, SaaS, pricing and global venture. Verify recent bylines, current status and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Zack Whittaker",
+      "outlet": "TechCrunch",
+      "outletURL": "https://techcrunch.com/",
+      "outletVerticals": [
+        "privacy",
+        "security",
+        "general tech"
+      ],
+      "role": "Security Editor — author of the 'this week in security' newsletter",
+      "beatTopics": [
+        "cybersecurity",
+        "data breaches",
+        "privacy",
+        "surveillance",
+        "vulnerabilities"
+      ],
+      "audiences": [
+        "Businesses & teams",
+        "Developers",
+        "Consumers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news"
+      ],
+      "vertical": "privacy-security",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://techcrunch.com/author/zack-whittaker/",
+      "evidenceSummary": "TechCrunch author page compiled 2026-08-30. Leads TechCrunch security coverage — breaches, vulnerabilities, surveillance and privacy. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Lorenzo Franceschi-Bicchierai",
+      "outlet": "TechCrunch",
+      "outletURL": "https://techcrunch.com/",
+      "outletVerticals": [
+        "privacy",
+        "security",
+        "general tech"
+      ],
+      "role": "Senior Writer — hacking, cybersecurity, surveillance and privacy",
+      "beatTopics": [
+        "hacking",
+        "spyware",
+        "surveillance",
+        "privacy",
+        "cybercrime",
+        "encryption"
+      ],
+      "audiences": [
+        "Businesses & teams",
+        "Consumers",
+        "Developers"
+      ],
+      "regions": [
+        "US",
+        "EU",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news"
+      ],
+      "vertical": "privacy-security",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://techcrunch.com/author/lorenzo-franceschi-bicchierai/",
+      "evidenceSummary": "TechCrunch author page compiled 2026-08-30. Covers hacking, spyware, surveillance and privacy. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Joseph Cox",
+      "outlet": "404 Media",
+      "outletURL": "https://www.404media.co/",
+      "outletVerticals": [
+        "privacy",
+        "security",
+        "general tech"
+      ],
+      "role": "Co-founder — surveillance, privacy, hacking and cybercrime investigations",
+      "beatTopics": [
+        "surveillance",
+        "privacy",
+        "hacking",
+        "data brokers",
+        "location data",
+        "cybercrime"
+      ],
+      "audiences": [
+        "Consumers",
+        "Businesses & teams",
+        "Developers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news"
+      ],
+      "vertical": "privacy-security",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.404media.co/author/joseph-cox/",
+      "evidenceSummary": "404 Media author page compiled 2026-08-30. Investigations into surveillance, data brokers, location data and hacking; author of 'Dark Wire'. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Andy Greenberg",
+      "outlet": "WIRED",
+      "outletURL": "https://www.wired.com/",
+      "outletVerticals": [
+        "security",
+        "privacy",
+        "general tech"
+      ],
+      "role": "Senior Writer — security, privacy, information freedom and hacker culture",
+      "beatTopics": [
+        "cybersecurity",
+        "hacking",
+        "cryptocurrency tracing",
+        "surveillance",
+        "nation-state attacks",
+        "privacy"
+      ],
+      "audiences": [
+        "Businesses & teams",
+        "Consumers",
+        "Developers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news"
+      ],
+      "vertical": "privacy-security",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.wired.com/author/andy-greenberg/",
+      "evidenceSummary": "WIRED author page compiled 2026-08-30. Long-form security and privacy reporting; author of 'Sandworm' and 'Tracers in the Dark'. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Matt Burgess",
+      "outlet": "WIRED",
+      "outletURL": "https://www.wired.com/",
+      "outletVerticals": [
+        "security",
+        "privacy",
+        "general tech"
+      ],
+      "role": "Senior Writer, Security — data, privacy and cybersecurity",
+      "beatTopics": [
+        "privacy",
+        "data protection",
+        "cybersecurity",
+        "surveillance",
+        "encryption",
+        "data breaches"
+      ],
+      "audiences": [
+        "Businesses & teams",
+        "Consumers",
+        "Developers"
+      ],
+      "regions": [
+        "EU",
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news",
+        "product launch"
+      ],
+      "vertical": "privacy-security",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.wired.com/author/matt-burgess/",
+      "evidenceSummary": "WIRED author page compiled 2026-08-30. Covers privacy, data protection and cybersecurity, often with a European lens. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Lily Hay Newman",
+      "outlet": "WIRED",
+      "outletURL": "https://www.wired.com/",
+      "outletVerticals": [
+        "security",
+        "privacy",
+        "general tech"
+      ],
+      "role": "Senior Writer, Security — information security and digital privacy",
+      "beatTopics": [
+        "information security",
+        "encryption",
+        "authentication",
+        "privacy",
+        "vulnerabilities",
+        "consumer security"
+      ],
+      "audiences": [
+        "Consumers",
+        "Businesses & teams",
+        "Developers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "general news",
+        "product launch"
+      ],
+      "vertical": "privacy-security",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.wired.com/author/lily-hay-newman/",
+      "evidenceSummary": "WIRED author page compiled 2026-08-30. Covers information security, encryption, authentication and consumer-facing privacy. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Mary Ann Azevedo",
+      "outlet": "Crunchbase News",
+      "outletURL": "https://news.crunchbase.com/",
+      "outletVerticals": [
+        "fintech",
+        "general tech"
+      ],
+      "role": "Reporter (freelance) — fintech, venture funding and startups; also writes for This Week in Fintech",
+      "beatTopics": [
+        "fintech",
+        "payments",
+        "banking",
+        "venture funding",
+        "startups",
+        "embedded finance"
+      ],
+      "audiences": [
+        "Founders & investors",
+        "Businesses & teams"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "funding",
+        "product launch",
+        "acquisition",
+        "partnership"
+      ],
+      "vertical": "fintech-personal-finance",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://news.crunchbase.com/author/mary-ann-azevedo/",
+      "evidenceSummary": "Crunchbase News author page compiled 2026-08-30. Two decades of fintech and startup-funding reporting; former TechCrunch senior fintech reporter, now freelance. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Jason Mikula",
+      "outlet": "Fintech Business Weekly",
+      "outletURL": "https://fintechbusinessweekly.substack.com/",
+      "outletVerticals": [
+        "fintech",
+        "general tech"
+      ],
+      "role": "Author — banking-as-a-service, fintech regulation and business models",
+      "beatTopics": [
+        "fintech",
+        "banking as a service",
+        "bank partnerships",
+        "fintech regulation",
+        "consumer lending",
+        "crypto"
+      ],
+      "audiences": [
+        "Businesses & teams",
+        "Founders & investors"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "partnership",
+        "general news"
+      ],
+      "vertical": "fintech-personal-finance",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://fintechbusinessweekly.substack.com/archive",
+      "evidenceSummary": "Newsletter archive + about page compiled 2026-08-30. Weekly analysis of banking-as-a-service, bank-fintech partnerships and regulation; author of 'Banking as a Service'. Verify recent issues and dates from the archive.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Alex Johnson",
+      "outlet": "Fintech Takes",
+      "outletURL": "https://newsletter.fintechtakes.com/",
+      "outletVerticals": [
+        "fintech",
+        "personal finance",
+        "general tech"
+      ],
+      "role": "Founder — consumer finance, embedded finance and fintech policy",
+      "beatTopics": [
+        "consumer finance",
+        "credit",
+        "embedded finance",
+        "fintech policy",
+        "payments",
+        "financial health"
+      ],
+      "audiences": [
+        "Businesses & teams",
+        "Founders & investors",
+        "Consumers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "partnership",
+        "general news"
+      ],
+      "vertical": "fintech-personal-finance",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://newsletter.fintechtakes.com/archive",
+      "evidenceSummary": "Newsletter archive + about page compiled 2026-08-30. Twice-weekly deep dives on consumer finance, credit systems, embedded finance and fintech policy. Verify recent issues and dates from the archive.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Greg Iacurci",
+      "outlet": "CNBC",
+      "outletURL": "https://www.cnbc.com/",
+      "outletVerticals": [
+        "personal finance",
+        "general tech"
+      ],
+      "role": "Reporter, Personal Finance — retirement, investing, the economy and the labor market",
+      "beatTopics": [
+        "personal finance",
+        "retirement",
+        "investing",
+        "taxes",
+        "labor market",
+        "consumer economy"
+      ],
+      "audiences": [
+        "Consumers"
+      ],
+      "regions": [
+        "US"
+      ],
+      "coveredAngles": [
+        "general news"
+      ],
+      "vertical": "fintech-personal-finance",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.cnbc.com/greg-iacurci/",
+      "evidenceSummary": "CNBC author page compiled 2026-08-30. Personal-finance reporting on retirement, investing, taxes and the consumer economy. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Kate Dore",
+      "outlet": "CNBC",
+      "outletURL": "https://www.cnbc.com/",
+      "outletVerticals": [
+        "personal finance",
+        "general tech"
+      ],
+      "role": "Personal Finance Reporter (CFP, EA) — taxes, investing and retirement planning",
+      "beatTopics": [
+        "personal finance",
+        "taxes",
+        "retirement planning",
+        "investing",
+        "financial planning"
+      ],
+      "audiences": [
+        "Consumers"
+      ],
+      "regions": [
+        "US"
+      ],
+      "coveredAngles": [
+        "general news"
+      ],
+      "vertical": "fintech-personal-finance",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.cnbc.com/kate-dore/",
+      "evidenceSummary": "CNBC author page compiled 2026-08-30. Covers taxes, investing and retirement planning; credentialed CFP and EA. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Alicia Adamczyk",
+      "outlet": "Fortune",
+      "outletURL": "https://fortune.com/",
+      "outletVerticals": [
+        "personal finance",
+        "general tech"
+      ],
+      "role": "Senior Writer — personal finance, wealth and the economy",
+      "beatTopics": [
+        "personal finance",
+        "housing",
+        "wealth",
+        "student loans",
+        "cost of living",
+        "investing"
+      ],
+      "audiences": [
+        "Consumers",
+        "Businesses & teams"
+      ],
+      "regions": [
+        "US"
+      ],
+      "coveredAngles": [
+        "general news"
+      ],
+      "vertical": "fintech-personal-finance",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://fortune.com/author/alicia-adamczyk/",
+      "evidenceSummary": "Fortune author page compiled 2026-08-30. Personal-finance and economy coverage — housing, wealth, student loans and cost of living. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Federico Viticci",
+      "outlet": "MacStories",
+      "outletURL": "https://www.macstories.net/",
+      "outletVerticals": [
+        "consumer",
+        "ios",
+        "apps",
+        "developer tools"
+      ],
+      "role": "Founder & Editor-in-Chief — iOS/iPadOS apps, automation and indie developers",
+      "beatTopics": [
+        "ios apps",
+        "ipados",
+        "app reviews",
+        "automation",
+        "indie developers",
+        "productivity",
+        "apple"
+      ],
+      "audiences": [
+        "Consumers",
+        "Developers"
+      ],
+      "regions": [
+        "EU",
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "general news"
+      ],
+      "vertical": "indie-ios-consumer",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://www.macstories.net/author/viticci/",
+      "evidenceSummary": "MacStories author page compiled 2026-08-30. In-depth iOS/iPadOS app reviews and automation coverage; runs an annual review that explicitly invites indie developers to submit apps. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Chance Miller",
+      "outlet": "9to5Mac",
+      "outletURL": "https://9to5mac.com/",
+      "outletVerticals": [
+        "consumer",
+        "ios",
+        "apps"
+      ],
+      "role": "Editor-in-Chief — Apple news, iOS releases and App Store",
+      "beatTopics": [
+        "apple",
+        "ios",
+        "app store",
+        "apps",
+        "hardware",
+        "consumer tech"
+      ],
+      "audiences": [
+        "Consumers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "general news"
+      ],
+      "vertical": "indie-ios-consumer",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://9to5mac.com/author/chmiller44/",
+      "evidenceSummary": "9to5Mac author page compiled 2026-08-30. Leads 9to5Mac's Apple and iOS coverage, including App Store and app news. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Sarah Perez",
+      "outlet": "TechCrunch",
+      "outletURL": "https://techcrunch.com/",
+      "outletVerticals": [
+        "consumer",
+        "apps",
+        "general tech"
+      ],
+      "role": "Consumer News & Apps Editor — mobile apps, App Store and consumer tech",
+      "beatTopics": [
+        "consumer apps",
+        "app store",
+        "mobile",
+        "social apps",
+        "app economy",
+        "consumer tech"
+      ],
+      "audiences": [
+        "Consumers",
+        "Founders & investors"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "funding",
+        "general news"
+      ],
+      "vertical": "indie-ios-consumer",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://techcrunch.com/author/sarah-perez/",
+      "evidenceSummary": "TechCrunch author page compiled 2026-08-30. Long-tenured consumer-apps editor covering the App Store, mobile and the app economy. Verify recent bylines, current title and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Lauren Forristal",
+      "outlet": "TechCrunch",
+      "outletURL": "https://techcrunch.com/",
+      "outletVerticals": [
+        "consumer",
+        "apps",
+        "general tech"
+      ],
+      "role": "Reporter — apps, commerce, media & entertainment, and consumer AI",
+      "beatTopics": [
+        "apps",
+        "consumer tech",
+        "commerce",
+        "streaming",
+        "consumer ai",
+        "creators"
+      ],
+      "audiences": [
+        "Consumers",
+        "Founders & investors"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "funding",
+        "partnership"
+      ],
+      "vertical": "indie-ios-consumer",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://techcrunch.com/author/lauren-forristal/",
+      "evidenceSummary": "TechCrunch author page compiled 2026-08-30. Covers apps, commerce, media & entertainment and consumer AI. Verify recent bylines and dates from the author page.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "Jason Snell",
+      "outlet": "Six Colors",
+      "outletURL": "https://sixcolors.com/",
+      "outletVerticals": [
+        "consumer",
+        "ios",
+        "apps"
+      ],
+      "role": "Editor — Apple, Mac and iOS apps, indie development",
+      "beatTopics": [
+        "apple",
+        "mac apps",
+        "ios",
+        "indie developers",
+        "app reviews",
+        "consumer tech"
+      ],
+      "audiences": [
+        "Consumers",
+        "Developers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "general news"
+      ],
+      "vertical": "indie-ios-consumer",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://sixcolors.com/author/jsnell/",
+      "evidenceSummary": "Six Colors compiled 2026-08-30. Independent Apple-focused site (with Dan Moren) covering Mac/iOS apps and the indie-developer scene; noted a recent surge in indie Mac app pitches. Verify author-page URL, recent posts and dates.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    },
+    {
+      "name": "John Gruber",
+      "outlet": "Daring Fireball",
+      "outletURL": "https://daringfireball.net/",
+      "outletVerticals": [
+        "consumer",
+        "ios",
+        "apps",
+        "developer tools"
+      ],
+      "role": "Writer — Apple, Mac/iOS software and app design",
+      "beatTopics": [
+        "apple",
+        "app design",
+        "ios",
+        "mac software",
+        "app store policy",
+        "indie development"
+      ],
+      "audiences": [
+        "Consumers",
+        "Developers"
+      ],
+      "regions": [
+        "US",
+        "Global"
+      ],
+      "coveredAngles": [
+        "product launch",
+        "general news"
+      ],
+      "vertical": "indie-ios-consumer",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://daringfireball.net/",
+      "evidenceSummary": "Daring Fireball compiled 2026-08-30. Long-running independent Apple weblog; linked-list and essays on app design, App Store policy and native Mac/iOS development. Verify recent entries and dates from the archive.",
+      "confidence": "exploratory",
+      "verificationDate": null,
+      "verifiedBy": null,
+      "articles": []
+    }
+  ]
+}
