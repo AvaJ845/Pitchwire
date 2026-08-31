@@ -40,8 +40,7 @@ final class SampleDataTests: XCTestCase {
 
     func testMatchingReturnsOnlyDemoProfiles() {
         let results = WeightedRelevanceService().match(
-            analysis: Self.aiLaunch, storyText: "launching an AI SDK",
-            against: pool, embeddings: nil)
+            analysis: Self.aiLaunch, storyVector: nil, against: pool)
         XCTAssertFalse(results.isEmpty)
         XCTAssertTrue(results.allSatisfy { $0.journalist.isFictional })
     }

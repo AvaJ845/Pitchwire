@@ -10,6 +10,7 @@ struct StorySummaryView: View {
 
     @State private var newSubtopic = ""
     @State private var showMatches = false
+    @State private var isFinding = false
 
     private static let angles = ["product launch", "funding", "acquisition", "hire", "partnership", "general news"]
     private static let regions = ["US", "EU", "Global"]
@@ -92,11 +93,20 @@ struct StorySummaryView: View {
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
             Button {
-                findJournalists()
+                Task { await findJournalists() }
             } label: {
-                Label("Find journalists", systemImage: "magnifyingglass")
+                HStack(spacing: 8) {
+                    if isFinding {
+                        ProgressView().tint(.white)
+                        Text("Finding journalists…")
+                    } else {
+                        Image(systemName: "magnifyingglass")
+                        Text("Find journalists")
+                    }
+                }
             }
             .buttonStyle(.pitchwire)
+            .disabled(isFinding)
             .padding(Metrics.gutter)
             .background(.bar)
         }
@@ -105,10 +115,14 @@ struct StorySummaryView: View {
         }
     }
 
-    private func findJournalists() {
+    private func findJournalists() async {
+        guard !isFinding else { return }
         Haptics.tap()
+        isFinding = true
+        defer { isFinding = false }
+
         try? modelContext.save()
-        MatchRunner.populateTargets(for: campaign, context: modelContext)
+        await MatchRunner.populateTargets(for: campaign, context: modelContext)
         try? modelContext.save()
         showMatches = true
     }

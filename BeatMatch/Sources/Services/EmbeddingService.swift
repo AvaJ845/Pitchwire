@@ -1,25 +1,35 @@
 import Foundation
 import CoreML
 import NaturalLanguage
+import Accelerate
 
 /// A unit-length semantic vector for a short piece of text, or nil when no model
 /// is available. The relevance engine treats a nil provider as "offline" and
 /// falls back to word-overlap scoring.
-protocol EmbeddingProvider {
+///
+/// `Sendable` so the (CPU-bound) embedding pass can run off the main actor — see
+/// `MatchRunner.warmDirectory`.
+protocol EmbeddingProvider: Sendable {
     func vector(for text: String) -> [Double]?
 }
 
 /// The default provider: the bundled all-MiniLM-L6-v2 sentence-transformer,
 /// **on-device** (CoreML) — the user's unpublished story is embedded locally and
-/// never leaves the phone. Returns nil only if the bundled model can't load, in
-/// which case the relevance engine falls back to word-overlap scoring.
+/// never leaves the phone. `nil` only if the bundled model can't load, in which
+/// case the relevance engine falls back to word-overlap scoring.
+///
+/// One instance for the whole app: loading the 16 MB model and parsing the
+/// 30 k-line vocab is not something to redo per match run.
 enum DefaultEmbeddingProvider {
-    static func make() -> EmbeddingProvider? { MiniLMEmbeddingProvider() }
+    static let shared: EmbeddingProvider? = MiniLMEmbeddingProvider()
 }
 
 /// all-MiniLM-L6-v2, 384-dim, mean-pooled + L2-normalized in the CoreML graph.
 /// 6-bit palettized (~16 MB). Bundled `MiniLM.mlpackage` + `minilm-vocab.txt`.
-final class MiniLMEmbeddingProvider: EmbeddingProvider {
+///
+/// `@unchecked Sendable`: both stored properties are immutable, `BertTokenizer`
+/// is a value type, and `MLModel.prediction(from:)` is documented thread-safe.
+final class MiniLMEmbeddingProvider: EmbeddingProvider, @unchecked Sendable {
     static let dimension = 384
     private static let sequenceLength = 64
 
@@ -76,7 +86,7 @@ final class MiniLMEmbeddingProvider: EmbeddingProvider {
 
 /// Apple's on-device sentence embedding — the fallback. Weaker than MiniLM
 /// (reads most tech text as ~0.6 similar) but zero bundle cost and no download.
-struct NLEmbeddingProvider: EmbeddingProvider {
+struct NLEmbeddingProvider: EmbeddingProvider, @unchecked Sendable {
     private let model = NLEmbedding.sentenceEmbedding(for: .english)
     var isAvailable: Bool { model != nil }
 
@@ -97,12 +107,13 @@ enum Embedding {
 
     static func rawCosine(_ a: [Double], _ b: [Double]) -> Double {
         guard a.count == b.count, !a.isEmpty else { return 0 }
-        return zip(a, b).reduce(0.0) { $0 + $1.0 * $1.1 }
+        return vDSP.dot(a, b)
     }
 
     static func normalize(_ v: [Double]) -> [Double] {
-        let mag = (v.reduce(0.0) { $0 + $1 * $1 }).squareRoot()
-        return mag > 0 ? v.map { $0 / mag } : v
+        guard !v.isEmpty else { return v }
+        let mag = vDSP.dot(v, v).squareRoot()
+        return mag > 0 ? vDSP.multiply(1 / mag, v) : v
     }
 
     /// The text embedded for a story — concise, so the vector reflects the topic

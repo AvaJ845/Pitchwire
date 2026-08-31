@@ -10,11 +10,12 @@ struct MatchCandidate {
 }
 
 protocol MatchingService {
-    /// `storyText` is the raw story (for on-device embedding); `embeddings` is
-    /// nil when no model is available — the engine falls back to word overlap.
-    func match(analysis: StoryAnalysisResult, storyText: String,
-               against pool: [JournalistProfile],
-               embeddings: EmbeddingProvider?) -> [MatchCandidate]
+    /// `storyVector` is the story's on-device semantic embedding, or nil when no
+    /// model is available (or it hasn't been computed) — the engine then falls
+    /// back to word overlap. Computed off the main actor by the caller; this
+    /// function is pure scoring math.
+    func match(analysis: StoryAnalysisResult, storyVector: [Double]?,
+               against pool: [JournalistProfile]) -> [MatchCandidate]
 }
 
 /// The relevance engine, applied over the pool. The model never decides who to
@@ -24,11 +25,8 @@ struct WeightedRelevanceService: MatchingService {
     /// Below this, a journalist isn't shown at all.
     var floor = 0.18
 
-    func match(analysis: StoryAnalysisResult, storyText: String,
-               against pool: [JournalistProfile],
-               embeddings: EmbeddingProvider?) -> [MatchCandidate] {
-        let storyVector = embeddings.flatMap { $0.vector(for: Embedding.storyText(analysis, rawText: storyText)) }
-
+    func match(analysis: StoryAnalysisResult, storyVector: [Double]?,
+               against pool: [JournalistProfile]) -> [MatchCandidate] {
         return pool.compactMap { journalist in
             let similarity: Double? = {
                 guard let storyVector, !journalist.embedding.isEmpty else { return nil }

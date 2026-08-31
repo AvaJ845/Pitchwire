@@ -113,7 +113,7 @@ final class ResearchLabTests: XCTestCase {
         XCTAssertEqual(p.primaryEvidence?.verifiedBy, "DJ")
     }
 
-    func testMatchRunnerUsesTheDirectoryAndSharesJournalists() throws {
+    func testMatchRunnerUsesTheDirectoryAndSharesJournalists() async throws {
         let ctx = try context()
         JournalistDirectory.ensureSeeded(ctx)
         let dirCount = try ctx.fetchCount(FetchDescriptor<JournalistProfile>())
@@ -125,13 +125,13 @@ final class ResearchLabTests: XCTestCase {
         let campaign = Campaign(name: "C", story: story)
         ctx.insert(campaign); ctx.insert(story)
 
-        MatchRunner.populateTargets(for: campaign, context: ctx)
+        await MatchRunner.populateTargets(for: campaign, context: ctx)
         XCTAssertFalse(campaign.mediaTargets.isEmpty)
         // Matching must not have grown the directory (journalists are shared).
         XCTAssertEqual(try ctx.fetchCount(FetchDescriptor<JournalistProfile>()), dirCount)
 
         // Re-run is clean — same directory count, targets rebuilt.
-        MatchRunner.populateTargets(for: campaign, context: ctx)
+        await MatchRunner.populateTargets(for: campaign, context: ctx)
         XCTAssertEqual(try ctx.fetchCount(FetchDescriptor<JournalistProfile>()), dirCount)
     }
 
@@ -139,7 +139,7 @@ final class ResearchLabTests: XCTestCase {
     /// stored breakdown must be present and must be the one the score/tier came
     /// from — otherwise "How we scored this" shows numbers that don't add up to
     /// the ranking.
-    func testMatchRunnerPersistsTheBreakdownBehindEachScore() throws {
+    func testMatchRunnerPersistsTheBreakdownBehindEachScore() async throws {
         let ctx = try context()
         JournalistDirectory.ensureSeeded(ctx)
 
@@ -150,7 +150,7 @@ final class ResearchLabTests: XCTestCase {
                                         subtopics: ["privacy", "encryption", "security"], mediaHooks: []))
         let campaign = Campaign(name: "C", story: story)
         ctx.insert(campaign); ctx.insert(story)
-        MatchRunner.populateTargets(for: campaign, context: ctx)
+        await MatchRunner.populateTargets(for: campaign, context: ctx)
 
         let targets = campaign.mediaTargets
         XCTAssertFalse(targets.isEmpty)

@@ -54,7 +54,7 @@ final class EditorialRelevanceEvalTests: XCTestCase {
 
     func testEveryStoryProducesFullyExplainedMatches() {
         let service = WeightedRelevanceService()
-        let embeddings = DefaultEmbeddingProvider.make()
+        let embeddings = DefaultEmbeddingProvider.shared
         for j in pool where j.embedding.count != MiniLMEmbeddingProvider.dimension {
             if let v = embeddings?.vector(for: j.embeddingText), v.count == MiniLMEmbeddingProvider.dimension {
                 j.embedding = v
@@ -64,8 +64,8 @@ final class EditorialRelevanceEvalTests: XCTestCase {
             + "embeddings: \(embeddings == nil ? "off" : "MiniLM") ===\n"
 
         for s in stories {
-            let results = service.match(analysis: s.analysis, storyText: s.line,
-                                        against: pool, embeddings: embeddings)
+            let storyVector = embeddings?.vector(for: Embedding.storyText(s.analysis, rawText: s.line))
+            let results = service.match(analysis: s.analysis, storyVector: storyVector, against: pool)
             report += "\n#\(s.n) \(s.line)\n"
             for r in results.prefix(5) {
                 report += String(format: "   [%@ %.2f] %@ — %@\n",

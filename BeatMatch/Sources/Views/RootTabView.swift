@@ -18,6 +18,12 @@ struct RootTabView: View {
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
         }
         .tint(Palette.accent)
-        .task { JournalistDirectory.ensureSeeded(modelContext) }
+        .task {
+            JournalistDirectory.ensureSeeded(modelContext)
+            // Warm the on-device semantic vectors in the background so the first
+            // "Find journalists" is instant. Background priority — it yields to
+            // anything the user is doing.
+            await MatchRunner.warmDirectory(context: modelContext, priority: .utility)
+        }
     }
 }
