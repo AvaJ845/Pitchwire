@@ -26,6 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true   # the bundled MiniLM model lives in Git LFS
 
       - name: Select newest Xcode
         run: |

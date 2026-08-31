@@ -1,2 +1,4 @@
-Pitchwire/Resources/MiniLM.mlpackage/** filter=lfs diff=lfs merge=lfs -text
+# The bundled CoreML sentence-transformer weights (~16 MB). Routed through
+# Git LFS so it never bloats the packed history — the existing blob was
+# migrated in with `git lfs migrate import`.
 **/MiniLM.mlpackage/** filter=lfs diff=lfs merge=lfs -text
