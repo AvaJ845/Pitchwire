@@ -41,6 +41,8 @@ struct DraftsView: View {
                 NavigationLink { PitchDraftView(draft: draft) } label: { EmptyView() }.opacity(0)
                 DraftRow(draft: draft)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
             .listRowInsets(EdgeInsets(top: 5, leading: Metrics.gutter, bottom: 5, trailing: Metrics.gutter))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)

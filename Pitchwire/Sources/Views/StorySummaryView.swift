@@ -164,6 +164,9 @@ private struct MenuRow: View {
             .padding(.vertical, 10)
             .contentShape(Rectangle())
         }
+        .accessibilityLabel(label)
+        .accessibilityValue(display(selection))
+        .accessibilityHint("Double-tap to change")
     }
 }
 

@@ -22,6 +22,8 @@ struct CampaignsView: View {
                                 NavigationLink { MatchListView(campaign: campaign) } label: { EmptyView() }.opacity(0)
                                 CampaignRow(campaign: campaign)
                             }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(.isButton)
                             .listRowInsets(EdgeInsets(top: 5, leading: Metrics.gutter, bottom: 5, trailing: Metrics.gutter))
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
