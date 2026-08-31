@@ -226,7 +226,7 @@ enum RelevanceEngine {
         case .strong:    closer = " — a solid fit."
         case .possible:  closer = "."
         }
-        return joined.prefix(1).uppercased() + joined.dropFirst() + closer
+        return joined.prefix(1).uppercased() + String(joined.dropFirst()) + closer
     }
 
     // MARK: - helpers
