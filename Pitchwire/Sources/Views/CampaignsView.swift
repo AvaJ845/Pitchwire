@@ -16,25 +16,24 @@ struct CampaignsView: View {
                         Text("Analyze a story from Home to start one.")
                     }
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 10) {
-                            ForEach(campaigns) { campaign in
-                                NavigationLink {
-                                    MatchListView(campaign: campaign)
-                                } label: {
-                                    CampaignRow(campaign: campaign)
-                                }
-                                .buttonStyle(.plain)
-                                .contextMenu {
-                                    Button("Delete campaign", role: .destructive) {
-                                        pendingDelete = campaign
-                                    }
+                    List {
+                        ForEach(campaigns) { campaign in
+                            ZStack {
+                                NavigationLink { MatchListView(campaign: campaign) } label: { EmptyView() }.opacity(0)
+                                CampaignRow(campaign: campaign)
+                            }
+                            .listRowInsets(EdgeInsets(top: 5, leading: Metrics.gutter, bottom: 5, trailing: Metrics.gutter))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) { pendingDelete = campaign } label: {
+                                    Label("Delete", systemImage: "trash")
                                 }
                             }
                         }
-                        .padding(Metrics.gutter)
-                        .readableWidth()
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
             .screenBackground()

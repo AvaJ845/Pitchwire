@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct DraftsView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \PitchDraft.createdAt, order: .reverse) private var drafts: [PitchDraft]
 
     private var sent: [PitchDraft] { drafts.filter { $0.status == .markedSent } }
@@ -17,20 +18,16 @@ struct DraftsView: View {
                         Text("Draft a pitch from a journalist's match detail.")
                     }
                 } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 10) {
-                            if !open.isEmpty {
-                                SectionLabel(title: "In progress").padding(.horizontal, 4)
-                                ForEach(open) { row($0) }
-                            }
-                            if !sent.isEmpty {
-                                SectionLabel(title: "Sent").padding(.horizontal, 4).padding(.top, 8)
-                                ForEach(sent) { row($0) }
-                            }
+                    List {
+                        if !open.isEmpty {
+                            Section("In progress") { rows(open) }
                         }
-                        .padding(Metrics.gutter)
-                        .readableWidth()
+                        if !sent.isEmpty {
+                            Section("Sent") { rows(sent) }
+                        }
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
             .screenBackground()
@@ -38,12 +35,21 @@ struct DraftsView: View {
         }
     }
 
-    private func row(_ draft: PitchDraft) -> some View {
-        NavigationLink {
-            PitchDraftView(draft: draft)
-        } label: {
-            DraftRow(draft: draft)
+    private func rows(_ drafts: [PitchDraft]) -> some View {
+        ForEach(drafts) { draft in
+            ZStack {
+                NavigationLink { PitchDraftView(draft: draft) } label: { EmptyView() }.opacity(0)
+                DraftRow(draft: draft)
+            }
+            .listRowInsets(EdgeInsets(top: 5, leading: Metrics.gutter, bottom: 5, trailing: Metrics.gutter))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    withAnimation { modelContext.delete(draft) }
+                    try? modelContext.save()
+                } label: { Label("Delete", systemImage: "trash") }
+            }
         }
-        .buttonStyle(.plain)
     }
 }
