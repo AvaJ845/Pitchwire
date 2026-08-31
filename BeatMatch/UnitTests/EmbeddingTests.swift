@@ -4,15 +4,15 @@ import XCTest
 final class EmbeddingTests: XCTestCase {
 
     func testSimilarityRescaleSpreadsTheUsefulRange() {
-        // Raw cosine of two identical unit vectors is 1.0 → rescaled to 1.0.
+        // Identical unit vectors → rescaled to 1.0.
         let v = Embedding.normalize([0.3, 0.4, 0.5, 0.1])
         XCTAssertEqual(Embedding.similarity(v, v), 1.0, accuracy: 0.001)
 
-        // NLEmbedding compresses unrelated tech text to ~0.55–0.65 raw — that
-        // must map to a near-zero signal, not "somewhat relevant".
-        XCTAssertLessThan(cosineToSignal(0.58), 0.15)
-        XCTAssertGreaterThan(cosineToSignal(0.78), 0.8)
-        XCTAssertEqual(cosineToSignal(0.40), 0.0, "below the floor → no signal")
+        // MiniLM: cross-vertical text lands ~0.15–0.20 raw → near-zero signal;
+        // a strong same-vertical match ~0.5 → near-full.
+        XCTAssertLessThan(cosineToSignal(0.18), 0.05)
+        XCTAssertGreaterThan(cosineToSignal(0.50), 0.8)
+        XCTAssertEqual(cosineToSignal(0.10), 0.0, "below the floor → no signal")
     }
 
     func testEngineFallsBackToWordOverlapWhenSimilarityIsNil() {
@@ -48,15 +48,19 @@ final class EmbeddingTests: XCTestCase {
         XCTAssertGreaterThan(semantic, word, "a strong semantic match lifts a profile word overlap missed")
     }
 
-    /// The on-device model — may be unavailable in CI; that's a valid state.
-    func testNLEmbeddingProviderIsUsableOrCleanlyAbsent() {
-        let p = NLEmbeddingProvider()
-        if p.isAvailable {
-            let v = p.vector(for: "an open-source AI developer tools framework")
-            XCTAssertEqual(v?.count ?? 0 > 0, true)
-        } else {
-            XCTAssertNil(p.vector(for: "anything"))
-        }
+    /// The bundled MiniLM model — must load, produce 384-dim vectors, and
+    /// actually separate different topics.
+    func testBundledMiniLMLoadsAndDiscriminates() throws {
+        let p = try XCTUnwrap(MiniLMEmbeddingProvider(), "MiniLM.mlmodelc must be bundled")
+        let ai = try XCTUnwrap(p.vector(for: "open-source LLM evaluation framework for engineering teams"))
+        let aiBeat = try XCTUnwrap(p.vector(for: "AI developer tools. AI coding tools. software engineering"))
+        let privacyBeat = try XCTUnwrap(p.vector(for: "consumer apps. commerce. streaming"))
+
+        XCTAssertEqual(ai.count, MiniLMEmbeddingProvider.dimension)
+        let onBeat = Embedding.rawCosine(ai, aiBeat)
+        let offBeat = Embedding.rawCosine(ai, privacyBeat)
+        XCTAssertGreaterThan(onBeat, offBeat + 0.1,
+                             "an AI story must be clearly closer to an AI beat than a consumer-apps beat")
     }
 
     private func cosineToSignal(_ raw: Double) -> Double {

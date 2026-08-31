@@ -197,14 +197,18 @@ from the signals that actually drove the score. Journalist detail has a **"How w
 this"** breakdown (score bar + per-signal bars). Ranking is deterministic.
 
 **Semantic matching (`EmbeddingService`).** The story and each journalist's beat + real
-article titles are embedded **on-device** (`NLEmbedding`, no network — the story never leaves
-the phone) and cached on `JournalistProfile.embedding`. The cosine is rescaled ([0.55, 0.82] →
-[0, 1]) because `NLEmbedding` reads every tech story as ~0.6 similar to every other, then
-combined as `max(word-overlap, similarity)` so it can only *lift* an under-tagged profile,
-never drag an exact beat match down. **Known limitation:** `NLEmbedding.sentenceEmbedding` is a
-weak model — on the well-tagged 20-record seed it rarely beats word overlap. The `EmbeddingProvider`
-seam makes swapping it (a bundled MiniLM CoreML model, or a Worker `/v1/embed`) a one-file change;
-it earns its keep as the directory grows and tagging gets sparser.
+article titles are embedded **on-device** with a bundled **all-MiniLM-L6-v2** sentence
+transformer (CoreML, 384-dim, 6-bit palettized ~16 MB, mean-pooled + L2-normalized in the
+graph). No network — the story never leaves the phone. Vectors are cached on
+`JournalistProfile.embedding` (re-warmed on a dimension mismatch, so a model swap self-heals).
+BERT-uncased WordPiece tokenization is in `BertTokenizer.swift`; the model runs **CPU-only**
+(the GPU/ANE path returns an all-zero vector for this graph on the simulator, and is a
+silent-failure risk on-device — the workload is ~20 short embeddings per match run, a few ms
+on CPU). The cosine is rescaled (`[0.22, 0.55] → [0, 1]`, clamped) — same-vertical text lands
+~0.30–0.50 raw, cross-vertical ~0.10–0.20 — then combined as `max(word-overlap, similarity)`
+so it can only *lift* an under-tagged profile, never drag an exact beat match down.
+`NLEmbeddingProvider` remains as a zero-cost fallback. The `EmbeddingProvider` seam keeps
+either swap (a Worker `/v1/embed`, a newer model) a one-file change.
 
 **The score is editorial relevance — never a probability of a reply or of coverage.**
 `RelevanceResult.relevanceDisclaimer` carries that line; it is shown on the score card.
