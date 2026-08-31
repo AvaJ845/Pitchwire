@@ -41,7 +41,7 @@ jobs:
         working-directory: BeatMatch
         run: xcodegen generate
 
-      - name: Resolve an iPhone simulator
+      - name: Boot an iPhone simulator
         id: sim
         run: |
           UDID=$(xcrun simctl list devices available -j | python3 -c "
@@ -54,19 +54,41 @@ jobs:
                   if dev.get('isAvailable') and 'iPhone' in dev['name']:
                       print(dev['udid']); sys.exit(0)
           sys.exit('no iPhone simulator available')")
-          echo "Using simulator $UDID"
+          echo "Booting simulator $UDID"
+          xcrun simctl bootstatus "$UDID" -b   # boots if needed, waits until fully up
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       - name: ${{ matrix.name }}
         working-directory: BeatMatch
         run: |
-          xcodebuild test \
-            -scheme BeatMatch \
-            -only-testing:${{ matrix.testing }} \
-            -destination "id=${{ steps.sim.outputs.udid }}" \
-            -resultBundlePath TestResults.xcresult \
-            -quiet \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+          run_tests() {
+            set +e
+            xcodebuild test \
+              -scheme BeatMatch \
+              -only-testing:${{ matrix.testing }} \
+              -destination "id=${{ steps.sim.outputs.udid }}" \
+              -resultBundlePath TestResults.xcresult \
+              CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO 2>&1 | tee xcb.log
+            local rc=${PIPESTATUS[0]}
+            set -e
+            return $rc
+          }
+
+          echo "::group::xcodebuild test (attempt 1)"; run_tests; rc=$?; echo "::endgroup::"
+          [ $rc -eq 0 ] && exit 0
+
+          # Simulator-attach flakes ("failed to bless service hub") are common on
+          # CI — if it looks like one, reset the simulator and retry once.
+          if grep -q "failed to bless service hub\|Unable to boot\|Timed out waiting" xcb.log; then
+            echo "simulator flake detected — resetting and retrying"
+            rm -rf TestResults.xcresult
+            xcrun simctl shutdown all || true
+            xcrun simctl erase "${{ steps.sim.outputs.udid }}" || true
+            xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b || true
+            echo "::group::xcodebuild test (attempt 2)"; run_tests; rc=$?; echo "::endgroup::"
+            [ $rc -eq 0 ] && exit 0
+          fi
+          exit 1
 
       - name: Upload result bundle on failure
         if: failure()
