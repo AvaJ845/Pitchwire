@@ -85,7 +85,7 @@ final class EditorialRelevanceEvalTests: XCTestCase {
 
                 // Invariant 2 — "excellent" means repeated on-topic coverage.
                 if r.confidenceTier == .excellent {
-                    let repeated = r.relevance?.signals.first { $0.name == "Repeated coverage" }?.score ?? 0
+                    let repeated = r.relevance?.signals.first { $0.kind == .repeatedCoverage }?.score ?? 0
                     XCTAssertGreaterThanOrEqual(repeated, 0.5,
                         "#\(s.n): \(r.journalist.name) is 'excellent' without repeated coverage")
                 }

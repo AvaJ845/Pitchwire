@@ -120,9 +120,9 @@ final class RelevanceEngineTests: XCTestCase {
         let apps = RelevanceEngine.score(analysis: privacyStory, journalist: appsReporter)
         let priv = RelevanceEngine.score(analysis: privacyStory, journalist: privacyReporter)
 
-        XCTAssertEqual(apps.signals.first { $0.name == "Repeated coverage" }?.score, 0,
+        XCTAssertEqual(apps.signals.first { $0.kind == .repeatedCoverage }?.score, 0,
                        "one off-beat privacy headline is not privacy coverage")
-        XCTAssertEqual(apps.signals.first { $0.name == "Recent coverage" }?.score, 0)
+        XCTAssertEqual(apps.signals.first { $0.kind == .recentCoverage }?.score, 0)
         XCTAssertNotEqual(apps.tier, .excellent)
         XCTAssertGreaterThan(priv.total - apps.total, 0.2, "the real privacy reporter must rank clearly higher")
     }
@@ -137,7 +137,7 @@ final class RelevanceEngineTests: XCTestCase {
             outletVerticals: ["privacy", "security"]
         )
         let r = RelevanceEngine.score(analysis: privacyStory, journalist: privacyReporter)
-        XCTAssertGreaterThanOrEqual(r.signals.first { $0.name == "Repeated coverage" }?.score ?? 0, 0.75)
+        XCTAssertGreaterThanOrEqual(r.signals.first { $0.kind == .repeatedCoverage }?.score ?? 0, 0.75)
     }
 
     func testStaleCoverageScoresBelowFreshCoverage() {

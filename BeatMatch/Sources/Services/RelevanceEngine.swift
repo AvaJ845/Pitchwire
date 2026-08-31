@@ -1,5 +1,34 @@
 import Foundation
 
+/// The stable identity of a weighted factor. Logic (tier thresholds,
+/// disqualification, tests) keys off this — never off `displayName`, which is
+/// UI copy and free to change.
+enum SignalKind: String, Codable, CaseIterable {
+    case editorialSimilarity
+    case recentCoverage
+    case repeatedCoverage
+    case angleFit
+    case audienceFit
+    case publication
+    case geography
+    case pitchPreference
+    case evidence
+
+    var displayName: String {
+        switch self {
+        case .editorialSimilarity: return "Editorial similarity"
+        case .recentCoverage:      return "Recent coverage"
+        case .repeatedCoverage:    return "Repeated coverage"
+        case .angleFit:            return "Angle fit"
+        case .audienceFit:         return "Audience fit"
+        case .publication:         return "Publication relevance"
+        case .geography:           return "Geography"
+        case .pitchPreference:     return "Pitch preference"
+        case .evidence:            return "Evidence & verification"
+        }
+    }
+}
+
 /// One weighted factor in an editorial-relevance score. Deterministic and
 /// inspectable — every number here can be shown to the user and traced to
 /// structured editorial data.
@@ -9,15 +38,16 @@ import Foundation
 /// (similarity term included), never a recompute that drops it.
 struct RelevanceSignal: Identifiable, Codable {
     let id = UUID()
-    let name: String
+    let kind: SignalKind
     let score: Double        // 0...1
     let weight: Double        // relative importance
     let note: String?         // human fragment for the "why", nil if it didn't contribute
 
+    var name: String { kind.displayName }
     var contribution: Double { score * weight }
 
     // `id` is a fresh identifier for SwiftUI diffing only — never encoded.
-    private enum CodingKeys: String, CodingKey { case name, score, weight, note }
+    private enum CodingKeys: String, CodingKey { case kind, score, weight, note }
 }
 
 struct RelevanceResult: Codable {
@@ -33,7 +63,7 @@ struct RelevanceResult: Codable {
     /// Editorial-relevance tier. An "excellent" match must show a *pattern* of
     /// coverage, not a single lucky headline.
     var tier: ConfidenceTier {
-        let repeated = signals.first { $0.name == Signal.repeatedCoverage }?.score ?? 0
+        let repeated = signals.first { $0.kind == .repeatedCoverage }?.score ?? 0
         if total >= 0.68 && repeated >= 0.5 { return .excellent }
         if total >= 0.42 { return .strong }
         return .possible
@@ -46,7 +76,7 @@ struct RelevanceResult: Codable {
     }
 
     var isDisqualified: Bool {
-        signals.contains { $0.name == Signal.pitchPreference && $0.score == 0 }
+        signals.contains { $0.kind == .pitchPreference && $0.score == 0 }
     }
 
     /// Shown wherever the score appears. The score is about editorial fit — it is
@@ -55,25 +85,12 @@ struct RelevanceResult: Codable {
         "Editorial relevance — how closely their published work matches your story. "
             + "Not a prediction that they will respond or cover it."
     }
-
-    enum Signal {
-        static let topicMatch = "Editorial similarity"
-        static let recentCoverage = "Recent coverage"
-        static let repeatedCoverage = "Repeated coverage"
-        static let angleFit = "Angle fit"
-        static let audienceFit = "Audience fit"
-        static let publication = "Publication relevance"
-        static let geography = "Geography"
-        static let pitchPreference = "Pitch preference"
-        static let evidence = "Evidence & verification"
-    }
 }
 
 /// Scores an editorial professional against an analyzed story on weighted,
 /// explainable signals. The model never runs here — this reads structured beat /
 /// coverage / preference data only, so every recommendation is traceable.
 enum RelevanceEngine {
-    typealias Signal = RelevanceResult.Signal
 
     /// `similarity` is the on-device semantic match of the story to this person's
     /// beat + real article text (0...1). `nil` = no embedding model — the engine
@@ -175,15 +192,15 @@ enum RelevanceEngine {
         }()
 
         let signals = [
-            RelevanceSignal(name: Signal.topicMatch,       score: topicScore,       weight: 0.24, note: topicNote),
-            RelevanceSignal(name: Signal.recentCoverage,   score: recencyScore,     weight: 0.18, note: recentNote),
-            RelevanceSignal(name: Signal.repeatedCoverage, score: repeatedScore,    weight: 0.14, note: repeatedNote),
-            RelevanceSignal(name: Signal.angleFit,         score: angleScore,       weight: 0.10, note: angleNote),
-            RelevanceSignal(name: Signal.audienceFit,      score: audienceScore,    weight: 0.10, note: audienceNote),
-            RelevanceSignal(name: Signal.publication,      score: publicationScore, weight: 0.08, note: publicationNote),
-            RelevanceSignal(name: Signal.geography,        score: geoScore,         weight: 0.04, note: nil),
-            RelevanceSignal(name: Signal.pitchPreference,  score: prefScore,        weight: 0.06, note: blocked ? "they've asked not to be pitched this angle" : nil),
-            RelevanceSignal(name: Signal.evidence,         score: evidenceScore,    weight: 0.06, note: nil),
+            RelevanceSignal(kind: .editorialSimilarity, score: topicScore,       weight: 0.24, note: topicNote),
+            RelevanceSignal(kind: .recentCoverage,      score: recencyScore,     weight: 0.18, note: recentNote),
+            RelevanceSignal(kind: .repeatedCoverage,    score: repeatedScore,    weight: 0.14, note: repeatedNote),
+            RelevanceSignal(kind: .angleFit,            score: angleScore,       weight: 0.10, note: angleNote),
+            RelevanceSignal(kind: .audienceFit,         score: audienceScore,    weight: 0.10, note: audienceNote),
+            RelevanceSignal(kind: .publication,         score: publicationScore, weight: 0.08, note: publicationNote),
+            RelevanceSignal(kind: .geography,           score: geoScore,         weight: 0.04, note: nil),
+            RelevanceSignal(kind: .pitchPreference,     score: prefScore,        weight: 0.06, note: blocked ? "they've asked not to be pitched this angle" : nil),
+            RelevanceSignal(kind: .evidence,            score: evidenceScore,    weight: 0.06, note: nil),
         ]
         return RelevanceResult(signals: signals)
     }
