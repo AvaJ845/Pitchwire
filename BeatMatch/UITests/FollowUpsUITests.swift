@@ -5,7 +5,7 @@ final class FollowUpsUITests: XCTestCase {
 
     func testAddAndCompleteAFollowUp() {
         let app = XCUIApplication()
-        app.launchArguments = ["-uitest-reset"]
+        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai"]
         app.launch()
 
         // Get a campaign: analyze → find journalists

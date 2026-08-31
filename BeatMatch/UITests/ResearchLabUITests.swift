@@ -9,7 +9,7 @@ final class ResearchLabUITests: XCTestCase {
 
     func testResearcherCanUnverifyAttachEvidenceAndReverify() {
         let app = XCUIApplication()
-        app.launchArguments = ["-uitest-reset"]
+        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai"]
         app.launch()
 
         app.buttons["Profile"].tap()

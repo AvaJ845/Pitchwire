@@ -28,7 +28,18 @@ struct BeatMatchApp: App {
         // AI layer — reads Config/AIConfig.plist (gitignored) if present, else
         // fully offline on deterministic fallbacks. No provider key is ever in
         // the app — only a scoped client token for our own backend.
-        aiClient = AIClient(configuration: .fromBundle(), log: log)
+        aiClient = {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-uitest-mock-ai") {
+                return AIClient(
+                    configuration: AIConfiguration(baseURL: URL(string: "https://mock.pitchwire.local")!,
+                                                   clientToken: "uitest"),
+                    log: log,
+                    gatewayOverride: MockAIGateway())
+            }
+            #endif
+            return AIClient(configuration: .fromBundle(), log: log)
+        }()
 
         // Entitlements — one config object, swappable store. Feature code never
         // checks the plan directly.

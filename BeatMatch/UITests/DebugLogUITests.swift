@@ -5,7 +5,7 @@ final class DebugLogUITests: XCTestCase {
 
     func testDeveloperLogIsReachableFromProfile() {
         let app = XCUIApplication()
-        app.launchArguments = ["-uitest-reset"]
+        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai"]
         app.launch()
 
         app.tabBars.buttons["Profile"].tap()

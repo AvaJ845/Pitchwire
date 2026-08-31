@@ -19,7 +19,7 @@ final class CoreLoopUITests: XCTestCase {
 
     func testAnalyzeToDraftLoop() {
         let app = XCUIApplication()
-        app.launchArguments = ["-uitest-reset"]   // fresh store + entitlement counters
+        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai"]   // fresh store + entitlement counters
         app.launch()
 
         // Home intake

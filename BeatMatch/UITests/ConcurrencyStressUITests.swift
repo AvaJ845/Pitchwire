@@ -26,7 +26,7 @@ final class ConcurrencyStressUITests: XCTestCase {
 
     func testEnrichmentOverlapsNavigationAndDraftingWithoutCrashing() {
         let app = XCUIApplication()
-        app.launchArguments = ["-uitest-reset"]
+        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai"]
         app.launch()
 
         XCTAssertTrue(app.staticTexts["What's your story?"].waitForExistence(timeout: 5))
