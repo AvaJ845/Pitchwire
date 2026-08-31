@@ -48,7 +48,6 @@ struct JournalistDetailView: View {
                 }
             }
             .padding(Metrics.gutter)
-            .readableWidth()
             .padding(.bottom, 96)
         }
         .screenBackground()

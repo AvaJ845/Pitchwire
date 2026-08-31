@@ -5,7 +5,6 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AIClient.self) private var aiClient
     @Environment(Entitlements.self) private var entitlements
-    @Environment(\.scenePhase) private var scenePhase
 
     @Query(sort: \Campaign.createdAt, order: .reverse) private var campaigns: [Campaign]
 
@@ -83,24 +82,14 @@ struct HomeView: View {
                     }
                 }
                 .padding(Metrics.gutter)
-                .readableWidth()
             }
             .scrollDismissesKeyboard(.interactively)
             .screenBackground()
             .navigationTitle("Pitchwire")
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { editorFocused = false }
-                }
-            }
             .navigationDestination(item: $activeCampaign) { campaign in
                 StorySummaryView(campaign: campaign)
             }
             .task { pickUpPendingStory() }
-            .onChange(of: scenePhase) { _, phase in
-                if phase == .active { pickUpPendingStory() }
-            }
         }
     }
 

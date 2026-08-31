@@ -116,7 +116,6 @@ struct PitchDraftView: View {
                 .accessibilityValue(sent ? "on" : "off")
             }
             .padding(Metrics.gutter)
-            .readableWidth()
         }
         .screenBackground()
         .navigationTitle("Pitch draft")

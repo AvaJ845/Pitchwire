@@ -83,7 +83,6 @@ struct StorySummaryView: View {
                     }
                 }
                 .padding(Metrics.gutter)
-                .readableWidth()
                 .padding(.bottom, 88)
             } else {
                 ContentUnavailableView("No story", systemImage: "doc.text")

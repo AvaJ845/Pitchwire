@@ -359,12 +359,6 @@ struct ScreenBackground: ViewModifier {
 
 extension View {
     func screenBackground() -> some View { modifier(ScreenBackground()) }
-
-    /// Caps a scroll view's content to a comfortable reading measure and centres
-    /// it — a no-op on iPhone, keeps lines from stretching edge-to-edge on iPad.
-    func readableWidth(_ max: CGFloat = 640) -> some View {
-        frame(maxWidth: max).frame(maxWidth: .infinity)
-    }
 }
 
 // MARK: - Tier display helpers
