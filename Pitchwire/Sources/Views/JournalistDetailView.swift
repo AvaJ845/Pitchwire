@@ -10,6 +10,7 @@ struct JournalistDetailView: View {
 
     @State private var draft: PitchDraft?
     @State private var draftError: String?
+    @State private var showReport = false
 
     private var draftingService: PitchDraftingService {
         DefaultPitchDraftingService(ai: aiClient)
@@ -259,21 +260,18 @@ struct JournalistDetailView: View {
                         .foregroundStyle(Palette.evidence(.high))
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Button("Report an issue / request removal") {
-                        Haptics.tap()
-                        for record in journalist.evidenceRecords { record.issueReported = true }
-                        let request = RemovalRequest(
-                            journalistName: journalist.name,
-                            journalistID: journalist.id,
-                            reason: "Reported from the profile screen")
-                        modelContext.insert(request)
-                        try? modelContext.save()
-                        let name = journalist.name, id = journalist.id, config = aiClient.configuration
-                        Task { await RemovalReporter.send(name: name, journalistID: id,
-                                                          reason: request.reason, using: config) }
-                    }
-                    .font(.footnote)
-                    .foregroundStyle(Palette.inkSecondary)
+                    Button("Report an issue / request removal") { showReport = true }
+                        .font(.footnote)
+                        .foregroundStyle(Palette.inkSecondary)
+                        .confirmationDialog("Report this profile", isPresented: $showReport, titleVisibility: .visible) {
+                            Button("This isn't me / wrong person") { report(journalist, "Wrong person") }
+                            Button("I don't cover this beat") { report(journalist, "Beat is wrong") }
+                            Button("Please remove my profile") { report(journalist, "Removal requested") }
+                            Button("Something else") { report(journalist, "Reported from the profile screen") }
+                            Button("Cancel", role: .cancel) {}
+                        } message: {
+                            Text("We review reports within 48 hours. Editorial context only — Pitchwire holds no contact details.")
+                        }
                 }
             }
         }
@@ -304,6 +302,17 @@ struct JournalistDetailView: View {
         }
         .padding(Metrics.gutter)
         .background(.bar)
+    }
+
+    private func report(_ journalist: JournalistProfile, _ reason: String) {
+        Haptics.tap()
+        for record in journalist.evidenceRecords { record.issueReported = true }
+        let request = RemovalRequest(journalistName: journalist.name,
+                                     journalistID: journalist.id, reason: reason)
+        modelContext.insert(request)
+        try? modelContext.save()
+        let name = journalist.name, id = journalist.id, config = aiClient.configuration
+        Task { await RemovalReporter.send(name: name, journalistID: id, reason: reason, using: config) }
     }
 
     private func generateDraft() {
