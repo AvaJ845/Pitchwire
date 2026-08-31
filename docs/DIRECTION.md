@@ -19,8 +19,29 @@ story intake → AI understanding → relevance matching → outreach guidance �
 
 ## Who it's for (v1)
 
-Startup founders first, then small in-house marketers, then agencies serving small brands. Not
-enterprise media intelligence.
+**Technical founders doing their own launch PR** — AI & developer tools and privacy & security
+first, because that's where the directory is deepest, where verification is tractable solo, and
+where the "who covers this, and why" problem is real and underserved. Then small in-house
+marketers, then agencies serving small brands. **Not** enterprise media intelligence, and **not**
+a general-purpose PR tool — a fintech or consumer-app founder gets a usable-but-lighter list and
+is told so; anyone outside the four verticals is told the directory doesn't cover them yet.
+
+### Directory scope — niche-deep, not broad-shallow (decided 2026-08-31)
+
+The value is **density of relevance**, not breadth of coverage — a founder would rather have 8
+dead-on matches in their space than 3 okay ones across a wide net, and the MVP milestone was
+always "consistently explain why," not "have N journalists." So:
+
+| Vertical | Commitment | Target size |
+|---|---|---|
+| AI & developer tools | **core — grow** | 15–20 verified |
+| Privacy & security | **core — grow** | 15–20 verified |
+| Indie iOS / consumer apps | supported — stable | ~5, not expanding |
+| Fintech / personal finance | supported — stable | ~5, not expanding |
+
+Adding a new vertical is a deliberate decision (a research sprint + a verification budget), not
+a default. Breadth comes *after* the two core verticals are deep enough that a technical founder's
+top matches are reliably "Excellent".
 
 ## Product principles
 

@@ -39,8 +39,10 @@ For each candidate in **Profile → Developer → Research Lab → Candidates**:
 6. Enter your initials, pick a **confidence** level, tap **Verify**. Or **Reject**
    if they don't hold up (wrong beat, left journalism, nothing recent/relevant).
 
-Start with **8–10**, spread across the four verticals (AI & dev tools, privacy &
-security, fintech & personal finance, indie iOS & consumer apps).
+**Current priority (see `docs/DIRECTION.md` → Directory scope):** grow **AI & dev
+tools** and **privacy & security** toward 15–20 verified each. Fintech and indie
+iOS are "supported, stable" at ~5 — only add one there if you happen on an obvious
+fit. Don't start a new vertical without a decision.
 
 ### 2. Export + commit
 

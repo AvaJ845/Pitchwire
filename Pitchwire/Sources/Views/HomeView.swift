@@ -60,8 +60,9 @@ struct HomeView: View {
 
                     AllowanceFooter(key: .storyAnalysis)
 
-                    Label("Our directory covers AI & developer tools, privacy & security, "
-                          + "fintech, and consumer apps. Stories outside those areas may not match well yet.",
+                    Label("Our directory is deepest in AI & developer tools and privacy & security, "
+                          + "with lighter coverage of fintech and consumer apps. Stories outside "
+                          + "those areas may not match well yet.",
                           systemImage: "text.magnifyingglass")
                         .font(.caption)
                         .foregroundStyle(Palette.inkSecondary)
