@@ -83,6 +83,7 @@ struct HomeView: View {
                     }
                 }
                 .padding(Metrics.gutter)
+                .readableWidth()
             }
             .scrollDismissesKeyboard(.interactively)
             .screenBackground()
@@ -142,6 +143,8 @@ struct HomeView: View {
                     .scrollContentBackground(.hidden)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 6)
+                    .accessibilityLabel("Your story")
+                    .accessibilityHint("Paste a launch story, press release, or announcement")
             }
         }
         .overlay(alignment: .bottomTrailing) {
@@ -150,6 +153,7 @@ struct HomeView: View {
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(Palette.inkTertiary)
                     .padding(10)
+                    .accessibilityLabel("\(storyText.count) characters")
             }
         }
     }

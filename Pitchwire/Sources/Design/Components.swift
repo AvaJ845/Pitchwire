@@ -59,8 +59,11 @@ struct Monogram: View {
 
     private var tint: Color {
         let palette: [UInt] = [0x0E8C7E, 0x2563C9, 0x8A5CF6, 0xC2410C, 0xB8860B, 0x0891B2]
-        let idx = abs(name.hashValue) % palette.count
-        return Color(hex: palette[idx])
+        // A *stable* hash — `String.hashValue` is per-process randomised, so it
+        // would repaint every avatar on each launch. FNV-1a over the scalars.
+        var h: UInt64 = 0xcbf29ce484222325
+        for byte in name.utf8 { h = (h ^ UInt64(byte)) &* 0x100000001b3 }
+        return Color(hex: palette[Int(h % UInt64(palette.count))])
     }
 
     var body: some View {
@@ -264,6 +267,7 @@ struct EvidenceLinkRow: View {
 struct PitchwireButtonStyle: ButtonStyle {
     var prominent = true
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var fill: Color {
         prominent ? Palette.accent.opacity(isEnabled ? 1 : 0.4) : Palette.accentSoft
@@ -277,7 +281,7 @@ struct PitchwireButtonStyle: ButtonStyle {
             .foregroundStyle(prominent ? Color.white : Palette.accent)
             .background(fill, in: RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous))
             .opacity(configuration.isPressed ? 0.85 : 1)
-            .scaleEffect(configuration.isPressed ? 0.99 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.99 : 1)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
@@ -351,6 +355,12 @@ struct ScreenBackground: ViewModifier {
 
 extension View {
     func screenBackground() -> some View { modifier(ScreenBackground()) }
+
+    /// Caps a scroll view's content to a comfortable reading measure and centres
+    /// it — a no-op on iPhone, keeps lines from stretching edge-to-edge on iPad.
+    func readableWidth(_ max: CGFloat = 640) -> some View {
+        frame(maxWidth: max).frame(maxWidth: .infinity)
+    }
 }
 
 // MARK: - Tier display helpers

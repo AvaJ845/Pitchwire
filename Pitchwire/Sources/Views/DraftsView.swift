@@ -29,6 +29,7 @@ struct DraftsView: View {
                             }
                         }
                         .padding(Metrics.gutter)
+                        .readableWidth()
                     }
                 }
             }

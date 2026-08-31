@@ -83,6 +83,7 @@ struct StorySummaryView: View {
                     }
                 }
                 .padding(Metrics.gutter)
+                .readableWidth()
                 .padding(.bottom, 88)
             } else {
                 ContentUnavailableView("No story", systemImage: "doc.text")
@@ -187,6 +188,7 @@ private struct ChipEditor: View {
                                 Image(systemName: "xmark")
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Remove topic \(item)")
                         }
                         .font(.caption.weight(.medium))
                         .foregroundStyle(Palette.accent)

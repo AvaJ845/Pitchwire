@@ -57,6 +57,7 @@ struct PitchDraftView: View {
                             .foregroundStyle(Palette.ink)
                             .frame(minHeight: length == .short ? 220 : 320)
                             .scrollContentBackground(.hidden)
+                            .accessibilityLabel("\(length.rawValue) pitch body")
                     }
                 }
 
@@ -65,11 +66,16 @@ struct PitchDraftView: View {
                         UIPasteboard.general.string = "\(draft.subject)\n\n\(activeBody.wrappedValue)"
                         Haptics.success()
                         withAnimation { copied = true }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { withAnimation { copied = false } }
+                        UIAccessibility.post(notification: .announcement, argument: "Copied to clipboard")
+                        Task {
+                            try? await Task.sleep(for: .seconds(1.6))
+                            withAnimation { copied = false }
+                        }
                     } label: {
                         Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
                     }
                     .buttonStyle(.pitchwireQuiet)
+                    .accessibilityLabel("Copy subject and pitch")
 
                     ShareLink(item: "\(draft.subject)\n\n\(activeBody.wrappedValue)") {
                         Label("Share", systemImage: "square.and.arrow.up")
@@ -110,6 +116,7 @@ struct PitchDraftView: View {
                 .accessibilityValue(sent ? "on" : "off")
             }
             .padding(Metrics.gutter)
+            .readableWidth()
         }
         .screenBackground()
         .navigationTitle("Pitch draft")

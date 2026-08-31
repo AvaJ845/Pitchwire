@@ -48,6 +48,7 @@ struct JournalistDetailView: View {
                 }
             }
             .padding(Metrics.gutter)
+            .readableWidth()
             .padding(.bottom, 96)
         }
         .screenBackground()
@@ -347,12 +348,16 @@ private struct ScoreBar: View {
 
 private struct SignalRow: View {
     let signal: RelevanceSignal
+    @ScaledMetric(relativeTo: .caption) private var labelWidth: CGFloat = 108
+
     var body: some View {
         HStack(spacing: 10) {
             Text(signal.name)
                 .font(.caption)
                 .foregroundStyle(Palette.inkSecondary)
-                .frame(width: 108, alignment: .leading)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .frame(width: labelWidth, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Palette.hairline).frame(height: 5)
