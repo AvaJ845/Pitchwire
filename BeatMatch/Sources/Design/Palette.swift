@@ -43,25 +43,27 @@ enum Palette {
     static let inkSecondary = Color(light: 0x5B6672, dark: 0x9AA6B2)
     static let inkTertiary = Color(light: 0x8B95A1, dark: 0x6C7784)
 
-    // Confidence tiers (match strength)
+    // Confidence tiers (match strength) — teal → blue → slate.
     static func tier(_ tier: ConfidenceTier) -> Color {
         switch tier {
         case .excellent: return Color(light: 0x0E8C7E, dark: 0x2CD3BE)
         case .strong:    return Color(light: 0x2563C9, dark: 0x6BA5FF)
-        case .possible:  return Color(light: 0x8B95A1, dark: 0x8B95A1)
+        case .possible:  return Color(light: 0x6E7A88, dark: 0x7C8A99)   // slate — distinct from evidence(.exploratory)
         }
     }
 
-    // Evidence confidence (data freshness)
+    // Evidence confidence (data freshness) — green → violet → warm grey.
+    // Deliberately a different hue family from `tier` and from `warning`, so
+    // "medium confidence" never reads as "caution".
     static func evidence(_ c: EvidenceConfidence) -> Color {
         switch c {
         case .high:        return Color(light: 0x1E9E63, dark: 0x4CD08A)
-        case .moderate:    return Color(light: 0xB8860B, dark: 0xE6B450)
-        case .exploratory: return Color(light: 0x8B95A1, dark: 0x8B95A1)
+        case .moderate:    return Color(light: 0x7A5AF8, dark: 0x9B87FF)   // violet, not goldenrod
+        case .exploratory: return Color(light: 0x9AA0A6, dark: 0x8C939B)   // warm grey
         }
     }
 
-    static let warning = Color(light: 0xB8860B, dark: 0xE6B450)
+    static let warning = Color(light: 0xB8860B, dark: 0xE6B450)   // amber — only ever "something needs attention"
     static let danger = Color(light: 0xC23B3B, dark: 0xFF6B6B)
 }
 

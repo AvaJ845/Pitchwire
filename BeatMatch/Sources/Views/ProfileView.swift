@@ -1,8 +1,11 @@
 import SwiftUI
+import SwiftData
 
 struct ProfileView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(Entitlements.self) private var entitlements
     @Environment(AIClient.self) private var aiClient
+    @State private var exportURL: URL?
     #if DEBUG
     @Environment(LLMLog.self) private var llmLog
     #endif
@@ -43,8 +46,27 @@ struct ProfileView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                Section {
+                    Button {
+                        let json = WorkspaceExporter.json(modelContext)
+                        let url = FileManager.default.temporaryDirectory
+                            .appendingPathComponent("pitchwire-workspace.json")
+                        try? json.data(using: .utf8)?.write(to: url)
+                        exportURL = url
+                    } label: {
+                        Label("Export my data", systemImage: "square.and.arrow.up")
+                    }
+                    if let exportURL {
+                        ShareLink(item: exportURL) { Label("Share export", systemImage: "doc") }
+                    }
+                } header: {
+                    Text("Your data")
+                } footer: {
+                    Text("Everything is stored on this device only. Export a portable JSON of your campaigns, matches, drafts and follow-ups any time.")
+                }
+
                 Section("About Pitchwire") {
-                    Text("Local-only, sample journalist data. See docs/DIRECTION.md for the product direction and what's next.")
+                    Text("An editorial-relevance research assistant. See docs/DIRECTION.md for the product direction and what's next.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

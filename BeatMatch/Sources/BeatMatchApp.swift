@@ -64,25 +64,42 @@ struct BeatMatchApp: App {
             RemovalRequest.self
         ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let storeURLs: [URL] = {
+            let base = configuration.url.deletingPathExtension()
+            return ["store", "store-shm", "store-wal"].map { base.appendingPathExtension($0) }
+                + [configuration.url]
+        }()
 
-        func wipeStore() {
-            let url = configuration.url
-            for suffix in ["", "-shm", "-wal"] {
-                try? FileManager.default.removeItem(
-                    at: url.deletingPathExtension().appendingPathExtension("store\(suffix)")
-                )
+        /// Move the store aside — never delete it outright. SwiftData is
+        /// additive-migration only; an incompatible change (a rename / retype)
+        /// otherwise crashes on launch. Pre-1.0 we recover by parking the old
+        /// store in a dated folder the user can retrieve, not by shredding it.
+        func parkStore() {
+            let stamp = ISO8601DateFormatter().string(from: Date())
+                .replacingOccurrences(of: ":", with: "-")
+            let backupDir = (try? FileManager.default.url(
+                for: .applicationSupportDirectory, in: .userDomainMask,
+                appropriateFor: nil, create: true))?
+                .appendingPathComponent("PitchwireBackups/\(stamp)", isDirectory: true)
+            if let backupDir {
+                try? FileManager.default.createDirectory(at: backupDir, withIntermediateDirectories: true)
             }
-            try? FileManager.default.removeItem(at: url)
+            for url in storeURLs where FileManager.default.fileExists(atPath: url.path) {
+                if let dest = backupDir?.appendingPathComponent(url.lastPathComponent) {
+                    try? FileManager.default.moveItem(at: url, to: dest)
+                } else {
+                    try? FileManager.default.removeItem(at: url)   // last resort
+                }
+            }
+            print("[Pitchwire] incompatible store parked at \(backupDir?.path ?? "(removed)")")
         }
 
-        if wipeFirst { wipeStore() }
+        if wipeFirst { parkStore() }
 
         do {
             return try ModelContainer(for: schema, configurations: [configuration])
         } catch {
-            // Pre-1.0, local-only, no accounts: if the on-disk store predates a
-            // schema change we can't migrate, wipe it rather than crash on launch.
-            wipeStore()
+            parkStore()
             do {
                 return try ModelContainer(for: schema, configurations: [configuration])
             } catch {
