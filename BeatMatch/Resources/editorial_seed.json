@@ -15,7 +15,7 @@
         "general tech"
       ],
       "outletURL": "https://www.wired.com/",
-      "confidence": "high",
+      "confidence": "moderate",
       "audiences": [
         "Businesses & teams",
         "Consumers",
@@ -46,34 +46,10 @@
       "name": "Andy Greenberg",
       "articles": [
         {
-          "publishedAt": "2026-08-26",
-          "title": "Security News This Week: Your Expired Visa Card Could Be Zombified to Make Contactless Payments",
-          "topics": [
-            "Security"
-          ],
-          "url": "https://www.wired.com/story/the-big-interview-podcast-andy-yen-proton/"
-        },
-        {
-          "publishedAt": "2026-08-26",
-          "title": "FBI Disrupts Chinese Proxy Tools Used In Mass Hacking of US Agencies",
-          "topics": [
-            "Security"
-          ],
-          "url": "https://www.wired.com/story/the-big-interview-podcast-andy-yen-proton/"
-        },
-        {
           "publishedAt": "2026-08-18",
           "title": "Can AI Coexist With Privacy? Proton’s Andy Yen Says It Will Have To",
           "topics": [
             "Privacy"
-          ],
-          "url": "https://www.wired.com/story/the-big-interview-podcast-andy-yen-proton/"
-        },
-        {
-          "publishedAt": "2026-08-13",
-          "title": "Mark Zuckerberg’s AI Manifesto Is 6,500 Words and Barely Says Anything",
-          "topics": [
-            "AI"
           ],
           "url": "https://www.wired.com/story/the-big-interview-podcast-andy-yen-proton/"
         }
@@ -93,12 +69,12 @@
           "url": "https://techcrunch.com/2026/08/25/accel-backed-keenable-is-indexing-the-web-for-ai-agents/"
         },
         {
-          "publishedAt": "2026-08-21",
+          "publishedAt": "2026-08-20",
           "title": "For a16z, AI gives foreign founders an advantage",
           "topics": [
             "Venture"
           ],
-          "url": "https://techcrunch.com/author/anna-heim/"
+          "url": "https://techcrunch.com/2026/08/20/for-a16z-ai-gives-foreign-founders-an-advantage/"
         },
         {
           "publishedAt": "2026-07-09",
@@ -214,15 +190,15 @@
           "topics": [
             "Apple"
           ],
-          "url": "https://9to5mac.com/author/chmiller44/"
+          "url": "https://9to5mac.com/2026/08/29/apple-card-keeps-getting-better-heres-everything-new/"
         },
         {
           "publishedAt": "2026-08-28",
-          "title": "Apple announces price increase for Apple TV and Apple One subscription",
+          "title": "Apple announces price increase for Apple TV and Apple One subscriptions",
           "topics": [
             "Apple"
           ],
-          "url": "https://9to5mac.com/author/chmiller44/"
+          "url": "https://9to5mac.com/2026/08/28/apple-announces-price-increase-for-apple-tv-and-apple-one-subscriptions/"
         }
       ],
       "provenance": "PUBLIC_EDITORIAL_SIGNAL",
@@ -748,7 +724,7 @@
           "topics": [
             "Security"
           ],
-          "title": "Security News This Week: Your Expired Visa Card Could Be ‘Zombiefied’ to Make Contactless Payments"
+          "title": "Security News This Week: Your Expired Visa Card Could Be ‘Zombified’ to Make Contactless Payments"
         },
         {
           "topics": [
@@ -1024,7 +1000,7 @@
             "AI"
           ],
           "title": "OpenAI Is Developing a ‘Persistent’ AI Agent",
-          "url": "https://www.wired.com/author/maxwell-zeff/",
+          "url": "https://www.wired.com/story/openai-is-developing-a-persistent-ai-agent/",
           "publishedAt": "2026-08-27"
         },
         {
@@ -1145,7 +1121,7 @@
       "verifiedBy": "DJ",
       "articles": [
         {
-          "url": "https://techcrunch.com/author/sarah-perez/",
+          "url": "https://techcrunch.com/2026/08/28/friend-focused-photo-sharing-app-retro-snags-21m/",
           "title": "Friend-focused photo-sharing app Retro snags $21M",
           "topics": [
             "Apps"
