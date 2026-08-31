@@ -65,7 +65,9 @@ enum Palette {
         }
     }
 
-    static let warning = Color(light: 0xB8860B, dark: 0xE6B450)   // amber — only ever "something needs attention"
+    // Amber — only ever "something needs attention". Light variant darkened to
+    // ~4.9:1 on `canvas` because it's used as *text* (errors, overdue, "0 left").
+    static let warning = Color(light: 0x8A6300, dark: 0xE6B450)
     static let danger = Color(light: 0xC23B3B, dark: 0xFF6B6B)
 }
 

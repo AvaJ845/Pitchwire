@@ -13,12 +13,11 @@ struct MatchListView: View {
     }
 
     private var grouped: [(ConfidenceTier, [MediaTarget])] {
-        let tiers: [ConfidenceTier] = [.excellent, .strong, .possible]
-        return tiers.compactMap { tier in
-            let matches = visibleTargets
-                .filter { $0.confidenceTier == tier }
-                .sorted { $0.confidenceScore > $1.confidenceScore }
-            return matches.isEmpty ? nil : (tier, matches)
+        let byTier = Dictionary(grouping: visibleTargets, by: \.confidenceTier)
+        let order: [ConfidenceTier] = [.excellent, .strong, .possible]
+        return order.compactMap { tier -> (ConfidenceTier, [MediaTarget])? in
+            guard let matches = byTier[tier], !matches.isEmpty else { return nil }
+            return (tier, matches.sorted { $0.confidenceScore > $1.confidenceScore })
         }
     }
 

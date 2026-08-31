@@ -88,6 +88,14 @@ struct HomeView: View {
             .scrollDismissesKeyboard(.interactively)
             .screenBackground()
             .navigationTitle("Pitchwire")
+            .toolbar {
+                if editorFocused {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") { editorFocused = false }
+                    }
+                }
+            }
             .navigationDestination(item: $activeCampaign) { campaign in
                 StorySummaryView(campaign: campaign)
             }
