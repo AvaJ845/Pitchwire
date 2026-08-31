@@ -112,7 +112,7 @@ struct ConfidencePill: View {
     var body: some View {
         Text(tier.shortLabel)
             .font(.caption.weight(.semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Palette.onAccent)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(Palette.tier(tier), in: Capsule())
@@ -282,7 +282,7 @@ struct PitchwireButtonStyle: ButtonStyle {
             .font(.headline)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 15)
-            .foregroundStyle(prominent ? Color.white : Palette.accent)
+            .foregroundStyle(prominent ? Palette.onAccent : Palette.accent)
             .background(fill, in: RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous))
             .opacity(configuration.isPressed ? 0.85 : 1)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.99 : 1)

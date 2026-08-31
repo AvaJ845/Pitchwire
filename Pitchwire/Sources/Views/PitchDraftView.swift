@@ -102,7 +102,7 @@ struct PitchDraftView: View {
                         .font(.subheadline.weight(.medium))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .foregroundStyle(sent ? .white : Palette.ink)
+                        .foregroundStyle(sent ? Palette.onAccent : Palette.ink)
                         .background(
                             sent ? Palette.evidence(.high) : Palette.surface,
                             in: RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous)

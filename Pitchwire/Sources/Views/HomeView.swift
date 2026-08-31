@@ -47,7 +47,7 @@ struct HomeView: View {
                     } label: {
                         HStack(spacing: 8) {
                             if isAnalyzing {
-                                ProgressView().tint(.white)
+                                ProgressView().tint(Palette.onAccent)
                                 Text("Reading your story…")
                             } else {
                                 Image(systemName: "sparkles")

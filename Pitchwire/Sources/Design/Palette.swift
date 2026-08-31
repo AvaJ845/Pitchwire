@@ -29,8 +29,12 @@ extension Color {
 enum Palette {
     // Brand
     static let navy = Color(hex: 0x0B1B2E)
-    static let accent = Color(light: 0x0E8C7E, dark: 0x2CD3BE)      // teal
+    static let accent = Color(light: 0x0E8C7E, dark: 0x2CD3BE)      // teal — foreground use
     static let accentSoft = Color(light: 0xE2F4F1, dark: 0x123A36)
+    /// Text / icons on top of an `accent`, `tier`, or `evidence` fill. The dark
+    /// brand colours are bright mint — white on them is ~1.8:1 — so in dark mode
+    /// this flips to near-black.
+    static let onAccent = Color(light: 0xFFFFFF, dark: 0x04211C)
 
     // Surfaces
     static let canvas = Color(light: 0xF4F5F7, dark: 0x0C1116)

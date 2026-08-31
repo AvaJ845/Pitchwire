@@ -97,7 +97,7 @@ struct StorySummaryView: View {
             } label: {
                 HStack(spacing: 8) {
                     if isFinding {
-                        ProgressView().tint(.white)
+                        ProgressView().tint(Palette.onAccent)
                         Text("Finding journalists…")
                     } else {
                         Image(systemName: "magnifyingglass")
