@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: macos-15
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Unit tests
+            testing: BeatMatchUnitTests
+          - name: UI tests
+            testing: BeatMatchUITests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          LATEST=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "Using $LATEST"
+          sudo xcode-select -s "$LATEST"
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate the Xcode project
+        working-directory: BeatMatch
+        run: xcodegen generate
+
+      - name: Resolve an iPhone simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          rts = json.load(sys.stdin)['devices']
+          for rt in sorted(rts, reverse=True):
+              if 'iOS' not in rt:
+                  continue
+              for dev in rts[rt]:
+                  if dev.get('isAvailable') and 'iPhone' in dev['name']:
+                      print(dev['udid']); sys.exit(0)
+          sys.exit('no iPhone simulator available')")
+          echo "Using simulator $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      - name: ${{ matrix.name }}
+        working-directory: BeatMatch
+        run: |
+          xcodebuild test \
+            -scheme BeatMatch \
+            -only-testing:${{ matrix.testing }} \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath TestResults.xcresult \
+            -quiet \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+
+      - name: Upload result bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult-${{ matrix.testing }}
+          path: BeatMatch/TestResults.xcresult
+          retention-days: 5
