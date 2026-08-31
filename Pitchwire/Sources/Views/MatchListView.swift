@@ -23,6 +23,14 @@ struct MatchListView: View {
 
     private var hiddenCount: Int { campaign.mediaTargets.filter { $0.status == .hidden }.count }
 
+    /// Mirrors `ExplanationEnricher`'s warm filter — drives the "refining" note so
+    /// it shows only when there is real work in flight and hides as it drains.
+    private var pendingEnrichment: Int {
+        campaign.mediaTargets.filter {
+            $0.explanation?.aiEnhanced == false && $0.confidenceTier != .possible
+        }.count
+    }
+
     /// The least-verified state present — drives the honesty banner.
     private var evidenceState: ProfileEvidenceState? {
         let states = visibleTargets.compactMap { $0.journalist?.evidenceState }
@@ -51,6 +59,22 @@ struct MatchListView: View {
                         .listRowInsets(EdgeInsets(top: 4, leading: Metrics.gutter, bottom: 8, trailing: Metrics.gutter))
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
+                }
+            }
+
+            if enriching && pendingEnrichment > 0 && aiClient.isConfigured {
+                Section {
+                    HStack(spacing: 8) {
+                        ProgressView().controlSize(.small).tint(Palette.inkTertiary)
+                        Text("Refining these explanations with AI…")
+                            .font(.caption)
+                            .foregroundStyle(Palette.inkTertiary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .accessibilityElement(children: .combine)
+                    .listRowInsets(EdgeInsets(top: 0, leading: Metrics.gutter, bottom: 6, trailing: Metrics.gutter))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
             }
 
@@ -130,9 +154,9 @@ struct MatchListView: View {
         }
         .task(id: campaign.id) {
             guard !enriching else { return }
-            enriching = true
+            withAnimation { enriching = true }
             await ExplanationEnricher.enrich(campaign: campaign, using: aiClient, context: modelContext)
-            enriching = false
+            withAnimation { enriching = false }
         }
     }
 
