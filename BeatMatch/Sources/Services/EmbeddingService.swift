@@ -5,12 +5,13 @@ import Accelerate
 
 /// A unit-length semantic vector for a short piece of text, or nil when no model
 /// is available. The relevance engine treats a nil provider as "offline" and
-/// falls back to word-overlap scoring.
+/// falls back to word-overlap scoring. `Float` — the model's native precision,
+/// and half the storage when cached on `JournalistProfile.embedding`.
 ///
 /// `Sendable` so the (CPU-bound) embedding pass can run off the main actor — see
 /// `MatchRunner.warmDirectory`.
 protocol EmbeddingProvider: Sendable {
-    func vector(for text: String) -> [Double]?
+    func vector(for text: String) -> [Float]?
 }
 
 /// The default provider: the bundled all-MiniLM-L6-v2 sentence-transformer,
@@ -52,7 +53,7 @@ final class MiniLMEmbeddingProvider: EmbeddingProvider, @unchecked Sendable {
         tokenizer = t
     }
 
-    func vector(for text: String) -> [Double]? {
+    func vector(for text: String) -> [Float]? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
@@ -78,8 +79,8 @@ final class MiniLMEmbeddingProvider: EmbeddingProvider, @unchecked Sendable {
               let vec = out.featureValue(for: "embedding")?.multiArrayValue
         else { return nil }
 
-        var result = [Double](repeating: 0, count: vec.count)
-        for i in 0..<vec.count { result[i] = vec[i].doubleValue }
+        var result = [Float](repeating: 0, count: vec.count)
+        for i in 0..<vec.count { result[i] = vec[i].floatValue }
         return Embedding.normalize(result)
     }
 }
@@ -90,10 +91,10 @@ struct NLEmbeddingProvider: EmbeddingProvider, @unchecked Sendable {
     private let model = NLEmbedding.sentenceEmbedding(for: .english)
     var isAvailable: Bool { model != nil }
 
-    func vector(for text: String) -> [Double]? {
+    func vector(for text: String) -> [Float]? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let raw = model?.vector(for: trimmed) else { return nil }
-        return Embedding.normalize(raw)
+        return Embedding.normalize(raw.map(Float.init))
     }
 }
 
@@ -101,16 +102,16 @@ enum Embedding {
     /// Cosine of two unit vectors, **rescaled** for the bundled MiniLM: related
     /// same-vertical text lands ~0.30–0.50, cross-vertical ~0.10–0.20, so map
     /// [0.22, 0.55] → [0, 1] and clamp. (A different model needs different bounds.)
-    static func similarity(_ a: [Double], _ b: [Double]) -> Double {
-        max(0, min(1, (rawCosine(a, b) - 0.22) / 0.33))
+    static func similarity(_ a: [Float], _ b: [Float]) -> Double {
+        max(0, min(1, (Double(rawCosine(a, b)) - 0.22) / 0.33))
     }
 
-    static func rawCosine(_ a: [Double], _ b: [Double]) -> Double {
+    static func rawCosine(_ a: [Float], _ b: [Float]) -> Float {
         guard a.count == b.count, !a.isEmpty else { return 0 }
         return vDSP.dot(a, b)
     }
 
-    static func normalize(_ v: [Double]) -> [Double] {
+    static func normalize(_ v: [Float]) -> [Float] {
         guard !v.isEmpty else { return v }
         let mag = vDSP.dot(v, v).squareRoot()
         return mag > 0 ? vDSP.multiply(1 / mag, v) : v

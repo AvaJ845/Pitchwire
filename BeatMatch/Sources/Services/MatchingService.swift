@@ -14,7 +14,7 @@ protocol MatchingService {
     /// model is available (or it hasn't been computed) — the engine then falls
     /// back to word overlap. Computed off the main actor by the caller; this
     /// function is pure scoring math.
-    func match(analysis: StoryAnalysisResult, storyVector: [Double]?,
+    func match(analysis: StoryAnalysisResult, storyVector: [Float]?,
                against pool: [JournalistProfile]) -> [MatchCandidate]
 }
 
@@ -25,7 +25,7 @@ struct WeightedRelevanceService: MatchingService {
     /// Below this, a journalist isn't shown at all.
     var floor = 0.18
 
-    func match(analysis: StoryAnalysisResult, storyVector: [Double]?,
+    func match(analysis: StoryAnalysisResult, storyVector: [Float]?,
                against pool: [JournalistProfile]) -> [MatchCandidate] {
         return pool.compactMap { journalist in
             let similarity: Double? = {

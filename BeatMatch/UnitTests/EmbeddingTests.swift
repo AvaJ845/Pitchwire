@@ -64,7 +64,8 @@ final class EmbeddingTests: XCTestCase {
     }
 
     private func cosineToSignal(_ raw: Double) -> Double {
-        // Build two vectors with a known dot product.
-        Embedding.similarity([raw, (1 - raw * raw).squareRoot()], [1, 0])
+        // Build two unit vectors with a known dot product of `raw`.
+        let r = Float(raw)
+        return Embedding.similarity([r, (1 - r * r).squareRoot()], [1, 0])
     }
 }

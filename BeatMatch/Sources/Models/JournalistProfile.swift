@@ -53,9 +53,20 @@ final class JournalistProfile {
     var isRejected: Bool = false
     /// The vertical this record was researched under (from the seed file).
     var vertical: String?
-    /// Cached on-device semantic vector of `embeddingText` (beat + real article
-    /// titles). Recomputed when it's empty or coverage/beat changed.
-    var embedding: [Double] = []
+    /// Cached on-device semantic vector of `embeddingText`, packed as raw
+    /// little-endian Float32 (384 × 4 = 1536 bytes) — SwiftData won't store a
+    /// `[Float]` directly, and this is tighter than `[Double]` anyway. It's a
+    /// device-local cache, re-warmed whenever `embedding.count` doesn't match
+    /// `MiniLMEmbeddingProvider.dimension`, so portability doesn't matter.
+    private var embeddingBlob: Data = Data()
+
+    var embedding: [Float] {
+        get {
+            guard !embeddingBlob.isEmpty else { return [] }
+            return embeddingBlob.withUnsafeBytes { Array($0.bindMemory(to: Float.self)) }
+        }
+        set { embeddingBlob = newValue.withUnsafeBytes { Data($0) } }
+    }
 
     @Relationship(deleteRule: .cascade, inverse: \EditorialEvidenceRecord.profile)
     var evidenceRecords: [EditorialEvidenceRecord] = []

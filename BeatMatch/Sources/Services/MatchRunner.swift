@@ -26,8 +26,8 @@ enum MatchRunner {
             .map { ($0.persistentModelID, $0.embeddingText) }
         guard !pending.isEmpty else { return 0 }
 
-        let warmed: [PersistentIdentifier: [Double]] = await Task.detached(priority: priority) {
-            var out: [PersistentIdentifier: [Double]] = [:]
+        let warmed: [PersistentIdentifier: [Float]] = await Task.detached(priority: priority) {
+            var out: [PersistentIdentifier: [Float]] = [:]
             for item in pending {
                 if let v = embeddings.vector(for: item.text),
                    v.count == MiniLMEmbeddingProvider.dimension {
@@ -71,7 +71,7 @@ enum MatchRunner {
         let pool = JournalistDirectory.matchable(context)
 
         // The story's own vector — also off the main actor.
-        let storyVector: [Double]? = await Task.detached(priority: .userInitiated) {
+        let storyVector: [Float]? = await Task.detached(priority: .userInitiated) {
             embeddings?.vector(for: Embedding.storyText(analysis, rawText: rawText))
         }.value
 
