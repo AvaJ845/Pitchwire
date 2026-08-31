@@ -21,6 +21,12 @@ struct BeatMatchApp: App {
             for key in ["llmlog.capture", "llmlog.capture.payloads"] {
                 UserDefaults.standard.removeObject(forKey: key)
             }
+            // Tests land straight in the app; `-uitest-onboarding` opts back into
+            // the first-launch intro (OnboardingUITests).
+            #if DEBUG
+            let wantsOnboarding = ProcessInfo.processInfo.arguments.contains("-uitest-onboarding")
+            UserDefaults.standard.set(!wantsOnboarding, forKey: "pitchwire.hasOnboarded")
+            #endif
         }
         let log = LLMLog()
         llmLog = log

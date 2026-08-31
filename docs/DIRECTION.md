@@ -169,6 +169,18 @@ compiled personal data.
   short/long, Copy + Share, mark-as-sent with a filled state.
 - Match reasons read as sentences ("Covers AI and product launch — a direct hit for this story"),
   not keyword dumps — the shape the quality-tier model produces, done deterministically offline.
+- **First launch:** `OnboardingView` — four pages (what it does · every match is explained ·
+  research not a mailing list · on-device), shown once, gated by `pitchwire.hasOnboarded`.
+  It states the refusals out loud: no contact data, no blast button, the score is not a
+  prediction.
+
+## Performance
+
+The on-device MiniLM warm (~20 short embeddings on first run) is **off the main actor** —
+`MatchRunner.warmDirectory` runs the CPU work in a detached task, `RootTabView` pre-warms it
+at launch (background priority), and "Find journalists" shows a spinner. `MiniLMEmbeddingProvider`
+is a lazy singleton; vectors are `Float`, cached as packed `Data` on `JournalistProfile`. The
+persisted `MediaTarget.relevance` means opening a match is pure rendering — no recompute.
 
 ## Success metric
 
