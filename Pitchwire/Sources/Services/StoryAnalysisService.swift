@@ -16,6 +16,12 @@ protocol StoryAnalysisService {
     func analyze(rawText: String) async throws -> StoryAnalysisResult
 }
 
+enum StoryInput {
+    /// The analyzer reads only the first this-many characters of a pasted story.
+    /// Surfaced in the composer so a long paste isn't silently half-ignored.
+    static let analysisCharLimit = 4000
+}
+
 /// Runs the `.storyAnalysis` task through the AI gateway (fast tier) when a
 /// backend is configured, and falls back to deterministic extraction otherwise —
 /// so the product works with zero configuration. The model only ever *interprets*
@@ -26,7 +32,7 @@ struct DefaultStoryAnalysisService: StoryAnalysisService {
     func analyze(rawText: String) async throws -> StoryAnalysisResult {
         let request = AIRequest(
             task: .storyAnalysis,
-            input: ["story": String(rawText.prefix(4000))],
+            input: ["story": String(rawText.prefix(StoryInput.analysisCharLimit))],
             prompt: "Extract theme, vertical, region, angle, urgency, summary, audience, "
                 + "subtopics[], mediaHooks[] as JSON matching the StoryAnalysisResult schema."
         )

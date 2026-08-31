@@ -55,8 +55,14 @@ struct ProfileView: View {
                         let json = WorkspaceExporter.json(modelContext)
                         let url = FileManager.default.temporaryDirectory
                             .appendingPathComponent("pitchwire-workspace.json")
-                        try? json.data(using: .utf8)?.write(to: url)
-                        exportURL = url
+                        do {
+                            try Data(json.utf8).write(to: url)
+                            Haptics.success()
+                            exportURL = url
+                        } catch {
+                            Haptics.warning()
+                            exportURL = nil
+                        }
                     } label: {
                         Label("Export my data", systemImage: "square.and.arrow.up")
                     }

@@ -36,6 +36,15 @@ struct HomeView: View {
 
                     storyInput
 
+                    if storyOverLimit {
+                        Label("We'll read the first \(StoryInput.analysisCharLimit.formatted()) characters. Trim to the core announcement for the sharpest match.",
+                              systemImage: "scissors")
+                            .font(.caption)
+                            .foregroundStyle(Palette.inkSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
                     if let errorMessage {
                         Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                             .font(.footnote)
@@ -144,14 +153,16 @@ struct HomeView: View {
         }
         .overlay(alignment: .bottomTrailing) {
             if !storyText.isEmpty {
-                Text("\(storyText.count)")
+                Text("\(storyText.count) / \(StoryInput.analysisCharLimit)")
                     .font(.caption2.monospacedDigit())
-                    .foregroundStyle(Palette.inkTertiary)
+                    .foregroundStyle(storyOverLimit ? Palette.warning : Palette.inkTertiary)
                     .padding(10)
-                    .accessibilityLabel("\(storyText.count) characters")
+                    .accessibilityLabel("\(storyText.count) of \(StoryInput.analysisCharLimit) characters used")
             }
         }
     }
+
+    private var storyOverLimit: Bool { storyText.count > StoryInput.analysisCharLimit }
 
     private var examplesSection: some View {
         VStack(alignment: .leading, spacing: 10) {

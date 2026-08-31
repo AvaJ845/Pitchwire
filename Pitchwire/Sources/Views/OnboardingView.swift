@@ -81,33 +81,39 @@ struct OnboardingView: View {
     }
 
     private func pageView(_ item: Page) -> some View {
-        VStack(spacing: 28) {
-            Spacer()
-            Image(systemName: item.symbol)
-                .font(.system(size: 66, weight: .semibold))
-                .foregroundStyle(
-                    // Teal → dimmer teal. Never `Palette.navy` here — it's a
-                    // fixed dark colour and would vanish into a dark canvas.
-                    LinearGradient(colors: [Palette.accent, Palette.accent.opacity(0.55)],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing)
-                )
-                .accessibilityHidden(true)
-            VStack(spacing: 14) {
-                Text(item.title)
-                    .font(.title.weight(.bold))
-                    .foregroundStyle(Palette.ink)
-                    .multilineTextAlignment(.center)
-                Text(item.body)
-                    .font(.body)
-                    .foregroundStyle(Palette.inkSecondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+        // A ScrollView that only scrolls when the content is taller than the
+        // page — so the largest Dynamic Type sizes stay readable instead of
+        // clipping against the fixed layout.
+        ScrollView {
+            VStack(spacing: 28) {
+                Image(systemName: item.symbol)
+                    .font(.system(size: 66, weight: .semibold))
+                    .foregroundStyle(
+                        // Teal → dimmer teal. Never `Palette.navy` here — it's a
+                        // fixed dark colour and would vanish into a dark canvas.
+                        LinearGradient(colors: [Palette.accent, Palette.accent.opacity(0.55)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+                    .accessibilityHidden(true)
+                VStack(spacing: 14) {
+                    Text(item.title)
+                        .font(.title.weight(.bold))
+                        .foregroundStyle(Palette.ink)
+                        .multilineTextAlignment(.center)
+                    Text(item.body)
+                        .font(.body)
+                        .foregroundStyle(Palette.inkSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 32)
             }
-            .padding(.horizontal, 32)
-            Spacer()
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+            .padding()
+            .containerRelativeFrame(.vertical, alignment: .center)
+            .accessibilityElement(children: .combine)
         }
-        .padding()
-        .accessibilityElement(children: .combine)
+        .scrollBounceBehavior(.basedOnSize)
     }
 }

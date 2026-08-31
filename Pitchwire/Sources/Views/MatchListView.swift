@@ -106,14 +106,6 @@ struct MatchListView: View {
                                 setStatus(target, .hidden)
                             } label: { Label("Hide", systemImage: "eye.slash") }
                         }
-                        .overlay(alignment: .topLeading) {
-                            if target.status == .shortlisted {
-                                Image(systemName: "star.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(Palette.accent)
-                                    .padding(6)
-                            }
-                        }
                     }
                 } header: {
                     TierHeader(tier: tier, count: targets.count)

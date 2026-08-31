@@ -284,7 +284,7 @@ struct PitchwireButtonStyle: ButtonStyle {
             .padding(.vertical, 15)
             .foregroundStyle(prominent ? Palette.onAccent : Palette.accent)
             .background(fill, in: RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous))
-            .opacity(configuration.isPressed ? 0.85 : 1)
+            .opacity(isEnabled ? (configuration.isPressed ? 0.85 : 1) : 0.55)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.99 : 1)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }

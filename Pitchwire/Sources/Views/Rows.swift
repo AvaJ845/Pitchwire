@@ -60,7 +60,13 @@ struct MatchRow: View {
                 Monogram(name: target.journalist?.name ?? "?", size: 42)
 
                 VStack(alignment: .leading, spacing: 5) {
-                    HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        if target.status == .shortlisted {
+                            Image(systemName: "star.fill")
+                                .font(.caption2)
+                                .foregroundStyle(Palette.accent)
+                                .accessibilityLabel("Shortlisted")
+                        }
                         Text(target.journalist?.name ?? "Unknown")
                             .font(.headline)
                             .foregroundStyle(Palette.ink)
