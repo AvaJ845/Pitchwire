@@ -112,8 +112,9 @@ struct PitchDraftView: View {
                                 .strokeBorder(Palette.hairline, lineWidth: sent ? 0 : 1)
                         )
                 }
-                .accessibilityLabel("Marked as sent")
-                .accessibilityValue(sent ? "on" : "off")
+                .accessibilityLabel("Mark as sent")
+                .accessibilityValue(sent ? "Sent" : "Not sent")
+                .accessibilityAddTraits(sent ? .isSelected : [])
             }
             .padding(Metrics.gutter)
         }
