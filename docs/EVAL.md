@@ -44,13 +44,17 @@ test checks invariants 1, 2 and 4 only.
 
 ## Status (2026-08-31)
 
-Passing on the 21-record verified seed. Every top match cites a real recent
+Passing on the 20-record verified seed. Every top match cites a real recent
 article by title + date; every returned match reads as verified with evidence;
-the per-vertical top-3 checks pass for all six stories. Known slack: some
-cross-vertical bleed at lower ranks (e.g. a consumer-apps reporter who covered a
-privacy settlement surfaces on the privacy story) — real but not who you'd pitch
-first. Tuning target: article `topics` tags are coarse (outlet section labels);
-tighter tagging or a publication-relevance penalty would sharpen it.
+the per-vertical top-3 checks pass for all six stories.
+
+Cross-vertical bleed tightened: an article now counts as coverage of *this* story
+only when the person's **declared beat** overlaps the story's specific subtopics
+(`RelevanceEngine`, `beatFitsStory`). The privacy story is now 5 real security
+reporters; the consumer-apps reporter who'd surfaced on it (via one TikTok
+privacy headline) is gone. Residual slack: a security reporter can still land
+mid-list on a consumer-app story via the generic "consumer" vertical term —
+"strong", not "excellent", honest reason, ranked last.
 
 ## Running it
 

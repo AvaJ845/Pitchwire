@@ -7,22 +7,25 @@ import SwiftData
 /// pass (beat, real bylines, the story), never invented.
 ///
 /// Runs as **background** work — every call yields the AI pipeline to anything a
-/// person is waiting on (a pitch draft). The match list warms only the top few;
-/// any card the user actually opens is enriched on open (`enrichOne`).
+/// person is waiting on (a pitch draft). The match list warms the confident
+/// tiers; any other card is enriched when the user opens it (`enrichOne`).
 @MainActor
 enum ExplanationEnricher {
 
-    /// How many of a campaign's top matches to warm proactively on the list.
-    static let warmCount = 3
+    /// Ceiling on how many matches to warm proactively on the list, so a big pool
+    /// doesn't fire dozens of background calls per run.
+    static let warmCap = 10
 
     static func enrich(campaign: Campaign, using ai: AIClient, context: ModelContext) async {
         guard ai.isConfigured, let story = campaign.story else { return }
         let analysis = story.analysisResult
 
+        // Warm every Excellent / Strong match — the ones a user actually reads —
+        // up to the cap. "Possible" matches upgrade only when opened.
         let pending = campaign.mediaTargets
-            .filter { $0.explanation?.aiEnhanced == false }
+            .filter { $0.explanation?.aiEnhanced == false && $0.confidenceTier != .possible }
             .sorted { $0.confidenceScore > $1.confidenceScore }
-            .prefix(warmCount)
+            .prefix(warmCap)
 
         for target in pending {
             if Task.isCancelled { return }

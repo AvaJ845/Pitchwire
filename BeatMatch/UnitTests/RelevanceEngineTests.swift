@@ -99,6 +99,47 @@ final class RelevanceEngineTests: XCTestCase {
         XCTAssertNotEqual(r.tier, .excellent, "a single headline is at most a strong match")
     }
 
+    /// An off-beat one-off (an apps reporter who once wrote about a privacy
+    /// lawsuit) must not read as privacy coverage, and must rank well below a
+    /// real privacy-beat reporter.
+    func testAOneOffOffBeatArticleDoesNotCreateABeat() {
+        let privacyStory = analysis(vertical: "consumer", angle: "product launch",
+                                    audience: "Consumers", subtopics: ["privacy", "encryption", "security"])
+        let appsReporter = journalist(
+            topics: ["apps", "consumer tech", "commerce"],
+            bylines: ["TikTok reaches $400M settlement over children’s privacy lawsuit"],
+            articleTopics: ["apps"], audiences: ["Consumers"],
+            angles: ["product launch"], outletVerticals: ["consumer", "apps"]
+        )
+        let privacyReporter = journalist(
+            topics: ["privacy", "encryption", "surveillance"],
+            bylines: ["The new encryption fight", "Inside a third-party security audit"],
+            articleTopics: ["privacy", "encryption"], audiences: ["Consumers"],
+            angles: ["product launch"], outletVerticals: ["privacy", "security"]
+        )
+        let apps = RelevanceEngine.score(analysis: privacyStory, journalist: appsReporter)
+        let priv = RelevanceEngine.score(analysis: privacyStory, journalist: privacyReporter)
+
+        XCTAssertEqual(apps.signals.first { $0.name == "Repeated coverage" }?.score, 0,
+                       "one off-beat privacy headline is not privacy coverage")
+        XCTAssertEqual(apps.signals.first { $0.name == "Recent coverage" }?.score, 0)
+        XCTAssertNotEqual(apps.tier, .excellent)
+        XCTAssertGreaterThan(priv.total - apps.total, 0.2, "the real privacy reporter must rank clearly higher")
+    }
+
+    /// But an on-beat reporter's on-topic articles still count fully.
+    func testOnBeatCoverageStillCounts() {
+        let privacyStory = analysis(vertical: "consumer", subtopics: ["privacy", "encryption"])
+        let privacyReporter = journalist(
+            topics: ["privacy", "encryption", "surveillance"],
+            bylines: ["Inside the new encryption fight", "A privacy audit, explained"],
+            articleTopics: ["privacy"],
+            outletVerticals: ["privacy", "security"]
+        )
+        let r = RelevanceEngine.score(analysis: privacyStory, journalist: privacyReporter)
+        XCTAssertGreaterThanOrEqual(r.signals.first { $0.name == "Repeated coverage" }?.score ?? 0, 0.75)
+    }
+
     func testStaleCoverageScoresBelowFreshCoverage() {
         let a = analysis(subtopics: ["ai", "apis"])
         let fresh = journalist(daysAgo: 15)

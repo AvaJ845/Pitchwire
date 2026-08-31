@@ -202,11 +202,13 @@ An **"Excellent"** tier now requires *repeated* on-topic coverage — one headli
 "Strong". `docs/EVAL.md` + `EditorialRelevanceEvalTests` are the living quality benchmark.
 
 **Explanations are progressively enhanced.** The grounded one-liner shows instantly; when a
-backend is configured, `ExplanationEnricher` runs on the match list and rewrites the top ~8
-into real prose via the `matchExplanation` task — grounded only in the journalist's beat and
-*real* bylines, pronoun-safe (name or "they", never assumed), capped at one sentence, marked
-with an "AI" badge. `MatchExplanation.groundedReason` keeps the deterministic original.
-`RelevanceEngineTests` covers alignment, off-topic rejection, the do-not-pitch filter, recency lift.
+backend is configured, `ExplanationEnricher` (background priority, preempted by any user AI
+call) rewrites every **Excellent / Strong** match on the list — up to `warmCap` (10) — via the
+`matchExplanation` task; a "Possible" match upgrades when opened (`enrichOne`). Grounded only in
+the journalist's beat and *real* dated bylines, pronoun-safe, one sentence, "AI" badge.
+`MatchExplanation.groundedReason` keeps the deterministic original. `RelevanceEngineTests` covers
+alignment, off-topic rejection, the do-not-pitch filter, recency lift, and the beat-gate that
+stops an off-beat one-off headline from reading as a beat.
 
 ## Campaign memory — follow-ups
 

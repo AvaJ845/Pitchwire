@@ -79,11 +79,15 @@ enum RelevanceEngine {
         let topicNote = beatOverlap.isEmpty ? nil
             : "covers \(display(j.beatTopics, matching: beatOverlap))"
 
-        // On-topic articles: title terms OR tagged topics overlap the story.
-        let onTopic = coverage.filter { article in
-            !terms([article.title]).isDisjoint(with: storyTerms)
-                || !terms(article.topics).isDisjoint(with: storyTerms)
-        }
+        // On-topic articles count as coverage of *this* story only when the
+        // person's **declared beat** overlaps the story's specific subtopics.
+        // Without that gate, one off-beat headline (an apps reporter who once
+        // wrote about a privacy lawsuit) reads as a privacy beat.
+        let storyCoreTerms = terms(analysis.subtopics)
+        let beatFitsStory = !beatTerms.isDisjoint(with: storyCoreTerms)
+        let onTopic = beatFitsStory ? coverage.filter { article in
+            !terms([article.title]).union(terms(article.topics)).isDisjoint(with: storyTerms)
+        } : []
 
         // 2. Recent coverage — recency of their most recent on-topic article,
         //    from real publish dates (not byline position).
