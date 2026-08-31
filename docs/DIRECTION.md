@@ -172,15 +172,21 @@ compiled personal data.
 - **First launch:** `OnboardingView` — four pages (what it does · every match is explained ·
   research not a mailing list · on-device), shown once, gated by `pitchwire.hasOnboarded`.
   It states the refusals out loud: no contact data, no blast button, the score is not a
-  prediction.
+  prediction. "Get started" seeds an example story into Home; re-openable from Profile →
+  "How Pitchwire works".
+- **Plans:** Profile → "See plans" → `PlansView`, rendered from `LocalEntitlementStore.catalog`
+  so it can't drift from what's enforced. Paid tiers aren't purchasable yet (no StoreKit) —
+  the screen is honest about that and offers a mailto, not a dead end at the free cap.
 
 ## Performance
 
-The on-device MiniLM warm (~20 short embeddings on first run) is **off the main actor** —
-`MatchRunner.warmDirectory` runs the CPU work in a detached task, `RootTabView` pre-warms it
-at launch (background priority), and "Find journalists" shows a spinner. `MiniLMEmbeddingProvider`
-is a lazy singleton; vectors are `Float`, cached as packed `Data` on `JournalistProfile`. The
-persisted `MediaTarget.relevance` means opening a match is pure rendering — no recompute.
+All on-device model work — **load, tokenize, infer** — runs off the main actor.
+`MatchRunner.warmDirectory` resolves `DefaultEmbeddingProvider.shared` (a lazy 16 MB model +
+30k-line vocab) *inside* the detached task, is coalesced against a single in-flight warm, and
+checks `Task.isCancelled`. `RootTabView` pre-warms at launch (background priority); "Find
+journalists" shows a spinner. Vectors are `Float`, cached as packed `Data` on
+`JournalistProfile` (read via `copyBytes`, not an unaligned `bindMemory`). The persisted
+`MediaTarget.relevance` means opening a match is pure rendering — no recompute.
 
 ## Success metric
 
