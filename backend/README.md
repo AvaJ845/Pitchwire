@@ -127,13 +127,13 @@ The app reads `AIConfiguration.baseURL` / `.clientToken`. For the MVP (no
 accounts yet) inject them at build time from a **gitignored** xcconfig so the
 token isn't in the repo:
 
-`BeatMatch/Config/Secrets.xcconfig` (add to `.gitignore`):
+`Pitchwire/Config/Secrets.xcconfig` (add to `.gitignore`):
 ```
 PITCHWIRE_AI_BASE_URL = https:/$()/pitchwire-ai.<sub>.workers.dev
 PITCHWIRE_AI_CLIENT_TOKEN = <the token>
 ```
 then in `project.yml` add `configFiles: { debug: Config/Secrets.xcconfig, ... }`
-and read them in `BeatMatchApp.init` via `Bundle.main.infoDictionary`
+and read them in `PitchwireApp.init` via `Bundle.main.infoDictionary`
 (`INFOPLIST_KEY_…` passthrough), building a real `AIConfiguration` instead of
 `.offline`.
 

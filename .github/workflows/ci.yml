@@ -20,9 +20,9 @@ jobs:
       matrix:
         include:
           - name: Unit tests
-            testing: BeatMatchUnitTests
+            testing: PitchwireUnitTests
           - name: UI tests
-            testing: BeatMatchUITests
+            testing: PitchwireUITests
 
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
         run: brew install xcodegen
 
       - name: Generate the Xcode project
-        working-directory: BeatMatch
+        working-directory: Pitchwire
         run: xcodegen generate
 
       - name: Boot an iPhone simulator
@@ -59,12 +59,12 @@ jobs:
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       - name: ${{ matrix.name }}
-        working-directory: BeatMatch
+        working-directory: Pitchwire
         run: |
           run_tests() {
             set +e
             xcodebuild test \
-              -scheme BeatMatch \
+              -scheme Pitchwire \
               -only-testing:${{ matrix.testing }} \
               -destination "id=${{ steps.sim.outputs.udid }}" \
               -resultBundlePath TestResults.xcresult \
@@ -95,5 +95,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: xcresult-${{ matrix.testing }}
-          path: BeatMatch/TestResults.xcresult
+          path: Pitchwire/TestResults.xcresult
           retention-days: 5

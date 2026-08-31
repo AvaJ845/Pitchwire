@@ -1,4 +1,4 @@
-name: BeatMatch
+name: Pitchwire
 options:
   bundleIdPrefix: com.avaresearch
   deploymentTarget:
@@ -22,7 +22,7 @@ settings:
       GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
       ONLY_ACTIVE_ARCH: YES
 targets:
-  BeatMatch:
+  Pitchwire:
     type: application
     platform: iOS
     sources:
@@ -46,7 +46,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Pitchwire
         INFOPLIST_KEY_UILaunchScreen_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
-  BeatMatchUITests:
+  PitchwireUITests:
     type: bundle.ui-testing
     platform: iOS
     sources:
@@ -58,8 +58,8 @@ targets:
         SWIFT_VERSION: "5.0"
         GENERATE_INFOPLIST_FILE: true
     dependencies:
-      - target: BeatMatch
-  BeatMatchUnitTests:
+      - target: Pitchwire
+  PitchwireUnitTests:
     type: bundle.unit-test
     platform: iOS
     sources:
@@ -73,15 +73,15 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Pitchwire.app/Pitchwire"
         BUNDLE_LOADER: "$(TEST_HOST)"
     dependencies:
-      - target: BeatMatch
+      - target: Pitchwire
 schemes:
-  BeatMatch:
+  Pitchwire:
     build:
       targets:
-        BeatMatch: all
-        BeatMatchUITests: [test]
-        BeatMatchUnitTests: [test]
+        Pitchwire: all
+        PitchwireUITests: [test]
+        PitchwireUnitTests: [test]
     test:
       targets:
-        - BeatMatchUnitTests
-        - BeatMatchUITests
+        - PitchwireUnitTests
+        - PitchwireUITests

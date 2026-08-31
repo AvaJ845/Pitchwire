@@ -4,11 +4,11 @@
 — `.github/workflows/ci.yml` runs the unit **and** UI suites on every push
 (UI tests use the `-uitest-mock-ai` gateway, so nothing hits the live backend).
 
-**Brand: Pitchwire** (bundle `com.avaresearch.pitchwire`). "BeatMatch" is now an
-internal codename only — it lost a live App Store collision check (an incorporated
+**Brand: Pitchwire** (bundle `com.avaresearch.pitchwire`). The earlier working
+name "BeatMatch" lost a live App Store collision check (an incorporated
 "Beatmatch, Inc." holds the exact name, plus DJ-term dilution and a clash with our
-own Crossbeat). The xcodegen project folder, target, scheme, and Swift types keep
-the `BeatMatch` name as codename; only the product/bundle/display name changed. See
+own Crossbeat). The rename is now complete throughout — folder `Pitchwire/`,
+xcodegen project / targets / scheme `Pitchwire`, `struct PitchwireApp`. See
 `AppStore/ASO_PLAYBOOK.md` and `AppStore/METADATA.md` for the full naming pass.
 
 The Xcode project exists. It builds clean and the end-to-end loop passes a UI test
@@ -16,14 +16,14 @@ on the iPhone 17 Pro simulator (Xcode 26). No manual Xcode wizard step is needed
 
 ## Open it
 
-`BeatMatch.xcodeproj/` is **git-ignored** — it's generated from `project.yml` by
+`Pitchwire.xcodeproj/` is **git-ignored** — it's generated from `project.yml` by
 [XcodeGen](https://github.com/yonyz/XcodeGen). On a fresh clone you must generate it first:
 
 ```
 brew install xcodegen                 # if you don't have it (or ~/bin/xcodegen)
-cd "~/Documents/AI Press Agent/BeatMatch"
+cd "~/Documents/AI Press Agent/Pitchwire"
 xcodegen generate
-open BeatMatch.xcodeproj               # Cmd+R to run, Cmd+U for the smoke test
+open Pitchwire.xcodeproj               # Cmd+R to run, Cmd+U for the smoke test
 ```
 
 Re-run `xcodegen generate` whenever you edit `project.yml` or add/rename/move source files
@@ -31,15 +31,15 @@ Re-run `xcodegen generate` whenever you edit `project.yml` or add/rename/move so
 need it for `project.yml` changes). The source of truth is `project.yml` + `Sources/` + `UITests/`.
 
 **If Xcode won't build / "fails to load":** you're almost certainly on a stale generated
-project — delete `BeatMatch.xcodeproj`, re-run `xcodegen generate`, and clean the build folder
+project — delete `Pitchwire.xcodeproj`, re-run `xcodegen generate`, and clean the build folder
 (Cmd+Shift+K). `project.yml` sets `ALWAYS_SEARCH_USER_PATHS: NO` (Xcode 26 rejects the legacy
 "traditional headermap" behaviour) — if you see that warning, your project predates that fix.
 
 Build/test from the command line:
 
 ```
-cd "~/Documents/AI Press Agent/BeatMatch"
-xcodebuild -scheme BeatMatch -sdk iphonesimulator \
+cd "~/Documents/AI Press Agent/Pitchwire"
+xcodebuild -scheme Pitchwire -sdk iphonesimulator \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
 ```
 
@@ -57,13 +57,13 @@ evidence-confidence label on every card → tap one for "why this match" + **Abo
 pitch → subject/short/long text you can edit and mark as sent. Campaigns and Drafts tabs list
 what you've built up. Everything is local — SwiftData, no accounts, no network calls.
 
-Reference screenshots of the loop are in `BeatMatch/Screenshots/`.
+Reference screenshots of the loop are in `Pitchwire/Screenshots/`.
 
 ## Layout
 ```
-BeatMatch/
+Pitchwire/
   project.yml                 XcodeGen spec (deployment target, bundle id, targets)
-  Sources/                    Models/ Services/ Data/ Views/ + BeatMatchApp.swift
+  Sources/                    Models/ Services/ Data/ Views/ + PitchwireApp.swift
   UITests/CoreLoopUITests.swift   smoke test: paste → analyze → confirm → match → detail → draft
   UnitTests/EntitlementsTests.swift   entitlement limits, period reset, feature gates, AI tiers
   Screenshots/                reference captures of each step
@@ -102,7 +102,7 @@ BeatMatch/
 - `StubStoryAnalysisService` now renders "AI" / "Fintech" etc. as proper display names instead of
   `"ai".capitalized` → "Ai" leaking into campaign names and pitch subjects.
 - Added `UITests/CoreLoopUITests.swift` — one smoke test covering the whole loop.
-- Removed the duplicate `BeatMatch-Source/` tree — `BeatMatch/Sources/` is the single source of truth.
+- Removed the duplicate `BeatMatch-Source/` tree — `Pitchwire/Sources/` is the single source of truth.
 - Added the app icon — `Sources/Assets.xcassets/AppIcon.appiconset/` (single 1024 asset). Master
   also at `AppStore/AppIcon-1024.png` for App Store Connect. Rebuilt from
   `~/Downloads/Pitchwire_Modern_P_Icon_1024.png`: cropped the AI-generated icon-in-a-frame down
@@ -116,7 +116,7 @@ BeatMatch/
   from the driving signals; journalist detail has a "How we scored this" breakdown. Deterministic.
 - **`backend/`** — **DEPLOYED & LIVE** at `pitchwire-ai.divine-mountain-8173.workers.dev`.
   Cloudflare Worker: keys in Worker secrets, failover chain (NVIDIA `gpt-oss-120b`/`-20b` → z.ai),
-  6h cache, rate limit. The app connects via gitignored `BeatMatch/Config/AIConfig.plist` (template:
+  6h cache, rate limit. The app connects via gitignored `Pitchwire/Config/AIConfig.plist` (template:
   `AIConfig.example.plist`). z.ai is Aliyun-blocked from Cloudflare — NVIDIA carries it; see
   `backend/README.md`. `wrangler` is in `backend/`; `npm run deploy` from there.
 - **`docs/SEED_SET.md`** — the fellows' plan for a real 15–20 journalist seed set:

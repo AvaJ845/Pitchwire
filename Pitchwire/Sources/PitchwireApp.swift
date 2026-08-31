@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct BeatMatchApp: App {
+struct PitchwireApp: App {
     @State private var aiClient: AIClient
     @State private var entitlements: Entitlements
     @State private var llmLog: LLMLog

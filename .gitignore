@@ -1,20 +1,20 @@
 # macOS
 .DS_Store
 
-# Xcode / XcodeGen — project is generated from BeatMatch/project.yml
+# Xcode / XcodeGen — project is generated from Pitchwire/project.yml
 *.xcodeproj/
 DerivedData/
 build/
 *.xcresult
-BeatMatch/ta/
-BeatMatch/test-attachments/
+Pitchwire/ta/
+Pitchwire/test-attachments/
 
 # Xcode user state
 xcuserdata/
 *.xcuserstate
 
 # Real backend config — the scoped client token. Template is AIConfig.example.plist.
-BeatMatch/Config/AIConfig.plist
+Pitchwire/Config/AIConfig.plist
 backend/node_modules/
 backend/.wrangler/
 backend/.dev.vars

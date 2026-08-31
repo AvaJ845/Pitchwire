@@ -46,7 +46,7 @@ security, fintech & personal finance, indie iOS & consumer apps).
 
 When a batch is done: **Research Lab → Export → Export directory as
 editorial_seed.json**. It writes the file and copies the JSON to the clipboard.
-Replace `BeatMatch/Resources/editorial_seed.json` in the repo and commit — that
+Replace `Pitchwire/Resources/editorial_seed.json` in the repo and commit — that
 makes your work the shipped default. (Without this step, verification lives only
 on your device.)
 

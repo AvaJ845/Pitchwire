@@ -1,4 +1,4 @@
-# App Store — Pitchwire (working title; internal codename "BeatMatch")
+# App Store — Pitchwire (earlier working name "BeatMatch", now fully renamed)
 
 > Aligned to *The $50K/Month ASO Playbook* (`~/Downloads/The__50K_ASO_Playbook.pdf`).
 > As an unknown new entrant, the App Store **Name leads with the primary keyword,
@@ -19,7 +19,7 @@ Live App Store evidence via iTunes Search API (`itunes.apple.com/search`).
 The one required change is the brand: **drop "BeatMatch"** (hard external collision
 with Beatmatch, Inc. + DJ-term dilution + internal clash with our own Crossbeat) and
 ship as **`PR Outreach - Pitchwire`**, home-screen name **`Pitchwire`**, bundle
-**`com.avaresearch.pitchwire`**. "BeatMatch" remains an internal codename only.
+**`com.avaresearch.pitchwire`**. *(Update 2026-08-31: "BeatMatch" is fully retired — folder, xcodegen targets, scheme, and Swift types are all `Pitchwire` now.)*
 
 ---
 
@@ -60,7 +60,7 @@ first (Step 3), name second.
 
 ## Screenshots (6.9" — Conversion, lead with the payoff)
 Per the playbook's A/B finding (authentic real UI beats abstract polish), use real captured screens —
-we already have them in `BeatMatch/Screenshots/`:
+we already have them in `Pitchwire/Screenshots/`:
 1. **Match list** — "Paste your story. See who's most likely to care." (confidence-tiered results, reason on every card)
 2. **Journalist detail** — "Every match comes with a reason and its source." (why-this-match + provenance)
 3. **Pitch draft** — "A subject line and two pitch lengths, ready to edit." 

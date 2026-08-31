@@ -68,7 +68,7 @@ struct ResearchLabView: View {
                 }
                 if let exportURL {
                     ShareLink(item: exportURL) { Label("Share exported file", systemImage: "doc") }
-                    Text("Also copied to the clipboard. Replace BeatMatch/Resources/editorial_seed.json and commit.")
+                    Text("Also copied to the clipboard. Replace Pitchwire/Resources/editorial_seed.json and commit.")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
             } header: {

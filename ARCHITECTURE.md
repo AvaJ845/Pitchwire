@@ -1,4 +1,4 @@
-# BeatMatch (AI Press Agent) — Architecture & Kickoff
+# Pitchwire (AI Press Agent) — Architecture & Kickoff
 
 Synthesized from the Fellows Build Brief, following the Build Philosophy: smallest MVP → core action → core outcome → challenge assumptions → architecture → smallest vertical slice.
 

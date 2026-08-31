@@ -59,9 +59,9 @@ mid-list on a consumer-app story via the generic "consumer" vertical term —
 ## Running it
 
 ```
-xcodebuild -scheme BeatMatch -sdk iphonesimulator \
+xcodebuild -scheme Pitchwire -sdk iphonesimulator \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  -only-testing:BeatMatchUnitTests/EditorialRelevanceEvalTests test
+  -only-testing:PitchwireUnitTests/EditorialRelevanceEvalTests test
 ```
 
 The test prints, per story, the top 5 matches with tier, score, and reason — read

@@ -265,7 +265,7 @@ scrape, or use an enrichment provider.
 
 A single Cloudflare Worker at `pitchwire-ai.divine-mountain-8173.workers.dev` implementing the
 `HTTPGateway` contract: keys in Worker secrets, task→model map, failover chain, 6h cache, per-IP
-rate limit. The app connects via a gitignored `BeatMatch/Config/AIConfig.plist`
+rate limit. The app connects via a gitignored `Pitchwire/Config/AIConfig.plist`
 (`AIConfiguration.fromBundle()`); `AIConfig.example.plist` is the template.
 
 **Live chain:** NVIDIA NIM `gpt-oss-120b` / `gpt-oss-20b` (free) → z.ai GLM-4.7/4.5-Flash.

@@ -2,7 +2,7 @@
 import Foundation
 
 /// Canned, instant AI responses for UI tests. Swapped in by the
-/// `-uitest-mock-ai` launch argument (see `BeatMatchApp`) so the core-loop
+/// `-uitest-mock-ai` launch argument (see `PitchwireApp`) so the core-loop
 /// tests exercise the real progressive-enhancement paths — analysis, in-place
 /// explanation rewrite, pitch polish — without depending on the live Worker or
 /// its free-tier latency.

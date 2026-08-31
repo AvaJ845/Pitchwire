@@ -3,7 +3,7 @@ import SwiftData
 
 /// Portable JSON of everything the user has built — campaigns, the story, the
 /// matches they kept, drafts, follow-ups. So their work is never trapped in an
-/// opaque SwiftData store (see the parked-store recovery in `BeatMatchApp`).
+/// opaque SwiftData store (see the parked-store recovery in `PitchwireApp`).
 ///
 /// No contact data — matches export as name / outlet / reason, same as the app
 /// shows.

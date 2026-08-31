@@ -1,6 +1,6 @@
 # Pitchwire — ASO Playbook
 
-Applying *The $50K/Month ASO Playbook* to Pitchwire (internal codename "BeatMatch").
+Applying *The $50K/Month ASO Playbook* to Pitchwire (earlier working name "BeatMatch").
 The loop only compounds if every stage is built: **keywords → impressions →
 screenshots → downloads → happy-moment reviews → rank boost → better keywords.**
 Skipping a stage breaks the flywheel. This is a multi-year compounding asset, not
@@ -12,7 +12,8 @@ Paste-ready Name / Subtitle / Keywords and the Naming Council verdict live in
 ## 1. Discovery — get found
 
 - [x] Naming Council run with live App Store collision checks — 2026-08-29. Verdict: **Revise** — rename BeatMatch → **Pitchwire**, ship as `PR Outreach - Pitchwire`. (see `METADATA.md`)
-- [x] Applied the rename in the Xcode project (2026-08-29): `PRODUCT_NAME` → `Pitchwire`, `PRODUCT_BUNDLE_IDENTIFIER` → `com.avaresearch.pitchwire`, `INFOPLIST_KEY_CFBundleDisplayName` → `Pitchwire`, test bundle → `com.avaresearch.pitchwireUITests`, in-app title + About section → "Pitchwire". xcodegen target key, folder, scheme, and Swift types stay `BeatMatch` (codename). Build + UI test green.
+- [x] Applied the rename in the Xcode project (2026-08-29): `PRODUCT_NAME` → `Pitchwire`, `PRODUCT_BUNDLE_IDENTIFIER` → `com.avaresearch.pitchwire`, `INFOPLIST_KEY_CFBundleDisplayName` → `Pitchwire`, test bundle → `com.avaresearch.pitchwireUITests`, in-app title + About section → "Pitchwire". Build + UI test green.
+- [x] Rename completed throughout (2026-08-31): folder `Pitchwire/`, xcodegen project / targets / scheme `Pitchwire`, `struct PitchwireApp`. No `BeatMatch` identifier remains.
 - [x] App Store Name leads with primary keyword, brand second — `PR Outreach - Pitchwire` (23/30).
 - [x] Subtitle is all-new words, secondary-keyword slot not a restated tagline — `Find journalists, pitch news` (28/30).
 - [x] Keywords field comma-joined, no spaces, singular, no repeats of Name/Subtitle words, no competitor names — 97/100.
@@ -23,7 +24,7 @@ Paste-ready Name / Subtitle / Keywords and the Naming Council verdict live in
 ## 2. Conversion — win the tap
 
 - [ ] Icon legible at home-screen size — the mark *is* the product, not a logo lockup.
-- [ ] 5 screenshots, real captured UI, hero feature first (match list, not the empty Home screen). Draft order in `METADATA.md`. Source captures already exist in `BeatMatch/Screenshots/`.
+- [ ] 5 screenshots, real captured UI, hero feature first (match list, not the empty Home screen). Draft order in `METADATA.md`. Source captures already exist in `Pitchwire/Screenshots/`.
 - [ ] Big legible captions, one idea per frame.
 - [ ] (Optional) 15–20s App Preview of one real paste → match → draft loop.
 - [ ] Product-page A/B test after launch: hero screenshot order first, then name (`PR Outreach` vs `Press Release`).
@@ -38,6 +39,6 @@ Paste-ready Name / Subtitle / Keywords and the Naming Council verdict live in
 
 ## Notes / open decisions
 
-- **Rename applied 2026-08-29** — brand is **Pitchwire**, bundle `com.avaresearch.pitchwire`. Code-level `BeatMatch*` names kept as an internal codename.
+- **Rename applied 2026-08-29, completed 2026-08-31** — brand is **Pitchwire**, bundle `com.avaresearch.pitchwire`. No `BeatMatch` identifier remains anywhere in the repo.
 - Category: **Business** primary (media-relations tool for founders/marketers), Productivity secondary.
 - Competitive landscape (2026-08-29): the iOS media-relations niche is near-empty — closest is `ScoopSeeker` (Business, 3 ratings) and a dead `QuickPR` (0 ratings). Web incumbents (Cision, Muck Rack, Prowly, Prezly) have no meaningful iOS presence. This is the opportunity.

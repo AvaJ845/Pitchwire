@@ -70,7 +70,7 @@ as verified — the human approval step is mandatory.**
 
 ## The Verified Editorial Seed Set
 
-`BeatMatch/Resources/editorial_seed.json` — a **gold-standard evaluation
+`Pitchwire/Resources/editorial_seed.json` — a **gold-standard evaluation
 dataset**, not the beginning of a database. **21 human-verified** editorial
 professionals across 4 verticals (AI & dev tools, privacy & security, fintech &
 personal finance, indie iOS & consumer apps), with **53 real dated articles**.
