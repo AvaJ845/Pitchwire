@@ -22,7 +22,15 @@ protocol EmbeddingProvider: Sendable {
 /// One instance for the whole app: loading the 16 MB model and parsing the
 /// 30 k-line vocab is not something to redo per match run.
 enum DefaultEmbeddingProvider {
-    static let shared: EmbeddingProvider? = MiniLMEmbeddingProvider()
+    static let shared: EmbeddingProvider? = {
+        #if DEBUG
+        // UI tests don't assert on semantic-specific ranking, and a thrashing CI
+        // runner can take 20 s to load the model + warm the pool — skip it and
+        // let the engine fall back to word overlap.
+        if ProcessInfo.processInfo.arguments.contains("-uitest-reset") { return nil }
+        #endif
+        return MiniLMEmbeddingProvider()
+    }()
 }
 
 /// all-MiniLM-L6-v2, 384-dim, mean-pooled + L2-normalized in the CoreML graph.

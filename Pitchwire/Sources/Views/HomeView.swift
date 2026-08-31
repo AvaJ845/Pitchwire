@@ -89,11 +89,9 @@ struct HomeView: View {
             .screenBackground()
             .navigationTitle("Pitchwire")
             .toolbar {
-                if editorFocused {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") { editorFocused = false }
-                    }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { editorFocused = false }
                 }
             }
             .navigationDestination(item: $activeCampaign) { campaign in
