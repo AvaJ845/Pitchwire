@@ -18,7 +18,7 @@ struct BeatMatchApp: App {
 
         // Developer LLM log — DEBUG-only viewer, capture toggle in Settings.
         if resetForTests {
-            for key in ["llmlog.capture", "llmlog.capture.payloads"] {
+            for key in ["llmlog.capture", "llmlog.capture.payloads", "pitchwire.seedExampleOnce"] {
                 UserDefaults.standard.removeObject(forKey: key)
             }
             // Tests land straight in the app; `-uitest-onboarding` opts back into

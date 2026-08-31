@@ -88,6 +88,17 @@ struct HomeView: View {
             .navigationDestination(item: $activeCampaign) { campaign in
                 StorySummaryView(campaign: campaign)
             }
+            .task {
+                // "Get started" from onboarding lands here — seed the first
+                // example and focus the editor so there's something to act on.
+                if UserDefaults.standard.bool(forKey: "pitchwire.seedExampleOnce") {
+                    UserDefaults.standard.removeObject(forKey: "pitchwire.seedExampleOnce")
+                    if storyText.isEmpty, let first = Self.examples.first {
+                        storyText = first
+                        editorFocused = true
+                    }
+                }
+            }
         }
     }
 

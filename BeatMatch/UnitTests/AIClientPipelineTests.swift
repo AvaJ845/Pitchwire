@@ -32,7 +32,7 @@ final class AIClientPipelineTests: XCTestCase {
         let gw = BarrierGateway()
         let client = AIClient(gatewayOverride: gw)
 
-        func req(_ id: String, _ origin: RequestOrigin) -> AIRequest {
+        @Sendable func req(_ id: String, _ origin: RequestOrigin) -> AIRequest {
             AIRequest(task: .matchExplanation, input: ["id": id], prompt: "x", origin: origin)
         }
 

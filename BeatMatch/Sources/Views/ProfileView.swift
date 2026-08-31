@@ -6,6 +6,7 @@ struct ProfileView: View {
     @Environment(Entitlements.self) private var entitlements
     @Environment(AIClient.self) private var aiClient
     @State private var exportURL: URL?
+    @State private var showAbout = false
     #if DEBUG
     @Environment(LLMLog.self) private var llmLog
     #endif
@@ -25,6 +26,9 @@ struct ProfileView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                    }
+                    NavigationLink { PlansView() } label: {
+                        Label("See plans", systemImage: "arrow.up.circle")
                     }
                 }
 
@@ -66,6 +70,11 @@ struct ProfileView: View {
                 }
 
                 Section("About Pitchwire") {
+                    Button {
+                        showAbout = true
+                    } label: {
+                        Label("How Pitchwire works", systemImage: "info.circle")
+                    }
                     Text("An editorial-relevance research assistant. See docs/DIRECTION.md for the product direction and what's next.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -102,6 +111,9 @@ struct ProfileView: View {
                 #endif
             }
             .navigationTitle("Profile")
+            .sheet(isPresented: $showAbout) {
+                OnboardingView { _ in showAbout = false }
+            }
         }
     }
 

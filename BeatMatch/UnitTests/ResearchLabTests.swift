@@ -79,7 +79,7 @@ final class ResearchLabTests: XCTestCase {
 
     func testRejectedProfileIsExcludedFromMatching() throws {
         let ctx = try context()
-        let keep = candidate(ctx, name: "Keeper")
+        _ = candidate(ctx, name: "Keeper")
         let drop = candidate(ctx, name: "Dropped")
         LabActions.reject(drop, context: ctx)
 
@@ -178,5 +178,23 @@ final class ResearchLabTests: XCTestCase {
         XCTAssertEqual(restored.tier, original.tier)
         XCTAssertEqual(restored.signals.map(\.name), original.signals.map(\.name))
         XCTAssertEqual(restored.signals.map(\.score), original.signals.map(\.score))
+        // id is kind-derived, so it survives a decode unchanged (no phantom
+        // ForEach churn on the score card).
+        XCTAssertEqual(restored.signals.map(\.id), original.signals.map(\.id))
+    }
+
+    func testEmbeddingBlobRoundTripsThroughSwiftData() throws {
+        let ctx = try context()
+        let p = candidate(ctx)
+        let vec = (0..<MiniLMEmbeddingProvider.dimension).map { Float($0) * 0.001 - 0.19 }
+        p.embedding = vec
+        try ctx.save()
+
+        let refetched = try XCTUnwrap(
+            try ctx.fetch(FetchDescriptor<JournalistProfile>()).first { $0.id == p.id })
+        XCTAssertEqual(refetched.embedding.count, MiniLMEmbeddingProvider.dimension)
+        XCTAssertEqual(refetched.embedding, vec)
+        refetched.embedding = []
+        XCTAssertTrue(refetched.embedding.isEmpty)
     }
 }

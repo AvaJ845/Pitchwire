@@ -29,7 +29,8 @@ struct RootTabView: View {
             await MatchRunner.warmDirectory(context: modelContext, priority: .utility)
         }
         .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingView {
+            OnboardingView { seedExample in
+                if seedExample { UserDefaults.standard.set(true, forKey: "pitchwire.seedExampleOnce") }
                 hasOnboarded = true
                 showOnboarding = false
             }

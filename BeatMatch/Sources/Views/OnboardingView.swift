@@ -3,7 +3,10 @@ import SwiftUI
 /// First-launch introduction. Four pages that state, honestly, what Pitchwire is
 /// and what it refuses to be — shown once, gated by `pitchwire.hasOnboarded`.
 struct OnboardingView: View {
-    var onFinish: () -> Void
+    /// Called on "Get started" / "Skip". `seedExample` is true only for
+    /// "Get started" — Home then pre-fills an example story so the user lands
+    /// on something to act on, not an empty box.
+    var onFinish: (_ seedExample: Bool) -> Void
 
     @State private var page = 0
 
@@ -18,7 +21,8 @@ struct OnboardingView: View {
         Page(symbol: "sparkles.rectangle.stack",
              title: "An AI press agent in your pocket",
              body: "Paste a launch story. Pitchwire tells you which editorial professionals "
-                 + "cover it, why their published work makes them relevant, and what to say."),
+                 + "cover it, why their published work makes them relevant, and gives you a "
+                 + "first-draft pitch to work from."),
         Page(symbol: "text.magnifyingglass",
              title: "Every match, explained",
              body: "Each recommendation shows who they are, where they publish, what they "
@@ -46,11 +50,12 @@ struct OnboardingView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .always))
+            .tint(Palette.accent)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 4) {
                 Button {
                     if isLastPage {
-                        onFinish()
+                        onFinish(true)
                     } else {
                         withAnimation(.snappy) { page += 1 }
                     }
@@ -59,15 +64,18 @@ struct OnboardingView: View {
                 }
                 .buttonStyle(.pitchwire)
 
-                Button("Skip", action: onFinish)
+                // Reserve the row height on every page so "Get started" doesn't
+                // jump when Skip disappears.
+                Button("Skip") { onFinish(false) }
                     .font(.subheadline)
                     .foregroundStyle(Palette.inkSecondary)
+                    .padding(.vertical, 10)
                     .opacity(isLastPage ? 0 : 1)
                     .disabled(isLastPage)
                     .accessibilityHidden(isLastPage)
             }
             .padding(.horizontal, Metrics.gutter)
-            .padding(.bottom, 20)
+            .padding(.bottom, 16)
         }
         .background(Palette.canvas.ignoresSafeArea())
     }
@@ -78,7 +86,9 @@ struct OnboardingView: View {
             Image(systemName: item.symbol)
                 .font(.system(size: 66, weight: .semibold))
                 .foregroundStyle(
-                    LinearGradient(colors: [Palette.accent, Palette.navy],
+                    // Teal → dimmer teal. Never `Palette.navy` here — it's a
+                    // fixed dark colour and would vanish into a dark canvas.
+                    LinearGradient(colors: [Palette.accent, Palette.accent.opacity(0.55)],
                                    startPoint: .topLeading, endPoint: .bottomTrailing)
                 )
                 .accessibilityHidden(true)
