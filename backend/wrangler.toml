@@ -14,6 +14,10 @@ preview_urls = false   # only the one workers.dev route; no extra public surface
 
 [vars]
 RATE_LIMIT_PER_MIN = "20"
+# "1" appends a paid OpenRouter model (OR_PAID in worker.js) to the tail of every
+# failover chain, so requests still succeed once the shared 50/day :free quota is
+# spent. Needs credit on the OpenRouter account. Leave unset in dev for $0 spend.
+PAID_FALLBACK_ENABLED = "0"
 
 [observability]
 enabled = true

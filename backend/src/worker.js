@@ -41,6 +41,15 @@ const OR_MINIMAX = "openrouter:minimax/minimax-m2.7:free";
 const OR_MINIMAX3 = "openrouter:minimax/minimax-m3:free";
 const OR_DOTS    = "openrouter:dots-studio/dots-3-note-preview:free";
 const GLM_DIRECT = ["glm-4.7-flash", "glm-4.5-flash"];   // Aliyun-blocked from Cloudflare; kept for a non-CF host
+
+// Paid backstop. OpenRouter's `:free` tier is 50 requests/day for the whole
+// account — once that's spent, every free model in a chain 429s and the request
+// fails. This paid model (no `:free` suffix — billed from account credit, no
+// daily cap) is appended to the TAIL of every chain when PAID_FALLBACK_ENABLED
+// is set, so free models are always tried first and this is reached only when
+// they've all failed. Set the flag once there are real users; leave it off in
+// dev to guarantee $0 spend.
+const OR_PAID    = "openrouter:z-ai/glm-4.6";
 const TASK_MODELS = {
   // fast tier — extraction / classification. Lead with the models that have been
   // answering in ~3s; gpt-oss is a fallback (it's been slow/flaky).
@@ -50,7 +59,7 @@ const TASK_MODELS = {
   verificationBrief: [OR_MINIMAX3, NV_20, OR_GLM, NV_120, ...GLM_DIRECT],
   // quality tier — user-facing prose. minimax-m2.7 has been answering pitchDraft
   // in a few seconds; NV_120 / GLM are quality fallbacks behind the 13s per-model
-  // timeout. Add glm-5.3-flash (paid) to the head if free capacity ever bottlenecks.
+  // timeout. OR_PAID is auto-appended to the tail when PAID_FALLBACK_ENABLED is set.
   pitchDraft:       [OR_MINIMAX, NV_120, OR_GLM, OR_MINIMAX3, OR_DOTS, NV_20, ...GLM_DIRECT],
   pitchRewrite:     [OR_MINIMAX, NV_120, OR_GLM, OR_MINIMAX3, OR_DOTS, NV_20, ...GLM_DIRECT],
   followUp:         [OR_MINIMAX3, NV_20, NV_120, OR_GLM, ...GLM_DIRECT],
@@ -160,7 +169,10 @@ export default {
     // ?only=<model> forces a single provider — for verifying a model works.
     // Authed by the same client token; not cached.
     const only = url.searchParams.get("only");
-    const chain = only ? [only] : TASK_MODELS[task];
+    const paidFallback = env.PAID_FALLBACK_ENABLED === "1" || env.PAID_FALLBACK_ENABLED === "true";
+    const chain = only
+      ? [only]
+      : (paidFallback ? [...TASK_MODELS[task], OR_PAID] : TASK_MODELS[task]);
 
     // Cache identical requests (retrieval-before-generation is the backend's job;
     // this is the cheap first layer). Skipped when forcing a model.
