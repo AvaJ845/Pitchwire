@@ -94,8 +94,12 @@ final class AIClient {
     var isConfigured: Bool { configuration.isConfigured }
 
     func run(_ request: AIRequest) async throws -> AIResponse {
+        // Bail before taking the pipeline if the caller is already gone.
+        try Task.checkCancellation()
         await pipeline.acquire(request.origin)
         do {
+            // …or if it went away while queued behind other work.
+            try Task.checkCancellation()
             let response = try await perform(request)
             await pipeline.release()
             return response
@@ -113,6 +117,11 @@ final class AIClient {
             capturePayload(request, responseText: response.text, error: nil)
             return response
         } catch {
+            // A cancelled request is not a failure — the caller's task was torn
+            // down (view dismissed, id changed) or superseded. Unwind quietly:
+            // no telemetry, no log entry, no failure count. The caller still
+            // gets `nil` and keeps its deterministic fallback.
+            if error.isCancellation { throw error }
             // The call never reached a model, so there is no model name to report.
             emit(request, model: "—", start: start, cached: false, ok: false, error: error)
             capturePayload(request, responseText: nil, error: error)

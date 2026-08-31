@@ -34,6 +34,10 @@ struct FallbackGateway: AIGateway {
                 if response.model.isEmpty { response.model = step.name }
                 return response
             } catch {
+                // A cancelled request stops the whole chain — don't burn the
+                // remaining providers on a caller that has gone away, and don't
+                // log it as a failover.
+                if error.isCancellation { throw error }
                 lastError = error
                 let isLast = index == steps.count - 1
                 log?.record(LLMLogEntry(

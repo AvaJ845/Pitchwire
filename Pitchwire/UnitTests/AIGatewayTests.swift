@@ -11,6 +11,13 @@ private struct FakeGateway: AIGateway {
     }
 }
 
+/// Stands in for a URLSession task whose surrounding `Task` was cancelled.
+private struct CancellingGateway: AIGateway {
+    func run(_ request: AIRequest) async throws -> AIResponse {
+        throw AIGatewayError.transport(URLError(.cancelled))
+    }
+}
+
 // @MainActor: `LLMLog.record` funnels mutations to the main thread, so the
 // assertions on `log.entries` must observe from there too.
 @MainActor
@@ -66,6 +73,24 @@ final class FallbackGatewayTests: XCTestCase {
             XCTAssertEqual(log.entries.last?.outcome, .failed)
         }
     }
+
+    /// A cancelled call (view dismissed mid-request) must stop the chain and not
+    /// spend the remaining providers or write a failover line.
+    func testCancellationStopsTheChainWithoutLogging() async {
+        let log = capturingLog()
+        let gw = FallbackGateway(steps: [
+            .init(name: "glm", gateway: CancellingGateway()),
+            .init(name: "nvidia", gateway: FakeGateway(result: .success("must not be reached")))
+        ], log: log)
+
+        do {
+            _ = try await gw.run(request())
+            XCTFail("expected the cancellation to propagate")
+        } catch {
+            XCTAssertTrue(error.isCancellation)
+        }
+        XCTAssertTrue(log.entries.isEmpty, "cancellation is not a failover or a failure")
+    }
 }
 
 @MainActor
@@ -99,5 +124,30 @@ final class LLMLogTests: XCTestCase {
         log.record(.init(task: "b", tier: "fast", provider: "p", latencyMS: 0, cached: false, outcome: .failover))
         log.record(.init(task: "c", tier: "fast", provider: "p", latencyMS: 0, cached: false, outcome: .failed))
         XCTAssertEqual(log.failures.map(\.task), ["b", "c"])
+    }
+}
+
+@MainActor
+final class AIClientCancellationTests: XCTestCase {
+
+    func testCancelledCallLeavesNoFailureInTheLog() async {
+        let log = LLMLog(defaults: UserDefaults(suiteName: "t.\(UUID())")!)
+        log.isCapturing = true
+        let client = AIClient(log: log, gatewayOverride: CancellingGateway())
+
+        let text = await client.text(for: AIRequest(task: .matchExplanation, prompt: "x", origin: .background))
+
+        XCTAssertNil(text, "the caller still gets nil and keeps its deterministic fallback")
+        XCTAssertTrue(log.entries.isEmpty, "a cancelled request is not a failure")
+        XCTAssertTrue(log.failures.isEmpty)
+    }
+
+    func testIsCancellationClassification() {
+        XCTAssertTrue((CancellationError() as Error).isCancellation)
+        XCTAssertTrue((URLError(.cancelled) as Error).isCancellation)
+        XCTAssertTrue(AIGatewayError.transport(URLError(.cancelled)).isCancellation)
+        XCTAssertFalse(AIGatewayError.transport(URLError(.timedOut)).isCancellation)
+        XCTAssertFalse(AIGatewayError.server(status: 500).isCancellation)
+        XCTAssertFalse(AIGatewayError.notConfigured.isCancellation)
     }
 }

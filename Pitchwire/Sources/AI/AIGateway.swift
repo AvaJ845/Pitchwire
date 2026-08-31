@@ -79,6 +79,21 @@ enum AIGatewayError: Error {
     case decoding
 }
 
+extension Error {
+    /// True when this is just a cancelled async task or URL request — benign
+    /// teardown (the caller's `.task` view went away, its id changed, or a newer
+    /// request superseded it), never a real failure. Cancellations must not be
+    /// logged, counted, or failed-over — they should unwind quietly.
+    var isCancellation: Bool {
+        if self is CancellationError { return true }
+        if let urlError = self as? URLError, urlError.code == .cancelled { return true }
+        if let gatewayError = self as? AIGatewayError, case .transport(let inner) = gatewayError {
+            return inner.isCancellation
+        }
+        return false
+    }
+}
+
 /// The boundary between the app and every AI provider. Only implementations in
 /// this folder ever exist; a caller receives an `AIClient`, never a gateway.
 protocol AIGateway {
