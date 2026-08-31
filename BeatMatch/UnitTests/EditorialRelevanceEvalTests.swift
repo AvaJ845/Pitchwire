@@ -82,13 +82,13 @@ final class EditorialRelevanceEvalTests: XCTestCase {
                         "#\(s.n): \(r.journalist.name) is 'excellent' without repeated coverage")
                 }
 
-                // A profile no human has verified must not present as verified, and
-                // (having no verified coverage) must not reach the top tier.
+                // The shipped seed is human-verified with real dated articles —
+                // every returned match should read as verified and carry evidence.
                 if usingRealSeed {
-                    XCTAssertFalse(r.journalist.isVerified,
-                        "#\(s.n): \(r.journalist.name) is an unverified candidate but reads as verified")
-                    XCTAssertNotEqual(r.confidenceTier, .excellent,
-                        "#\(s.n): \(r.journalist.name) is 'excellent' without verified repeated coverage")
+                    XCTAssertTrue(r.journalist.isVerified,
+                        "#\(s.n): \(r.journalist.name) should read as verified (shipped seed)")
+                    XCTAssertFalse(r.journalist.allCoverage.isEmpty,
+                        "#\(s.n): \(r.journalist.name) has no article evidence")
                 }
             }
 

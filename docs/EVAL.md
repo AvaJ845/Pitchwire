@@ -38,9 +38,19 @@ professionals *should* surface.
 
 ## Vertical expectations
 
-Enforced by the eval test **only when a real `editorial_seed.json` is bundled**
-(each profile has a `vertical`). With the fictional fallback pool the test checks
-invariants 1, 2 and 4 only.
+Enforced by the eval test **only when the verified `editorial_seed.json` is
+bundled** (each profile has a `vertical`). With the fictional fallback pool the
+test checks invariants 1, 2 and 4 only.
+
+## Status (2026-08-31)
+
+Passing on the 21-record verified seed. Every top match cites a real recent
+article by title + date; every returned match reads as verified with evidence;
+the per-vertical top-3 checks pass for all six stories. Known slack: some
+cross-vertical bleed at lower ranks (e.g. a consumer-apps reporter who covered a
+privacy settlement surfaces on the privacy story) — real but not who you'd pitch
+first. Tuning target: article `topics` tags are coarse (outlet section labels);
+tighter tagging or a publication-relevance penalty would sharpen it.
 
 ## Running it
 

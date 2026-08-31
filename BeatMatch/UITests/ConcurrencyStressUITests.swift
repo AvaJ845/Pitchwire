@@ -42,7 +42,8 @@ final class ConcurrencyStressUITests: XCTestCase {
         app.buttons["Find journalists"].tap()
 
         // Enrichment kicks off on the match list.
-        XCTAssertTrue(app.staticTexts["Candidate profiles — not yet verified"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Excellent match"].waitForExistence(timeout: 10)
+                      || app.staticTexts["Strong match"].exists)
         let list = app.collectionViews.firstMatch
 
         // Open two details back-to-back while enrichment runs.

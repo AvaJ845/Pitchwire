@@ -68,22 +68,24 @@ as verified — the human approval step is mandatory.**
 
 ---
 
-## The 25-record Verified Editorial Seed Set
+## The Verified Editorial Seed Set
 
 `BeatMatch/Resources/editorial_seed.json` — a **gold-standard evaluation
-dataset**, not the beginning of a database. 25 real editorial professionals
-across 4 verticals (AI & dev tools, privacy & security, fintech & personal
-finance, indie iOS & consumer apps).
+dataset**, not the beginning of a database. **21 human-verified** editorial
+professionals across 4 verticals (AI & dev tools, privacy & security, fintech &
+personal finance, indie iOS & consumer apps), with **53 real dated articles**.
 
-**Current state: candidates.** Every record ships `verificationDate: null`,
-`provenance: PUBLIC_EDITORIAL_SIGNAL`, `confidence: exploratory`. Each carries a
-real `sourceURL` (the author/staff/newsletter page found in research) — the
-anchor a researcher opens to verify the beat and pull real article URLs + dates.
-`articles` is intentionally empty until Lab verification; nothing is guessed.
+**How it was built:** AI compiled candidates from public author/staff pages
+(25 records). A researcher then worked each one in the Research Lab — opened the
+author page, confirmed the beat, opened and attached 2–6 recent on-topic articles
+(real headline + URL + date), set a confidence, and hit **Verify** (or
+**Reject**). 4 candidates were rejected. Every shipped record carries
+`verificationDate` + `verifiedBy`.
 
-Because none are verified, **no seed match can score above "Strong"** — which is
-correct. Verifying a record in the Lab (adding dated articles, setting
-`verificationDate`) is what unlocks "Excellent".
+A verified record with repeated on-topic coverage can now score **"Excellent"**.
+Verified confidence decays to `.moderate` after 180 days — re-verify periodically.
+`EditorialSeedTests` guards it: every record verified + traceable, every article a
+real https URL, no contact data.
 
 **Do not expand the dataset until matching quality is demonstrated** (see
 `docs/EVAL.md`). The milestone is *"Pitchwire consistently explains why its top

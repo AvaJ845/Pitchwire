@@ -53,6 +53,7 @@ struct SeedProfile: Codable {
     var audiences: [String]?
     var regions: [String]?
     var coveredAngles: [String]?
+    var doNotPitch: [String]?
     var vertical: String?
     var provenance: String
     var sourceURL: String?
@@ -74,7 +75,7 @@ struct SeedProfile: Codable {
             audiences: audiences ?? [],
             regions: regions ?? [],
             coveredAngles: coveredAngles ?? [],
-            doNotPitch: [],
+            doNotPitch: doNotPitch ?? [],
             vertical: vertical
         )
         let record = EditorialEvidenceRecord(

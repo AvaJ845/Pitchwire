@@ -39,6 +39,7 @@ enum DirectoryExporter {
             audiences: p.audiences.isEmpty ? nil : p.audiences,
             regions: p.regions.isEmpty ? nil : p.regions,
             coveredAngles: p.coveredAngles.isEmpty ? nil : p.coveredAngles,
+            doNotPitch: p.doNotPitch.isEmpty ? nil : p.doNotPitch,
             vertical: p.vertical,
             provenance: (record?.provenance ?? .publicEditorialSignal).rawValue,
             sourceURL: record?.sourceURL,

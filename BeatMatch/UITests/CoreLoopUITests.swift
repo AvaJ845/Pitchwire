@@ -41,16 +41,16 @@ final class CoreLoopUITests: XCTestCase {
         snap(app, "02-story-summary")
         app.buttons["Find journalists"].tap()
 
-        // Match list — the candidate seed set ships unverified, so the honesty
-        // banner and a tiered section (Strong / Possible) must appear.
-        XCTAssertTrue(app.staticTexts["Candidate profiles — not yet verified"].waitForExistence(timeout: 10),
-                      "evidence-honesty banner must show")
+        // Match list — a tiered section header + at least one match row.
+        XCTAssertTrue(app.staticTexts["Excellent match"].waitForExistence(timeout: 10)
+                      || app.staticTexts["Strong match"].exists,
+                      "a confidence-tiered section must appear")
         snap(app, "03-match-list")
-        // Open the top match — an evidence-state tag ("Demo"/"Candidate"/"Verified")
+        // Open the top match — an evidence-state tag ("Verified"/"Candidate"/"Demo")
         // is in every match row's combined a11y label but not the story card.
         let row = app.collectionViews.firstMatch.buttons
             .matching(NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@ OR label CONTAINS[c] %@",
-                                  "Demo", "Candidate", "Verified"))
+                                  "Verified", "Candidate", "Demo"))
             .firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 5), "at least one match must be listed")
         row.tap()

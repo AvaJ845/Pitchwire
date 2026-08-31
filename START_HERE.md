@@ -68,15 +68,16 @@ BeatMatch/
 ## What's real vs. placeholder
 - **Pitchwire is an editorial-relevance research assistant, not a contact database.** No personal
   contact data is modelled, collected, or inferred — full spec `docs/EDITORIAL_RESEARCH_ENGINE.md`.
-- **The match pool is a 25-record *candidate* seed set** — `Resources/editorial_seed.json`, 25 real
-  editorial professionals across 4 verticals, compiled from public author pages. Every record ships
-  unverified (`verificationDate: null`); AI can discover but **never verify** — that's the Research
-  Lab's job (Slice 4b). Because none are verified, no seed match scores above "Strong". The UI
-  labels every profile **Verified / Candidate / Demo**. `EditorialSeedLoader` falls back to 15
-  fictional `FICTIONAL_SAMPLE` demo profiles when no file is bundled. `EditorialSeedTests` +
-  `SampleDataTests` enforce the honesty (and that no contact field ever enters the schema).
+- **The match pool is a 21-record *human-verified* seed set** — `Resources/editorial_seed.json`,
+  21 editorial professionals across 4 verticals, 53 real dated articles. Compiled from public author
+  pages, then verified in the Research Lab (articles opened, beat checked against the live page);
+  every record carries `verificationDate` + `verifiedBy`. AI can discover/draft but **never
+  verifies**. 4 candidates were rejected. `EditorialSeedLoader` falls back to 15 fictional
+  `FICTIONAL_SAMPLE` demo profiles when no file is bundled. `EditorialSeedTests` + `SampleDataTests`
+  enforce the honesty (and that no contact field ever enters the schema).
 - **Matching quality is the milestone, not headcount.** `docs/EVAL.md` + `EditorialRelevanceEvalTests`
-  are the living benchmark — every match must explain itself with a real beat + a grounded reason.
+  are the living benchmark — every top match cites a real recent article by title + date; the
+  eval's per-vertical checks pass on the verified seed.
 - **Research Lab (Slice 4b, DEBUG-only)** — Profile → Developer → Research Lab. The persistent
   `JournalistDirectory` is seeded once and shared by every campaign; a researcher opens a
   candidate's source, attaches real dated articles, and **verifies or rejects** it. AI never

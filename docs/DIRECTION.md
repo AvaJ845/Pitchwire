@@ -137,15 +137,16 @@ anywhere in the model or the seed schema** — `EditorialSeedTests` fails the bu
 in the Research Lab. `isVerified == (verificationDate != nil)`. AI discovers / organises / scores;
 **AI never verifies.** `evidenceConfidence` caps unverified + fictional profiles at `.exploratory`.
 
-**Seed set — `Resources/editorial_seed.json`:** 25 real editorial professionals across 4 verticals
-(AI & dev tools, privacy & security, fintech & personal finance, indie iOS & consumer apps). A
-**gold-standard eval set, not a database.** All ship as **candidates** (`verificationDate: null`,
-`PUBLIC_EDITORIAL_SIGNAL`, `confidence: exploratory`) with a real `sourceURL` anchor; `articles`
-fills in at Lab verification. Because none are verified, **no seed match scores above "Strong"** —
-correct by design. `EditorialSeedLoader` falls back to 15 fictional demo profiles
+**Seed set — `Resources/editorial_seed.json`:** **21 human-verified** editorial professionals
+across 4 verticals (AI & dev tools, privacy & security, fintech & personal finance, indie iOS &
+consumer apps), 53 real dated articles. A **gold-standard eval set, not a database.** Compiled
+from public author pages, then verified in the Research Lab (articles opened, beat checked against
+the live page) — every record carries `verificationDate` + `verifiedBy`. 4 candidates were
+rejected in review. `EditorialSeedLoader` falls back to 15 fictional demo profiles
 (`FICTIONAL_SAMPLE` → `isFictional`) when no file is bundled. The UI labels every profile
-**Verified / Candidate / Demo** with a matching honesty banner (`EvidenceNoticeBanner`).
-Do not expand the dataset until matching quality is demonstrated — see `docs/EVAL.md`.
+**Verified / Candidate / Demo** (honesty banner only when non-verified data is present).
+Do not expand the dataset until matching quality holds — see `docs/EVAL.md`. Verified confidence
+decays to `.moderate` after 180 days.
 
 App Store guideline **5.1.1(viii)** — apps compiling personal info from sources not provided by
 the user, "even public databases," are not permitted — is the strategic constraint the whole
