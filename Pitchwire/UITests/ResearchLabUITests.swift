@@ -47,7 +47,12 @@ final class ResearchLabUITests: XCTestCase {
         headline.tap(); headline.typeText("A recent on-topic piece")
         let urlField = app.textFields["URL (https://…)"]
         urlField.tap(); urlField.typeText("https://example.com/article")
-        app.buttons["Add"].tap()
+
+        // The Add button only enables once both fields are valid — wait for it
+        // rather than tapping a dead control on a slow CI machine.
+        let addConfirm = app.buttons["Add"]
+        XCTAssertTrue(waitUntilEnabled(addConfirm, timeout: 8), "Add should enable once the article is valid")
+        addConfirm.tap()
 
         // Reviewer + re-verify.
         let reviewer = app.textFields["Reviewer (your initials)"]
@@ -55,14 +60,26 @@ final class ResearchLabUITests: XCTestCase {
         while !reviewer.isHittable && r < 8 { app.swipeUp(); r += 1 }
         XCTAssertTrue(reviewer.waitForExistence(timeout: 5))
         if (reviewer.value as? String ?? "").isEmpty { reviewer.tap(); reviewer.typeText("QA") }
+
         let verify = app.buttons["Verify this profile"]
         XCTAssertTrue(verify.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitUntilEnabled(verify, timeout: 8),
+                      "Verify should enable once there's an article + a reviewer")
         verify.tap()
 
-        XCTAssertTrue(app.staticTexts["Verified"].waitForExistence(timeout: 5),
+        XCTAssertTrue(app.staticTexts["Verified"].waitForExistence(timeout: 10),
                       "profile should read as verified again")
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "research-lab-verified"; attachment.lifetime = .keepAlways
         add(attachment)
+    }
+
+    private func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if element.exists && element.isEnabled { return true }
+            usleep(200_000)
+        }
+        return element.exists && element.isEnabled
     }
 }
