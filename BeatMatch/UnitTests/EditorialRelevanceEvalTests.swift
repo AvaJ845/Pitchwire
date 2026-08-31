@@ -54,10 +54,17 @@ final class EditorialRelevanceEvalTests: XCTestCase {
 
     func testEveryStoryProducesFullyExplainedMatches() {
         let service = WeightedRelevanceService()
-        var report = "\n=== Editorial relevance eval (seed: \(usingRealSeed ? "real" : "fictional fallback")) ===\n"
+        let embedder = NLEmbeddingProvider()
+        for j in pool where j.embedding.isEmpty {
+            if let v = embedder.vector(for: j.embeddingText) { j.embedding = v }
+        }
+        let embeddings: EmbeddingProvider? = embedder.isAvailable ? embedder : nil
+        var report = "\n=== Editorial relevance eval (seed: \(usingRealSeed ? "real" : "fictional fallback"), "
+            + "embeddings: \(embedder.isAvailable ? "on" : "off")) ===\n"
 
         for s in stories {
-            let results = service.match(analysis: s.analysis, against: pool)
+            let results = service.match(analysis: s.analysis, storyText: s.line,
+                                        against: pool, embeddings: embeddings)
             report += "\n#\(s.n) \(s.line)\n"
             for r in results.prefix(5) {
                 report += String(format: "   [%@ %.2f] %@ — %@\n",

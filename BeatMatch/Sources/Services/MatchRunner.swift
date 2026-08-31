@@ -8,7 +8,8 @@ enum MatchRunner {
     static func populateTargets(
         for campaign: Campaign,
         context: ModelContext,
-        service: MatchingService = WeightedRelevanceService()
+        service: MatchingService = WeightedRelevanceService(),
+        embeddings: EmbeddingProvider? = NLEmbeddingProvider()
     ) {
         guard let story = campaign.story else { return }
 
@@ -22,7 +23,24 @@ enum MatchRunner {
 
         JournalistDirectory.ensureSeeded(context)
         let pool = JournalistDirectory.matchable(context)
-        let candidates = service.match(analysis: story.analysisResult, against: pool)
+
+        // Warm the on-device semantic vectors for anyone missing one (a first
+        // run, or a profile whose articles changed in the Lab). Fast — short
+        // strings through `NLEmbedding` — and cached on the model.
+        if let embeddings {
+            var wroteVector = false
+            for journalist in pool where journalist.embedding.isEmpty {
+                if let v = embeddings.vector(for: journalist.embeddingText) {
+                    journalist.embedding = v
+                    wroteVector = true
+                }
+            }
+            if wroteVector { try? context.save() }
+        }
+
+        let candidates = service.match(
+            analysis: story.analysisResult, storyText: story.rawText,
+            against: pool, embeddings: embeddings)
 
         for candidate in candidates {
             context.insert(candidate.explanation)   // one per (campaign, journalist), rebuilt each run

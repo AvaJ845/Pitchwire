@@ -50,7 +50,7 @@ struct RelevanceResult {
     }
 
     enum Signal {
-        static let topicMatch = "Topic match"
+        static let topicMatch = "Editorial similarity"
         static let recentCoverage = "Recent coverage"
         static let repeatedCoverage = "Repeated coverage"
         static let angleFit = "Angle fit"
@@ -68,21 +68,33 @@ struct RelevanceResult {
 enum RelevanceEngine {
     typealias Signal = RelevanceResult.Signal
 
-    static func score(analysis: StoryAnalysisResult, journalist j: JournalistProfile) -> RelevanceResult {
+    /// `similarity` is the on-device semantic match of the story to this person's
+    /// beat + real article text (0...1). `nil` = no embedding model — the engine
+    /// falls back to word-overlap so it still works offline.
+    static func score(analysis: StoryAnalysisResult, journalist j: JournalistProfile,
+                      similarity: Double? = nil) -> RelevanceResult {
         let storyTerms = terms(analysis.subtopics + [analysis.vertical, analysis.theme])
         let beatTerms = terms(j.beatTopics)
         let coverage = j.allCoverage
-
-        // 1. Topic match — do their declared beat topics overlap the story?
         let beatOverlap = beatTerms.intersection(storyTerms)
-        let topicScore = beatTerms.isEmpty ? 0 : min(1, Double(beatOverlap.count) / 2.0)
-        let topicNote = beatOverlap.isEmpty ? nil
-            : "covers \(display(j.beatTopics, matching: beatOverlap))"
+
+        // 1. Editorial similarity — does the story match what they actually write?
+        //    Word overlap on the declared beat is the precise anchor; on-device
+        //    semantic similarity adds recall for synonymy ("LLM" ≈ "language
+        //    model"). The stronger of the two wins; nil similarity = offline.
+        let wordScore = beatTerms.isEmpty ? 0 : min(1, Double(beatOverlap.count) / 2.0)
+        let topicScore = max(wordScore, similarity ?? 0)
+        let topicNote: String? = {
+            if !beatOverlap.isEmpty { return "covers \(display(j.beatTopics, matching: beatOverlap))" }
+            if (similarity ?? 0) >= 0.45 { return "their published work lines up with this story" }
+            return nil
+        }()
 
         // On-topic articles count as coverage of *this* story only when the
         // person's **declared beat** overlaps the story's specific subtopics.
-        // Without that gate, one off-beat headline (an apps reporter who once
-        // wrote about a privacy lawsuit) reads as a privacy beat.
+        // (Similarity is not discriminative enough to gate on — it reads every
+        // tech story as ~0.6 similar to every other.) Without this gate an
+        // off-beat one-off headline reads as a beat.
         let storyCoreTerms = terms(analysis.subtopics)
         let beatFitsStory = !beatTerms.isDisjoint(with: storyCoreTerms)
         let onTopic = beatFitsStory ? coverage.filter { article in

@@ -177,12 +177,12 @@ saves / drafts / acts on them. Not downloads.
 
 ## Relevance engine (`Sources/Services/RelevanceEngine.swift`)
 
-Matching is a **weighted, inspectable** editorial-relevance score — not keyword intersection.
-Nine signals, each 0–1 with a weight and a human fragment:
+Matching is a **weighted, inspectable** editorial-relevance score. Nine signals, each 0–1 with
+a weight and a human fragment:
 
 | Signal | Weight | What it reads |
 |---|---:|---|
-| Topic match | 24% | declared beat topics vs the story |
+| Editorial similarity | 24% | `max(word-overlap on the declared beat, on-device semantic similarity)` — see below |
 | Recent coverage | 18% | on-topic articles, recency from real `CoverageEvidence.publishedAt` |
 | Repeated coverage | 14% | count of on-topic articles — a beat, not a one-off |
 | Angle fit | 10% | do they cover this kind of story (launch / funding / …) |
@@ -194,7 +194,17 @@ Nine signals, each 0–1 with a weight and a human fragment:
 
 `WeightedRelevanceService` applies it over the pool; the "why this match" prose is built
 from the signals that actually drove the score. Journalist detail has a **"How we scored
-this"** breakdown (score bar + per-signal bars). Ranking is fully deterministic.
+this"** breakdown (score bar + per-signal bars). Ranking is deterministic.
+
+**Semantic matching (`EmbeddingService`).** The story and each journalist's beat + real
+article titles are embedded **on-device** (`NLEmbedding`, no network — the story never leaves
+the phone) and cached on `JournalistProfile.embedding`. The cosine is rescaled ([0.55, 0.82] →
+[0, 1]) because `NLEmbedding` reads every tech story as ~0.6 similar to every other, then
+combined as `max(word-overlap, similarity)` so it can only *lift* an under-tagged profile,
+never drag an exact beat match down. **Known limitation:** `NLEmbedding.sentenceEmbedding` is a
+weak model — on the well-tagged 20-record seed it rarely beats word overlap. The `EmbeddingProvider`
+seam makes swapping it (a bundled MiniLM CoreML model, or a Worker `/v1/embed`) a one-file change;
+it earns its keep as the directory grows and tagging gets sparser.
 
 **The score is editorial relevance — never a probability of a reply or of coverage.**
 `RelevanceResult.relevanceDisclaimer` carries that line; it is shown on the score card.

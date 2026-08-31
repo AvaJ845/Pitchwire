@@ -53,6 +53,9 @@ final class JournalistProfile {
     var isRejected: Bool = false
     /// The vertical this record was researched under (from the seed file).
     var vertical: String?
+    /// Cached on-device semantic vector of `embeddingText` (beat + real article
+    /// titles). Recomputed when it's empty or coverage/beat changed.
+    var embedding: [Double] = []
 
     @Relationship(deleteRule: .cascade, inverse: \EditorialEvidenceRecord.profile)
     var evidenceRecords: [EditorialEvidenceRecord] = []
