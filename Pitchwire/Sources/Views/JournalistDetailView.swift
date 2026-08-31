@@ -54,6 +54,13 @@ struct JournalistDetailView: View {
         .navigationTitle("Match")
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) { draftBar }
+        .onAppear {
+            // Re-open the existing draft for this match instead of offering to
+            // make a second one (and spending another allowance).
+            if draft == nil {
+                draft = campaign.pitchDrafts.first { $0.mediaTarget?.id == target.id }
+            }
+        }
         .task(id: target.id) {
             // Enrich the reason for the card the user actually opened (if the
             // list didn't warm it). Background priority — yields to a pitch draft.
@@ -301,6 +308,12 @@ struct JournalistDetailView: View {
 
     private func generateDraft() {
         guard let journalist, let story = campaign.story else { return }
+
+        // Already drafted this match — open it, don't spend another allowance.
+        if let existing = campaign.pitchDrafts.first(where: { $0.mediaTarget?.id == target.id }) {
+            withAnimation(.snappy) { draft = existing }
+            return
+        }
 
         draftError = nil
         guard entitlements.consume(.aiPitchDraft) else {
