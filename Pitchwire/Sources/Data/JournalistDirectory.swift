@@ -40,8 +40,14 @@ enum JournalistDirectory {
 
 /// Every state change a researcher makes in the Lab, as pure model mutations so
 /// they can be unit-tested. **AI never calls these** — they are the human step.
+/// Each one appends an `AuditEntry` so there's a record of who verified what.
 @MainActor
 enum LabActions {
+
+    private static func audit(_ action: String, _ subject: String, by reviewer: String,
+                              _ detail: String = "", into context: ModelContext) {
+        context.insert(AuditEntry(action: action, subject: subject, reviewer: reviewer, detail: detail))
+    }
 
     /// Attach one real article. Requires a title and an https URL — the researcher
     /// found it by opening the profile's `sourceURL`.
@@ -49,7 +55,7 @@ enum LabActions {
     static func addArticle(
         to profile: JournalistProfile,
         title: String, url: String, publishedAt: Date?, topics: [String],
-        context: ModelContext
+        context: ModelContext, reviewer: String = ""
     ) -> Bool {
         let t = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let u = url.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -59,12 +65,16 @@ enum LabActions {
         context.insert(article)
         article.record = record
         record.articles.append(article)
+        audit("article +", profile.name, by: reviewer, t, into: context)
         try? context.save()
         return true
     }
 
-    static func removeArticle(_ article: CoverageEvidence, context: ModelContext) {
+    static func removeArticle(_ article: CoverageEvidence, context: ModelContext, reviewer: String = "") {
+        let subject = article.record?.profile?.name ?? "—"
+        let title = article.title
         context.delete(article)
+        audit("article −", subject, by: reviewer, title, into: context)
         try? context.save()
     }
 
@@ -85,28 +95,33 @@ enum LabActions {
         record.verifiedBy = who
         record.confidence = confidence
         profile.isRejected = false
+        audit("verify", profile.name, by: who,
+              "\(record.articles.count) articles · \(confidence.label)", into: context)
         try? context.save()
         return true
     }
 
-    static func unverify(_ profile: JournalistProfile, context: ModelContext) {
+    static func unverify(_ profile: JournalistProfile, context: ModelContext, reviewer: String = "") {
         guard let record = profile.primaryEvidence else { return }
         record.verificationDate = nil
         record.verifiedBy = nil
+        audit("un-verify", profile.name, by: reviewer, into: context)
         try? context.save()
     }
 
-    static func reject(_ profile: JournalistProfile, context: ModelContext) {
+    static func reject(_ profile: JournalistProfile, context: ModelContext, reviewer: String = "") {
         profile.isRejected = true
         if let record = profile.primaryEvidence {
             record.verificationDate = nil
             record.verifiedBy = nil
         }
+        audit("reject", profile.name, by: reviewer, "excluded from matching", into: context)
         try? context.save()
     }
 
-    static func restore(_ profile: JournalistProfile, context: ModelContext) {
+    static func restore(_ profile: JournalistProfile, context: ModelContext, reviewer: String = "") {
         profile.isRejected = false
+        audit("restore", profile.name, by: reviewer, into: context)
         try? context.save()
     }
 
@@ -117,12 +132,15 @@ enum LabActions {
         record.provenance = .claimedProfile
         record.verifiedBy = reviewer.trimmingCharacters(in: .whitespacesAndNewlines)
         record.verificationDate = Date()
+        audit("claim", profile.name, by: reviewer, "provenance → CLAIMED_PROFILE", into: context)
         try? context.save()
     }
 
-    static func resolveRemoval(_ request: RemovalRequest, resolution: String, context: ModelContext) {
+    static func resolveRemoval(_ request: RemovalRequest, resolution: String,
+                               context: ModelContext, reviewer: String = "") {
         request.resolvedAt = Date()
         request.resolution = resolution
+        audit("removal resolved", request.journalistName, by: reviewer, resolution, into: context)
         try? context.save()
     }
 }

@@ -78,7 +78,8 @@ struct PitchwireApp: App {
             EditorialEvidenceRecord.self,
             CoverageEvidence.self,
             FollowUpTask.self,
-            RemovalRequest.self
+            RemovalRequest.self,
+            AuditEntry.self
         ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         let storeURLs: [URL] = {

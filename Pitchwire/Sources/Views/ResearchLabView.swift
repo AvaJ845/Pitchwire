@@ -14,12 +14,24 @@ struct ResearchLabView: View {
     @AppStorage("lab.reviewer") private var reviewer = ""
     @Query(sort: \JournalistProfile.name) private var directory: [JournalistProfile]
     @Query(sort: \RemovalRequest.requestedAt, order: .reverse) private var removals: [RemovalRequest]
+    @Query(sort: \AuditEntry.at, order: .reverse) private var auditLog: [AuditEntry]
     @State private var exportURL: URL?
+
+    /// A verified record decays to Moderate confidence at 180 days — flag the
+    /// ones getting close so a researcher can re-check the byline before it drops.
+    private static let reverifyAfterDays = 150
 
     private var candidates: [JournalistProfile] { directory.filter { $0.evidenceState == .candidate } }
     private var verified: [JournalistProfile]   { directory.filter { $0.evidenceState == .verified } }
     private var rejected: [JournalistProfile]   { directory.filter { $0.isRejected } }
     private var openRemovals: [RemovalRequest]  { removals.filter(\.isOpen) }
+    private var dueForReverify: [JournalistProfile] {
+        verified.filter { p in
+            guard let d = p.verificationDate else { return false }
+            let days = Calendar.current.dateComponents([.day], from: d, to: Date()).day ?? 0
+            return days >= Self.reverifyAfterDays
+        }
+    }
 
     var body: some View {
         List {
@@ -30,6 +42,24 @@ struct ResearchLabView: View {
                 LabeledContent("Rejected", value: "\(rejected.count)")
             } footer: {
                 Text("Seeded from editorial_seed.json. AI discovers and drafts; a human verifies. Verifying needs ≥1 real article and a reviewer name.")
+            }
+
+            if !dueForReverify.isEmpty {
+                Section {
+                    ForEach(dueForReverify) { profile in
+                        NavigationLink { CandidateReviewView(profile: profile) } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(profile.name).font(.subheadline.weight(.medium))
+                                Text("last verified \(profile.verificationDate!.formatted(.relative(presentation: .named)))")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Due for re-verification")
+                } footer: {
+                    Text("Verified over \(Self.reverifyAfterDays) days ago. Re-open the byline and re-verify before the record decays to Moderate confidence at 180 days.")
+                }
             }
 
             if !openRemovals.isEmpty {
@@ -45,7 +75,7 @@ struct ResearchLabView: View {
                             }
                         } else {
                             Button("Resolve “\(req.journalistName)” (profile gone)") {
-                                LabActions.resolveRemoval(req, resolution: "Profile no longer in directory", context: modelContext)
+                                LabActions.resolveRemoval(req, resolution: "Profile no longer in directory", context: modelContext, reviewer: reviewer)
                             }
                         }
                     }
@@ -75,6 +105,32 @@ struct ResearchLabView: View {
                 Text("Export")
             } footer: {
                 Text("Verified records carry verificationDate + verifiedBy. Rejected records are dropped. Same fields as the input — no contact data.")
+            }
+
+            if !auditLog.isEmpty {
+                Section {
+                    ForEach(auditLog.prefix(30)) { entry in
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text(entry.action).font(.caption.weight(.semibold))
+                                Text(entry.subject).font(.caption)
+                                Spacer()
+                                Text(entry.reviewer).font(.caption2.monospaced()).foregroundStyle(.secondary)
+                            }
+                            HStack {
+                                if !entry.detail.isEmpty {
+                                    Text(entry.detail).font(.caption2).foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Text(entry.at, style: .relative).font(.caption2).foregroundStyle(.tertiary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("History")
+                } footer: {
+                    Text("Every verify / reject / edit, with the reviewer's initials. The trail that makes the editorial data auditable.")
+                }
             }
         }
         .navigationTitle("Research Lab")
@@ -212,7 +268,7 @@ struct CandidateReviewView: View {
                         }
                         .swipeActions {
                             Button(role: .destructive) {
-                                LabActions.removeArticle(article, context: modelContext)
+                                LabActions.removeArticle(article, context: modelContext, reviewer: reviewer)
                             } label: { Label("Remove", systemImage: "trash") }
                         }
                     }
@@ -231,7 +287,7 @@ struct CandidateReviewView: View {
                     LabeledContent("Verified",
                                    value: record?.verificationDate?.formatted(date: .abbreviated, time: .omitted) ?? "—")
                     Button("Un-verify (back to candidate)") {
-                        LabActions.unverify(profile, context: modelContext)
+                        LabActions.unverify(profile, context: modelContext, reviewer: reviewer)
                     }
                 } else {
                     Button("Verify this profile") {
@@ -249,7 +305,7 @@ struct CandidateReviewView: View {
 
             Section {
                 if profile.isRejected {
-                    Button("Restore to directory") { LabActions.restore(profile, context: modelContext) }
+                    Button("Restore to directory") { LabActions.restore(profile, context: modelContext, reviewer: reviewer) }
                 } else {
                     Button("Reject — exclude from matching", role: .destructive) { confirmReject = true }
                 }
@@ -264,7 +320,7 @@ struct CandidateReviewView: View {
         }
         .confirmationDialog("Reject \(profile.name)?", isPresented: $confirmReject, titleVisibility: .visible) {
             Button("Reject", role: .destructive) {
-                LabActions.reject(profile, context: modelContext)
+                LabActions.reject(profile, context: modelContext, reviewer: reviewer)
                 resolveRemovals(resolution: "Rejected in review")
             }
         }
@@ -303,7 +359,7 @@ struct CandidateReviewView: View {
     private func resolveRemovals(resolution: String) {
         let open = ((try? modelContext.fetch(FetchDescriptor<RemovalRequest>())) ?? [])
             .filter { $0.isOpen && $0.journalistID == profile.id }
-        for req in open { LabActions.resolveRemoval(req, resolution: resolution, context: modelContext) }
+        for req in open { LabActions.resolveRemoval(req, resolution: resolution, context: modelContext, reviewer: reviewer) }
     }
 }
 

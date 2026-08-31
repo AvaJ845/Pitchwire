@@ -10,7 +10,7 @@ final class ResearchLabTests: XCTestCase {
             Story.self, Campaign.self, MediaTarget.self, Outlet.self,
             JournalistProfile.self, MatchExplanation.self, PitchDraft.self,
             EditorialEvidenceRecord.self, CoverageEvidence.self,
-            FollowUpTask.self, RemovalRequest.self,
+            FollowUpTask.self, RemovalRequest.self, AuditEntry.self,
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         return ModelContext(try ModelContainer(for: schema, configurations: [config]))
@@ -55,6 +55,23 @@ final class ResearchLabTests: XCTestCase {
         XCTAssertEqual(p.evidenceState, .verified)
         XCTAssertEqual(p.primaryEvidence?.verifiedBy, "DJ")
         XCTAssertEqual(p.evidenceConfidence, .high, "a fresh human verification unlocks stated confidence")
+    }
+
+    func testEveryLabActionLeavesAnAuditTrail() throws {
+        let ctx = try context()
+        let p = candidate(ctx, name: "Trail Test")
+
+        _ = LabActions.addArticle(to: p, title: "A piece", url: "https://x/a",
+                                  publishedAt: Date(), topics: [], context: ctx, reviewer: "QA")
+        _ = LabActions.verify(p, reviewer: "QA", confidence: .moderate, context: ctx)
+        LabActions.unverify(p, context: ctx, reviewer: "QA")
+        LabActions.reject(p, context: ctx, reviewer: "QA")
+        LabActions.restore(p, context: ctx, reviewer: "QA")
+
+        let log = try ctx.fetch(FetchDescriptor<AuditEntry>(sortBy: [SortDescriptor(\.at)]))
+        XCTAssertEqual(log.map(\.action), ["article +", "verify", "un-verify", "reject", "restore"])
+        XCTAssertTrue(log.allSatisfy { $0.reviewer == "QA" && $0.subject == "Trail Test" })
+        XCTAssertTrue(log.contains { $0.action == "verify" && $0.detail.contains("1 articles") })
     }
 
     func testAddArticleRejectsNonHTTPS() throws {

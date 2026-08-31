@@ -10,7 +10,7 @@ final class DirectoryExporterTests: XCTestCase {
             Story.self, Campaign.self, MediaTarget.self, Outlet.self,
             JournalistProfile.self, MatchExplanation.self, PitchDraft.self,
             EditorialEvidenceRecord.self, CoverageEvidence.self,
-            FollowUpTask.self, RemovalRequest.self,
+            FollowUpTask.self, RemovalRequest.self, AuditEntry.self,
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         return ModelContext(try ModelContainer(for: schema, configurations: [config]))
