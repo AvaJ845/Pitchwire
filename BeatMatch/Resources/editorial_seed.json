@@ -10,53 +10,6 @@
   "profiles": [
     {
       "outletVerticals": [
-        "fintech",
-        "personal finance",
-        "general tech"
-      ],
-      "outletURL": "https://newsletter.fintechtakes.com/",
-      "confidence": "exploratory",
-      "audiences": [
-        "Businesses & teams",
-        "Founders & investors",
-        "Consumers"
-      ],
-      "evidenceSummary": "Newsletter archive + about page compiled 2026-08-30. Twice-weekly deep dives on consumer finance, credit systems, embedded finance and fintech policy. Verify recent issues and dates from the archive.",
-      "sourceURL": "https://newsletter.fintechtakes.com/archive",
-      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
-      "role": "Founder — consumer finance, embedded finance and fintech policy",
-      "coveredAngles": [
-        "product launch",
-        "partnership",
-        "general news"
-      ],
-      "verificationDate": "2026-08-30",
-      "regions": [
-        "US",
-        "Global"
-      ],
-      "beatTopics": [
-        "consumer finance",
-        "credit",
-        "embedded finance",
-        "fintech policy",
-        "payments",
-        "financial health"
-      ],
-      "vertical": "fintech-personal-finance",
-      "outlet": "Fintech Takes",
-      "name": "Alex Johnson",
-      "articles": [
-        {
-          "publishedAt": "2026-08-30",
-          "title": "A recent on-topic piece",
-          "url": "https://example.com/article"
-        }
-      ],
-      "verifiedBy": "DJ"
-    },
-    {
-      "outletVerticals": [
         "security",
         "privacy",
         "general tech"
@@ -161,7 +114,7 @@
           "topics": [
             "Venture"
           ],
-          "url": "https://techcrunch.com/2026/07/05/what-is-bending-spoons-everything-to-know-about-aols-acquirer/Venture"
+          "url": "https://techcrunch.com/2026/07/05/what-is-bending-spoons-everything-to-know-about-aols-acquirer/"
         }
       ],
       "provenance": "PUBLIC_EDITORIAL_SIGNAL",
@@ -610,7 +563,7 @@
       "articles": [
         {
           "publishedAt": "2026-08-28",
-          "title": "ICE Plans to Spend Millions on Boston Dynamics Dog Robbots",
+          "title": "ICE Plans to Spend Millions on Boston Dynamics Dog Robots",
           "topics": [
             "AI"
           ],
@@ -730,7 +683,7 @@
           "topics": [
             "Apps"
           ],
-          "title": "Instagram’s “First Draft’ feature aims to make editing Reels less tedious"
+          "title": "Instagram’s ‘First Draft’ feature aims to make editing Reels less tedious"
         },
         {
           "publishedAt": "2026-08-21",
@@ -787,7 +740,7 @@
           "topics": [
             "Business"
           ],
-          "title": "What We Still Don’t\t Know About OpenAI’s Hugging Face Hack"
+          "title": "What We Still Don’t Know About OpenAI’s Hugging Face Hack"
         },
         {
           "publishedAt": "2026-08-23",
@@ -795,7 +748,7 @@
           "topics": [
             "Security"
           ],
-          "title": "Security News This Week Your Expired Via Card Could Be “Zombified’ to Make Contactless Payments"
+          "title": "Security News This Week: Your Expired Visa Card Could Be ‘Zombiefied’ to Make Contactless Payments"
         },
         {
           "topics": [
@@ -889,7 +842,7 @@
             "AI"
           ],
           "url": "https://news.crunchbase.com/venture/supply-chain-nontech-founder-ilya-levtov-craft/",
-          "title": "Craft’s Ilya Levtov Never Learned To Code. He Built A software Company Anyway",
+          "title": "Craft’s Ilya Levtov Never Learned To Code. He Built a Software Company Anyway",
           "publishedAt": "2026-08-27"
         },
         {
@@ -897,7 +850,7 @@
             "AI"
           ],
           "url": "https://news.crunchbase.com/venture/socure-raises-acquires-agentic-ai-startup-fravity/",
-          "title": "Source Secures $156M at $5.2B Valuation, Acquires AI Fraud Investigation Startup Fravity",
+          "title": "Socure Secures $156M at $5.2B Valuation, Acquires AI Fraud Investigation Startup Fravity",
           "publishedAt": "2026-08-27"
         }
       ],
@@ -982,7 +935,7 @@
           ]
         },
         {
-          "title": "A Security Pro Hacked North Korean Hackers. He Found They’ed Breached Hundreds of Networks Worldwide",
+          "title": "A Security Pro Hacked North Korean Hackers. He Found They’d Breached Hundreds of Networks Worldwide",
           "url": "https://www.wired.com/story/a-security-pro-hacked-north-korean-hackers-he-found-theyd-breached-hundreds-of-networks-worldwide/",
           "publishedAt": "2026-08-05",
           "topics": [
@@ -1078,7 +1031,7 @@
           "topics": [
             "AI"
           ],
-          "title": "Silicon Valley Doesn’t Get Why you Hate AI",
+          "title": "Silicon Valley Doesn’t Get Why You Hate AI",
           "url": "https://www.wired.com/story/silicon-valley-doesnt-get-why-you-hate-ai/",
           "publishedAt": "2026-08-20"
         },
@@ -1086,7 +1039,7 @@
           "topics": [
             "AI"
           ],
-          "title": "The White House Is Keeping AI Cybersecurity Framework Secret",
+          "title": "The White House Is Keeping Its AI Cybersecurity Framework Secret",
           "url": "https://www.wired.com/story/the-white-house-is-keeping-its-ai-cybersecurity-framework-secret/",
           "publishedAt": "2026-08-04"
         }
