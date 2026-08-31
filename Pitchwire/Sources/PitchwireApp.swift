@@ -10,6 +10,8 @@ struct PitchwireApp: App {
     let sharedModelContainer: ModelContainer
 
     init() {
+        Theme.apply()
+
         #if DEBUG
         let resetForTests = ProcessInfo.processInfo.arguments.contains("-uitest-reset")
         #else
