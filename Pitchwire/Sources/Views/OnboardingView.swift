@@ -86,15 +86,20 @@ struct OnboardingView: View {
         // clipping against the fixed layout.
         ScrollView {
             VStack(spacing: 28) {
-                Image(systemName: item.symbol)
-                    .font(.system(size: 66, weight: .semibold))
-                    .foregroundStyle(
-                        // Teal → dimmer teal. Never `Palette.navy` here — it's a
-                        // fixed dark colour and would vanish into a dark canvas.
-                        LinearGradient(colors: [Palette.accent, Palette.accent.opacity(0.55)],
-                                       startPoint: .topLeading, endPoint: .bottomTrailing)
-                    )
-                    .accessibilityHidden(true)
+                ZStack {
+                    Circle()
+                        .fill(Palette.accentSoft)
+                        .overlay(Circle().strokeBorder(Palette.accent.opacity(0.16), lineWidth: 1))
+                        .frame(width: 132, height: 132)
+                        .shadow(color: Palette.accent.opacity(0.12), radius: 16, y: 6)
+                    Image(systemName: item.symbol)
+                        .font(.system(size: 54, weight: .semibold))
+                        .symbolRenderingMode(.hierarchical)
+                        // Teal, never `Palette.navy` — that's a fixed dark colour
+                        // and would vanish into a dark canvas.
+                        .foregroundStyle(Palette.accent)
+                }
+                .accessibilityHidden(true)
                 VStack(spacing: 14) {
                     Text(item.title)
                         .font(.system(.title, design: .serif).weight(.bold))
