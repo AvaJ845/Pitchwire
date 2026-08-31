@@ -18,7 +18,7 @@ struct PitchwireApp: App {
 
         // Developer LLM log — DEBUG-only viewer, capture toggle in Settings.
         if resetForTests {
-            for key in ["llmlog.capture", "llmlog.capture.payloads", "pitchwire.seedExampleOnce"] {
+            for key in ["llmlog.capture", "llmlog.capture.payloads", "pitchwire.seedExampleOnce", "lab.reviewer"] {
                 UserDefaults.standard.removeObject(forKey: key)
             }
             _ = SharedInbox.take()   // no stale shared story from a previous run

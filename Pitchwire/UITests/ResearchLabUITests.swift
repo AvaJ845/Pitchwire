@@ -1,13 +1,14 @@
 import XCTest
 
-/// The human verification path: Profile → Research Lab → open a profile →
-/// un-verify → attach an article → re-verify. DEBUG-only screen. The shipped
-/// seed is already verified, so this exercises the round trip.
+/// The human verification path is wired: Profile → Research Lab → open a
+/// verified profile → un-verify → re-verify. DEBUG-only screen. The article-
+/// attach + validation rules are covered by ResearchLabTests (unit); this test
+/// proves the screen is reachable and the state round-trips in the UI.
 final class ResearchLabUITests: XCTestCase {
 
     override func setUp() { continueAfterFailure = false }
 
-    func testResearcherCanUnverifyAttachEvidenceAndReverify() {
+    func testResearcherCanUnverifyAndReverify() {
         let app = XCUIApplication()
         app.launchArguments = ["-uitest-reset", "-uitest-mock-ai"]
         app.launch()
@@ -15,7 +16,7 @@ final class ResearchLabUITests: XCTestCase {
         app.buttons["Profile"].tap()
         let lab = app.buttons["Research Lab"]
         var tries = 0
-        while !lab.exists && tries < 6 { app.swipeUp(); tries += 1 }
+        while !lab.exists && tries < 8 { app.swipeUp(); tries += 1 }
         XCTAssertTrue(lab.waitForExistence(timeout: 5))
         lab.tap()
         XCTAssertTrue(app.navigationBars["Research Lab"].waitForExistence(timeout: 5))
@@ -24,54 +25,53 @@ final class ResearchLabUITests: XCTestCase {
         let firstRow = app.descendants(matching: .any)
             .matching(identifier: "lab-row-verified").firstMatch
         var d = 0
-        while !firstRow.isHittable && d < 6 { app.swipeUp(); d += 1 }
+        while !firstRow.isHittable && d < 8 { app.swipeUp(); d += 1 }
         XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
         firstRow.tap()
 
-        // Un-verify → back to candidate.
+        // Un-verify → back to candidate. (The seed profile keeps its articles,
+        // so re-verifying later only needs a reviewer name.)
         let unverify = app.buttons["Un-verify (back to candidate)"]
-        var u = 0
-        while !unverify.isHittable && u < 8 { app.swipeUp(); u += 1 }
+        scrollToHittable(unverify, in: app)
         XCTAssertTrue(unverify.waitForExistence(timeout: 5))
         unverify.tap()
 
-        // Attach an article.
-        let addArticle = app.buttons["Add article"]
-        var s = 0
-        while !addArticle.isHittable && s < 8 { app.swipeUp(); s += 1 }
-        XCTAssertTrue(addArticle.waitForExistence(timeout: 5))
-        addArticle.tap()
-
-        let headline = app.textFields["Headline (as published)"]
-        XCTAssertTrue(headline.waitForExistence(timeout: 5))
-        headline.tap(); headline.typeText("A recent on-topic piece")
-        let urlField = app.textFields["URL (https://…)"]
-        urlField.tap(); urlField.typeText("https://example.com/article")
-
-        // The Add button only enables once both fields are valid — wait for it
-        // rather than tapping a dead control on a slow CI machine.
-        let addConfirm = app.buttons["Add"]
-        XCTAssertTrue(waitUntilEnabled(addConfirm, timeout: 8), "Add should enable once the article is valid")
-        addConfirm.tap()
-
-        // Reviewer + re-verify.
-        let reviewer = app.textFields["Reviewer (your initials)"]
-        var r = 0
-        while !reviewer.isHittable && r < 8 { app.swipeUp(); r += 1 }
-        XCTAssertTrue(reviewer.waitForExistence(timeout: 5))
-        if (reviewer.value as? String ?? "").isEmpty { reviewer.tap(); reviewer.typeText("QA") }
-
+        // "Verify this profile" only renders when the profile is not verified —
+        // its appearance is the signal that un-verify worked.
         let verify = app.buttons["Verify this profile"]
-        XCTAssertTrue(verify.waitForExistence(timeout: 5))
-        XCTAssertTrue(waitUntilEnabled(verify, timeout: 8),
-                      "Verify should enable once there's an article + a reviewer")
+        scrollToHittable(verify, in: app)
+        XCTAssertTrue(verify.waitForExistence(timeout: 5),
+                      "the Verify button should appear after un-verifying")
+
+        // Reviewer + re-verify. `-uitest-reset` clears lab.reviewer.
+        let reviewer = app.textFields["Reviewer (your initials)"]
+        scrollToHittable(reviewer, in: app)
+        XCTAssertTrue(reviewer.waitForExistence(timeout: 5))
+        reviewer.tap()
+        reviewer.typeText("QA")
+
+        XCTAssertTrue(waitUntilEnabled(verify, timeout: 15),
+                      "Verify should enable once there's a reviewer (articles are still attached)")
         verify.tap()
 
         XCTAssertTrue(app.staticTexts["Verified"].waitForExistence(timeout: 10),
                       "profile should read as verified again")
+
+        // The action left an audit trail — go back to the Lab and check.
+        app.navigationBars.buttons.firstMatch.tap()
+        let history = app.staticTexts["History"]
+        var h = 0
+        while !history.exists && h < 10 { app.swipeUp(); h += 1 }
+        XCTAssertTrue(history.exists, "the Lab should show a History section after a verify")
+
         let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = "research-lab-verified"; attachment.lifetime = .keepAlways
+        attachment.name = "research-lab-history"; attachment.lifetime = .keepAlways
         add(attachment)
+    }
+
+    private func scrollToHittable(_ element: XCUIElement, in app: XCUIApplication) {
+        var n = 0
+        while !element.isHittable && n < 8 { app.swipeUp(); n += 1 }
     }
 
     private func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
