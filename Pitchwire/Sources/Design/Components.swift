@@ -58,7 +58,9 @@ struct Monogram: View {
     }
 
     private var tint: Color {
-        let palette: [UInt] = [0x0E8C7E, 0x2563C9, 0x8A5CF6, 0xC2410C, 0xB8860B, 0x0891B2]
+        // All chosen for ≥4.5:1 against white initials, even at the gradient's
+        // lighter foot.
+        let palette: [UInt] = [0x0E8C7E, 0x2563C9, 0x7C3AED, 0xC2410C, 0xB45309, 0x0E7490]
         // A *stable* hash — `String.hashValue` is per-process randomised, so it
         // would repaint every avatar on each launch. FNV-1a over the scalars.
         var h: UInt64 = 0xcbf29ce484222325
@@ -99,6 +101,8 @@ struct Tag: View {
         .padding(.horizontal, 9)
         .padding(.vertical, 4)
         .background(color.opacity(0.12), in: Capsule())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
     }
 }
 
