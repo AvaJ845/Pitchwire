@@ -238,10 +238,22 @@ breakdown (score bar + per-signal bars) shows the exact signals behind the ranki
 on-device similarity term included — never a recompute that would drop it. Ranking is
 deterministic.
 
+### What leaves the device
+
+**Matching and scoring are 100% on-device** — the `RelevanceEngine`, the MiniLM embeddings, the
+directory. The **story text is sent to Pitchwire's backend** for two things only: `storyAnalysis`
+(extract theme/vertical/angle/…) and `pitchDraft` polish. Nothing else — no journalist data, no
+device identifiers, no analytics. The backend caches a response for 6 h keyed by a hash of the
+request, then it's gone; nothing is linked to a person. `PrivacyInfo.xcprivacy` declares this as
+"Other data — app functionality, not linked, not tracking" (the conservative reading of the
+cache); `NSPrivacyAccessedAPICategoryUserDefaults` for the entitlement counters. No accounts, no
+tracking SDK, no ads. With no backend configured the app is fully offline on deterministic
+fallbacks and *nothing* leaves the device.
+
 **Semantic matching (`EmbeddingService`).** The story and each journalist's beat + real
 article titles are embedded **on-device** with a bundled **all-MiniLM-L6-v2** sentence
 transformer (CoreML, 384-dim, 6-bit palettized ~16 MB, mean-pooled + L2-normalized in the
-graph). No network — the story never leaves the phone. Vectors are cached on
+graph). No network for this step. Vectors are cached on
 `JournalistProfile.embedding` (re-warmed on a dimension mismatch, so a model swap self-heals).
 BERT-uncased WordPiece tokenization is in `BertTokenizer.swift`; the model runs **CPU-only**
 (the GPU/ANE path returns an all-zero vector for this graph on the simulator, and is a

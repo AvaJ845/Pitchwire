@@ -9,14 +9,28 @@
     <array/>
 
     <!--
-      No data is collected in the App Store sense: the app has no accounts,
-      no analytics SDK, and no advertising. Story text is sent to Pitchwire's
-      own backend only to produce the analysis/draft the user asked for; it is
-      not linked to an identity and is not used for tracking. Revisit this
-      array if that ever changes (e.g. stored user content, analytics).
+      The only data that leaves the device is the story text the user pastes,
+      sent to Pitchwire's own backend to produce the analysis / pitch draft
+      they asked for. No accounts, no analytics SDK, no advertising. The
+      backend caches a response for 6 hours (keyed by a hash of the request)
+      to avoid re-billing an identical call — declared here as "Other data",
+      not linked to identity, not used for tracking, app-functionality only.
     -->
     <key>NSPrivacyCollectedDataTypes</key>
-    <array/>
+    <array>
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeOtherDataTypes</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+    </array>
 
     <key>NSPrivacyAccessedAPITypes</key>
     <array>
