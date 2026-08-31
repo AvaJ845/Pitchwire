@@ -10,6 +10,11 @@ settings:
     # ALWAYS_SEARCH_USER_PATHS=YES implies. This project has no bridging headers
     # or user header search paths, so turn it off explicitly.
     ALWAYS_SEARCH_USER_PATHS: NO
+    # AvaResearch LLC team — same as the other com.avaresearch.* apps
+    # (Milestone, CapitolSketch). Automatic signing: the simulator ignores it,
+    # a physical device resolves a provisioning profile against this team.
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: 3L683975L8
   configs:
     debug:
       ENABLE_TESTABILITY: YES   # @testable import Pitchwire from the unit tests
@@ -36,7 +41,6 @@ targets:
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: true
-        CODE_SIGNING_ALLOWED: false
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_CFBundleDisplayName: Pitchwire
@@ -52,7 +56,6 @@ targets:
         PRODUCT_NAME: PitchwireUITests
         PRODUCT_BUNDLE_IDENTIFIER: com.avaresearch.pitchwireUITests
         SWIFT_VERSION: "5.0"
-        CODE_SIGNING_ALLOWED: false
         GENERATE_INFOPLIST_FILE: true
     dependencies:
       - target: BeatMatch
@@ -66,7 +69,6 @@ targets:
         PRODUCT_NAME: PitchwireUnitTests
         PRODUCT_BUNDLE_IDENTIFIER: com.avaresearch.pitchwireUnitTests
         SWIFT_VERSION: "5.0"
-        CODE_SIGNING_ALLOWED: false
         GENERATE_INFOPLIST_FILE: true
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Pitchwire.app/Pitchwire"
         BUNDLE_LOADER: "$(TEST_HOST)"
