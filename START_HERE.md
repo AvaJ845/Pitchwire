@@ -55,7 +55,9 @@ xcodebuild -scheme Pitchwire -sdk iphonesimulator \
 `AccentColor` asset tints the app teal.
 
 ## What you'll see
-Paste a launch story into Home → Analyze → **"What we understood"** (theme, audience, angle,
+Paste a launch story into Home — **or share a post/article to Pitchwire** from any app
+(`ShareExtension/`, hands off via the `group.com.avaresearch.pitchwire` App Group) — → Analyze
+→ **"What we understood"** (theme, audience, angle,
 timing, editable topic chips) → Find journalists → a confidence-tiered list with a reason and an
 evidence-confidence label on every card → tap one for "why this match" + **About this profile**
 (each provenance record: source type, coverage basis, last verified, pitch preference) → Draft

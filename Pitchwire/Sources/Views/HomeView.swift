@@ -5,6 +5,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AIClient.self) private var aiClient
     @Environment(Entitlements.self) private var entitlements
+    @Environment(\.scenePhase) private var scenePhase
 
     @Query(sort: \Campaign.createdAt, order: .reverse) private var campaigns: [Campaign]
 
@@ -89,16 +90,27 @@ struct HomeView: View {
             .navigationDestination(item: $activeCampaign) { campaign in
                 StorySummaryView(campaign: campaign)
             }
-            .task {
-                // "Get started" from onboarding lands here — seed the first
-                // example and focus the editor so there's something to act on.
-                if UserDefaults.standard.bool(forKey: "pitchwire.seedExampleOnce") {
-                    UserDefaults.standard.removeObject(forKey: "pitchwire.seedExampleOnce")
-                    if storyText.isEmpty, let first = Self.examples.first {
-                        storyText = first
-                        editorFocused = true
-                    }
-                }
+            .task { pickUpPendingStory() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { pickUpPendingStory() }
+            }
+        }
+    }
+
+    /// Runs on appear and every time the app returns to foreground.
+    /// - A story shared in via the Share Extension takes precedence.
+    /// - Otherwise, "Get started" from onboarding seeds the first example.
+    private func pickUpPendingStory() {
+        if let shared = SharedInbox.take(), storyText.isEmpty {
+            storyText = shared
+            editorFocused = true
+            return
+        }
+        if UserDefaults.standard.bool(forKey: "pitchwire.seedExampleOnce") {
+            UserDefaults.standard.removeObject(forKey: "pitchwire.seedExampleOnce")
+            if storyText.isEmpty, let first = Self.examples.first {
+                storyText = first
+                editorFocused = true
             }
         }
     }

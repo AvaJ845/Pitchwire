@@ -27,6 +27,7 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      - path: Shared
       - path: Config
         buildPhase: resources
         optional: true
@@ -43,9 +44,33 @@ targets:
         GENERATE_INFOPLIST_FILE: true
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: Pitchwire.entitlements
         INFOPLIST_KEY_CFBundleDisplayName: Pitchwire
         INFOPLIST_KEY_UILaunchScreen_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+    dependencies:
+      - target: PitchwireShareExtension
+        embed: true
+
+  PitchwireShareExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShareExtension
+        excludes:
+          - Info.plist
+          - "*.entitlements"
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_NAME: PitchwireShareExtension
+        PRODUCT_BUNDLE_IDENTIFIER: com.avaresearch.pitchwire.share
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: ShareExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: ShareExtension/PitchwireShareExtension.entitlements
+        SKIP_INSTALL: YES
+
   PitchwireUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -59,6 +84,7 @@ targets:
         GENERATE_INFOPLIST_FILE: true
     dependencies:
       - target: Pitchwire
+
   PitchwireUnitTests:
     type: bundle.unit-test
     platform: iOS
@@ -74,11 +100,13 @@ targets:
         BUNDLE_LOADER: "$(TEST_HOST)"
     dependencies:
       - target: Pitchwire
+
 schemes:
   Pitchwire:
     build:
       targets:
         Pitchwire: all
+        PitchwireShareExtension: all
         PitchwireUITests: [test]
         PitchwireUnitTests: [test]
     test:

@@ -316,6 +316,11 @@ the typed AI gateway, campaign / draft / follow-up persistence (SwiftData, local
 the AI infrastructure (`Sources/AI/`) and the entitlements layer (`Sources/Entitlements/`)
 above, with 7 unit tests + 1 UI smoke test.
 
+**Share Extension** (`Pitchwire/ShareExtension/`) — shipped. Share a post or article to
+Pitchwire from any app; the text is stashed in the App Group (`group.com.avaresearch.pitchwire`,
+`SharedInbox`) and Home picks it up on next activation. Minimal `SLComposeServiceViewController`
+— no compose UI, the story goes straight to intake.
+
 Not built: the backend + AI router itself, real ingestion for Layers A–D, URL & file story
-input, Share Extension, iPad 3-pane workspace, accounts, a paid `EntitlementStore` + StoreKit
-products, a real telemetry sink.
+input, iPad 3-pane workspace, accounts, a paid `EntitlementStore` + StoreKit products, a real
+telemetry sink.

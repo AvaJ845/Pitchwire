@@ -21,6 +21,7 @@ struct PitchwireApp: App {
             for key in ["llmlog.capture", "llmlog.capture.payloads", "pitchwire.seedExampleOnce"] {
                 UserDefaults.standard.removeObject(forKey: key)
             }
+            _ = SharedInbox.take()   // no stale shared story from a previous run
             // Tests land straight in the app; `-uitest-onboarding` opts back into
             // the first-launch intro (OnboardingUITests).
             #if DEBUG
