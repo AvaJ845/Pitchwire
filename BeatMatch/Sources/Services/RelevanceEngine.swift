@@ -37,17 +37,16 @@ enum SignalKind: String, Codable, CaseIterable {
 /// the detail view then shows the exact breakdown that produced the ranking
 /// (similarity term included), never a recompute that drops it.
 struct RelevanceSignal: Identifiable, Codable {
-    let id = UUID()
     let kind: SignalKind
     let score: Double        // 0...1
     let weight: Double        // relative importance
     let note: String?         // human fragment for the "why", nil if it didn't contribute
 
+    /// One signal per kind, so this is stable across a decode — SwiftUI `ForEach`
+    /// diffing on the score card doesn't see "new" rows on every re-render.
+    var id: SignalKind { kind }
     var name: String { kind.displayName }
     var contribution: Double { score * weight }
-
-    // `id` is a fresh identifier for SwiftUI diffing only — never encoded.
-    private enum CodingKeys: String, CodingKey { case kind, score, weight, note }
 }
 
 struct RelevanceResult: Codable {

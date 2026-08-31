@@ -117,10 +117,12 @@ enum Embedding {
         return mag > 0 ? vDSP.multiply(1 / mag, v) : v
     }
 
-    /// The text embedded for a story — concise, so the vector reflects the topic
-    /// rather than the boilerplate.
-    static func storyText(_ a: StoryAnalysisResult, rawText: String) -> String {
-        ([a.theme, a.summary] + a.subtopics + a.mediaHooks + [String(rawText.prefix(600))])
+    /// The text embedded for a story — the *distilled* fields only. The raw
+    /// press release is mostly boilerplate the analysis step already stripped;
+    /// including it just dilutes the vector against the tight journalist side
+    /// (beat + real article titles).
+    static func storyText(_ a: StoryAnalysisResult) -> String {
+        ([a.theme, a.summary] + a.subtopics + a.mediaHooks)
             .filter { !$0.isEmpty }
             .joined(separator: ". ")
     }

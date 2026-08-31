@@ -64,7 +64,7 @@ final class EditorialRelevanceEvalTests: XCTestCase {
             + "embeddings: \(embeddings == nil ? "off" : "MiniLM") ===\n"
 
         for s in stories {
-            let storyVector = embeddings?.vector(for: Embedding.storyText(s.analysis, rawText: s.line))
+            let storyVector = embeddings?.vector(for: Embedding.storyText(s.analysis))
             let results = service.match(analysis: s.analysis, storyVector: storyVector, against: pool)
             report += "\n#\(s.n) \(s.line)\n"
             for r in results.prefix(5) {

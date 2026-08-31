@@ -62,10 +62,17 @@ final class JournalistProfile {
 
     var embedding: [Float] {
         get {
-            guard !embeddingBlob.isEmpty else { return [] }
-            return embeddingBlob.withUnsafeBytes { Array($0.bindMemory(to: Float.self)) }
+            let count = embeddingBlob.count / MemoryLayout<Float>.stride
+            guard count > 0 else { return [] }
+            // `copyBytes` handles alignment — `Data`'s storage isn't guaranteed
+            // 4-byte aligned, so `bindMemory(to: Float.self)` would be UB.
+            var floats = [Float](repeating: 0, count: count)
+            _ = floats.withUnsafeMutableBytes { embeddingBlob.copyBytes(to: $0) }
+            return floats
         }
-        set { embeddingBlob = newValue.withUnsafeBytes { Data($0) } }
+        set {
+            embeddingBlob = newValue.withUnsafeBytes { Data($0) }
+        }
     }
 
     @Relationship(deleteRule: .cascade, inverse: \EditorialEvidenceRecord.profile)
