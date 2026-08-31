@@ -95,6 +95,7 @@ struct HomeView: View {
             .scrollDismissesKeyboard(.interactively)
             .screenBackground()
             .navigationTitle("Pitchwire")
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: $activeCampaign) { campaign in
                 StorySummaryView(campaign: campaign)
             }
@@ -123,11 +124,21 @@ struct HomeView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("What's your story?")
-                .font(.largeTitle.bold())
+                .font(.editorialLargeTitle())
                 .foregroundStyle(Palette.ink)
             Text("Paste a launch story, press release, or announcement. We'll tell you who's most likely to care, why, and what to say.")
                 .font(.subheadline)
                 .foregroundStyle(Palette.inkSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, 4)
+        .background(alignment: .top) {
+            Palette.brandWash
+                .frame(height: 180)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, -Metrics.gutter)
+                .padding(.top, -Metrics.gutter)
+                .allowsHitTesting(false)
         }
     }
 

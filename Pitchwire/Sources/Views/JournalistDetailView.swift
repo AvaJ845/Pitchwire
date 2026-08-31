@@ -79,7 +79,7 @@ struct JournalistDetailView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     // WHO
                     Text(journalist?.name ?? "Unknown")
-                        .font(.title2.bold())
+                        .font(.editorialTitle())
                         .foregroundStyle(Palette.ink)
                     if let role = journalist?.role {
                         Text(role)
@@ -171,6 +171,19 @@ struct JournalistDetailView: View {
                     }
                 }
                 .buttonStyle(.plain)
+
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text("\(Int((result.total * 100).rounded()))")
+                        .font(.system(.largeTitle, design: .serif).weight(.semibold))
+                        .foregroundStyle(Palette.ink)
+                        .contentTransition(.numericText())
+                    Text("/ 100 relevance")
+                        .font(.footnote)
+                        .foregroundStyle(Palette.inkTertiary)
+                    Spacer(minLength: 0)
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Relevance score \(Int((result.total * 100).rounded())) out of 100")
 
                 ScoreBar(value: result.total)
 
@@ -354,16 +367,24 @@ struct JournalistDetailView: View {
 
 private struct ScoreBar: View {
     let value: Double   // 0...1
+    @State private var shown = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(Palette.hairline)
-                Capsule().fill(Palette.accent)
-                    .frame(width: max(6, geo.size.width * value))
+                Capsule()
+                    .fill(Palette.accentGradient)
+                    .frame(width: max(8, geo.size.width * (shown ? value : 0)))
             }
         }
-        .frame(height: 8)
-        .accessibilityLabel("Match score \(Int(value * 100)) out of 100")
+        .frame(height: 10)
+        .onAppear {
+            guard !reduceMotion else { shown = true; return }
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.85).delay(0.05)) { shown = true }
+        }
+        .accessibilityHidden(true)
     }
 }
 
@@ -381,13 +402,15 @@ private struct SignalRow: View {
                 .frame(width: labelWidth, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Palette.hairline).frame(height: 5)
+                    Capsule().fill(Palette.hairline).frame(height: 6)
                     Capsule()
-                        .fill(signal.score >= 0.35 ? Palette.accent : Palette.inkTertiary)
-                        .frame(width: max(3, geo.size.width * signal.score), height: 5)
+                        .fill(signal.score >= 0.35
+                              ? AnyShapeStyle(Palette.accentGradient)
+                              : AnyShapeStyle(Palette.inkTertiary))
+                        .frame(width: max(4, geo.size.width * signal.score), height: 6)
                 }
             }
-            .frame(height: 5)
+            .frame(height: 6)
             Text("\(Int(signal.weight * 100))%")
                 .font(.caption2.monospacedDigit())
                 .foregroundStyle(Palette.inkTertiary)

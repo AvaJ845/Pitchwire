@@ -49,12 +49,14 @@ enum Palette {
     static let inkSecondary = Color(light: 0x53606D, dark: 0x9AA6B2)
     static let inkTertiary = Color(light: 0x676D79, dark: 0x7E8894)
 
-    // Confidence tiers (match strength) — teal → blue → slate.
+    // Confidence tiers (match strength) — teal → blue → slate. Light variants
+    // are tuned so white pill text clears WCAG AA (≥4.5:1): excellent ~4.8:1,
+    // strong ~5.4:1, possible ~5.1:1.
     static func tier(_ tier: ConfidenceTier) -> Color {
         switch tier {
-        case .excellent: return Color(light: 0x0E8C7E, dark: 0x2CD3BE)
+        case .excellent: return Color(light: 0x0C8072, dark: 0x2CD3BE)
         case .strong:    return Color(light: 0x2563C9, dark: 0x6BA5FF)
-        case .possible:  return Color(light: 0x6E7A88, dark: 0x7C8A99)   // slate — distinct from evidence(.exploratory)
+        case .possible:  return Color(light: 0x646F7D, dark: 0x7C8A99)   // slate — distinct from evidence(.exploratory)
         }
     }
 
@@ -73,6 +75,32 @@ enum Palette {
     // ~4.9:1 on `canvas` because it's used as *text* (errors, overdue, "0 left").
     static let warning = Color(light: 0x8A6300, dark: 0xE6B450)
     static let danger = Color(light: 0xC23B3B, dark: 0xFF6B6B)
+
+    // MARK: - Brand gradients
+
+    /// The signature diagonal — teal into deep teal. Used sparingly on brand
+    /// moments (primary button, the Home masthead rule, tier(.excellent) fills).
+    static var accentGradient: LinearGradient {
+        LinearGradient(
+            colors: [Color(light: 0x12A08F, dark: 0x38DDC7), Color(light: 0x0B7A6C, dark: 0x1FB7A2)],
+            startPoint: .topLeading, endPoint: .bottomTrailing
+        )
+    }
+
+    /// A barely-there tint wash for large background areas behind display type.
+    /// ~6–10% so it reads as warmth, never as a coloured panel.
+    static var brandWash: LinearGradient {
+        LinearGradient(
+            colors: [accentSoft.opacity(0.9), canvas.opacity(0.0)],
+            startPoint: .top, endPoint: .bottom
+        )
+    }
+
+    // MARK: - Elevation
+
+    /// Card shadow. Light mode only — a shadow is invisible on a dark canvas, so
+    /// dark elevation is carried by `surfaceRaised` + the hairline instead.
+    static let cardShadow = Color(light: 0x0B1B2E, dark: 0x000000)
 }
 
 enum Metrics {

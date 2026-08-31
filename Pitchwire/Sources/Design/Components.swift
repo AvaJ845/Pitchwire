@@ -3,19 +3,34 @@ import SwiftUI
 // MARK: - Card
 
 /// The one card surface used across the app: rounded, hairline-bordered,
-/// adaptive fill. Replaces ad-hoc `GroupBox` / `RoundedRectangle` styling.
+/// adaptive fill, with a soft lift in light mode. Replaces ad-hoc `GroupBox` /
+/// `RoundedRectangle` styling.
 struct Card<Content: View>: View {
     var padding: CGFloat = 16
+    /// Set false for cards that sit inside another card or a coloured panel,
+    /// where a shadow would look muddy.
+    var elevated = true
     @ViewBuilder var content: Content
+
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.surface, in: RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous))
+            .background(
+                (scheme == .dark ? Palette.surfaceRaised : Palette.surface),
+                in: RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
                     .strokeBorder(Palette.hairline, lineWidth: 1)
+            )
+            // A shadow reads as depth on a light canvas and as nothing on a dark
+            // one — so dark mode leans on the raised surface + hairline instead.
+            .shadow(
+                color: (elevated && scheme != .dark) ? Palette.cardShadow.opacity(0.06) : .clear,
+                radius: 10, x: 0, y: 3
             )
     }
 }
@@ -70,16 +85,20 @@ struct Monogram: View {
 
     var body: some View {
         Text(initials)
-            .font(.system(size: size * 0.38, weight: .semibold, design: .rounded))
+            .font(.system(size: size * 0.38, weight: .semibold, design: .serif))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             .background(
                 LinearGradient(
-                    colors: [tint, tint.opacity(0.78)],
+                    colors: [tint.opacity(0.92), tint, tint.opacity(0.72)],
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 ),
                 in: Circle()
             )
+            .overlay(
+                Circle().strokeBorder(.white.opacity(0.16), lineWidth: 0.5)
+            )
+            .shadow(color: tint.opacity(0.28), radius: 3, x: 0, y: 1)
             .accessibilityHidden(true)
     }
 }
@@ -273,8 +292,16 @@ struct PitchwireButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var fill: Color {
-        prominent ? Palette.accent.opacity(isEnabled ? 1 : 0.4) : Palette.accentSoft
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous)
+    }
+
+    @ViewBuilder private var background: some View {
+        if prominent {
+            Palette.accentGradient.clipShape(shape)
+        } else {
+            Palette.accentSoft.clipShape(shape)
+        }
     }
 
     func makeBody(configuration: Configuration) -> some View {
@@ -283,7 +310,9 @@ struct PitchwireButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 15)
             .foregroundStyle(prominent ? Palette.onAccent : Palette.accent)
-            .background(fill, in: RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous))
+            .background(background)
+            .shadow(color: (prominent && isEnabled) ? Palette.accent.opacity(0.25) : .clear,
+                    radius: 8, x: 0, y: 3)
             .opacity(isEnabled ? (configuration.isPressed ? 0.85 : 1) : 0.55)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.99 : 1)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)

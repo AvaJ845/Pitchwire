@@ -97,7 +97,7 @@ struct OnboardingView: View {
                     .accessibilityHidden(true)
                 VStack(spacing: 14) {
                     Text(item.title)
-                        .font(.title.weight(.bold))
+                        .font(.system(.title, design: .serif).weight(.bold))
                         .foregroundStyle(Palette.ink)
                         .multilineTextAlignment(.center)
                     Text(item.body)
