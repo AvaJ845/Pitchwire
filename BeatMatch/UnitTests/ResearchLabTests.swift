@@ -134,4 +134,49 @@ final class ResearchLabTests: XCTestCase {
         MatchRunner.populateTargets(for: campaign, context: ctx)
         XCTAssertEqual(try ctx.fetchCount(FetchDescriptor<JournalistProfile>()), dirCount)
     }
+
+    /// The detail view reads `MediaTarget.relevance`, not a recompute. That
+    /// stored breakdown must be present and must be the one the score/tier came
+    /// from — otherwise "How we scored this" shows numbers that don't add up to
+    /// the ranking.
+    func testMatchRunnerPersistsTheBreakdownBehindEachScore() throws {
+        let ctx = try context()
+        JournalistDirectory.ensureSeeded(ctx)
+
+        let story = Story(rawText: "Shipping end-to-end encrypted group calling with a third-party audit.")
+        story.apply(StoryAnalysisResult(theme: "Privacy", vertical: "consumer", region: "US",
+                                        angle: "product launch", urgency: "standard", summary: "",
+                                        audience: "Consumers",
+                                        subtopics: ["privacy", "encryption", "security"], mediaHooks: []))
+        let campaign = Campaign(name: "C", story: story)
+        ctx.insert(campaign); ctx.insert(story)
+        MatchRunner.populateTargets(for: campaign, context: ctx)
+
+        let targets = campaign.mediaTargets
+        XCTAssertFalse(targets.isEmpty)
+        for t in targets {
+            let breakdown = try XCTUnwrap(t.relevance, "\(t.journalist?.name ?? "?") has no stored breakdown")
+            // The persisted breakdown reproduces the score and tier exactly.
+            XCTAssertEqual(breakdown.total, t.confidenceScore, accuracy: 0.0001,
+                           "stored signals don't reproduce the ranking score")
+            XCTAssertEqual(breakdown.tier, t.confidenceTier)
+            XCTAssertEqual(breakdown.signals.map(\.weight).reduce(0, +), 1.0, accuracy: 0.001)
+        }
+    }
+
+    func testRelevanceResultSurvivesACodableRoundTrip() throws {
+        let a = StoryAnalysisResult(theme: "AI", vertical: "ai", region: "US", angle: "funding",
+                                    urgency: "standard", summary: "", audience: "Developers",
+                                    subtopics: ["ai", "llm"], mediaHooks: [])
+        let j = JournalistProfile(name: "J", beatTopics: ["ai", "llm"], outlet: Outlet(name: "O"))
+        let original = RelevanceEngine.score(analysis: a, journalist: j, similarity: 0.62)
+
+        let data = try JSONEncoder().encode(original)
+        let restored = try JSONDecoder().decode(RelevanceResult.self, from: data)
+
+        XCTAssertEqual(restored.total, original.total, accuracy: 0.0001)
+        XCTAssertEqual(restored.tier, original.tier)
+        XCTAssertEqual(restored.signals.map(\.name), original.signals.map(\.name))
+        XCTAssertEqual(restored.signals.map(\.score), original.signals.map(\.score))
+    }
 }

@@ -3,7 +3,11 @@ import Foundation
 /// One weighted factor in an editorial-relevance score. Deterministic and
 /// inspectable — every number here can be shown to the user and traced to
 /// structured editorial data.
-struct RelevanceSignal: Identifiable {
+///
+/// `Codable` so the whole `RelevanceResult` can be persisted on `MediaTarget` —
+/// the detail view then shows the exact breakdown that produced the ranking
+/// (similarity term included), never a recompute that drops it.
+struct RelevanceSignal: Identifiable, Codable {
     let id = UUID()
     let name: String
     let score: Double        // 0...1
@@ -11,9 +15,12 @@ struct RelevanceSignal: Identifiable {
     let note: String?         // human fragment for the "why", nil if it didn't contribute
 
     var contribution: Double { score * weight }
+
+    // `id` is a fresh identifier for SwiftUI diffing only — never encoded.
+    private enum CodingKeys: String, CodingKey { case name, score, weight, note }
 }
 
-struct RelevanceResult {
+struct RelevanceResult: Codable {
     let signals: [RelevanceSignal]
 
     /// 0...1 — weighted average of the signals that had any weight.

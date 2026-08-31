@@ -49,6 +49,7 @@ enum MatchRunner {
             let target = MediaTarget(
                 confidenceTier: candidate.confidenceTier,
                 confidenceScore: candidate.confidenceScore,
+                relevance: candidate.relevance,     // the breakdown behind the score/tier
                 journalist: candidate.journalist,   // an existing directory record
                 explanation: candidate.explanation
             )

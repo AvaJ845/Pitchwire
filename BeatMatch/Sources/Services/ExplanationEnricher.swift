@@ -49,8 +49,11 @@ enum ExplanationEnricher {
         else { return false }
 
         // Read every SwiftData field HERE, on the main actor, into a plain
-        // request value. Nothing @Model crosses the `await`.
-        let drivers = RelevanceEngine.score(analysis: analysis, journalist: journalist).drivers.map(\.name)
+        // request value. Nothing @Model crosses the `await`. Prefer the stored
+        // breakdown (similarity included) over a recompute.
+        let drivers = (target.relevance?.drivers
+                       ?? RelevanceEngine.score(analysis: analysis, journalist: journalist).drivers)
+            .map(\.name)
         let request = makeRequest(analysis: analysis, journalist: journalist,
                                   tier: target.confidenceTier, drivers: drivers)
 

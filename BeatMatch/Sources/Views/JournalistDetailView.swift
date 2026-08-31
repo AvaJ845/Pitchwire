@@ -17,7 +17,12 @@ struct JournalistDetailView: View {
 
     private var journalist: JournalistProfile? { target.journalist }
 
+    /// The breakdown that actually produced this match's score and tier —
+    /// persisted at match time with the on-device similarity term included.
+    /// The fallback recompute (no similarity) is only for matches saved before
+    /// `MediaTarget.relevance` existed.
     private var relevance: RelevanceResult? {
+        if let stored = target.relevance { return stored }
         guard let journalist, let story = campaign.story else { return nil }
         return RelevanceEngine.score(analysis: story.analysisResult, journalist: journalist)
     }
@@ -161,6 +166,13 @@ struct JournalistDetailView: View {
 
                 ScoreBar(value: result.total)
 
+                // The one line that keeps the score honest — always visible,
+                // never behind the disclosure toggle.
+                Text(result.relevanceDisclaimer)
+                    .font(.caption)
+                    .foregroundStyle(Palette.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 if showScore {
                     VStack(spacing: 8) {
                         ForEach(result.signals.sorted { $0.contribution > $1.contribution }) { s in
@@ -168,12 +180,10 @@ struct JournalistDetailView: View {
                         }
                     }
                     .padding(.top, 2)
-                    Text(result.relevanceDisclaimer)
+                    Text("A fixed weighted formula over structured beat, coverage and preference data, "
+                         + "plus on-device semantic similarity. Deterministic — the language model never scores.")
                         .font(.caption2)
-                        .foregroundStyle(Palette.inkTertiary)
-                    Text("A weighted read of structured beat, coverage and preference data — no AI, no guesswork.")
-                        .font(.caption2)
-                        .foregroundStyle(Palette.inkTertiary)
+                        .foregroundStyle(Palette.inkSecondary)
                 }
             }
         }

@@ -29,14 +29,24 @@ final class MediaTarget {
     var status: MediaTargetStatus
     var createdAt: Date
 
+    /// The exact weighted-signal breakdown this score and tier came from — the
+    /// on-device semantic-similarity term included. Persisted at match time so
+    /// the "How we scored this" panel shows what actually drove the ranking,
+    /// never a recompute that omits similarity. `nil` only for matches saved
+    /// before this was stored.
+    var relevance: RelevanceResult?
+
     var journalist: JournalistProfile?
     var explanation: MatchExplanation?
     var campaign: Campaign?
 
-    init(confidenceTier: ConfidenceTier, confidenceScore: Double, journalist: JournalistProfile?, explanation: MatchExplanation?) {
+    init(confidenceTier: ConfidenceTier, confidenceScore: Double,
+         relevance: RelevanceResult? = nil,
+         journalist: JournalistProfile?, explanation: MatchExplanation?) {
         self.id = UUID()
         self.confidenceTier = confidenceTier
         self.confidenceScore = confidenceScore
+        self.relevance = relevance
         self.status = .suggested
         self.createdAt = Date()
         self.journalist = journalist

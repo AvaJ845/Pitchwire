@@ -193,8 +193,11 @@ a weight and a human fragment:
 | Evidence & verification | 6% | freshness + verified state; unverified never elevates |
 
 `WeightedRelevanceService` applies it over the pool; the "why this match" prose is built
-from the signals that actually drove the score. Journalist detail has a **"How we scored
-this"** breakdown (score bar + per-signal bars). Ranking is deterministic.
+from the signals that actually drove the score. The full `RelevanceResult` is **persisted on
+`MediaTarget`** at match time (`Codable`), so journalist detail's **"How we scored this"**
+breakdown (score bar + per-signal bars) shows the exact signals behind the ranking — the
+on-device similarity term included — never a recompute that would drop it. Ranking is
+deterministic.
 
 **Semantic matching (`EmbeddingService`).** The story and each journalist's beat + real
 article titles are embedded **on-device** with a bundled **all-MiniLM-L6-v2** sentence
@@ -211,7 +214,8 @@ so it can only *lift* an under-tagged profile, never drag an exact beat match do
 either swap (a Worker `/v1/embed`, a newer model) a one-file change.
 
 **The score is editorial relevance — never a probability of a reply or of coverage.**
-`RelevanceResult.relevanceDisclaimer` carries that line; it is shown on the score card.
+`RelevanceResult.relevanceDisclaimer` carries that line; it sits directly under the score bar,
+**always visible** — not behind the "How we scored this" disclosure.
 An **"Excellent"** tier now requires *repeated* on-topic coverage — one headline is at most
 "Strong". `docs/EVAL.md` + `EditorialRelevanceEvalTests` are the living quality benchmark.
 

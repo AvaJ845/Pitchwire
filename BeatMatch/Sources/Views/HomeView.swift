@@ -60,10 +60,13 @@ struct HomeView: View {
 
                     AllowanceFooter(key: .storyAnalysis)
 
-                    Label("Matches use sample journalists for now — real ingestion is coming.", systemImage: "flask")
+                    Label("Our directory covers AI & developer tools, privacy & security, "
+                          + "fintech, and consumer apps. Stories outside those areas may not match well yet.",
+                          systemImage: "text.magnifyingglass")
                         .font(.caption)
-                        .foregroundStyle(Palette.inkTertiary)
-                        .frame(maxWidth: .infinity)
+                        .foregroundStyle(Palette.inkSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     if !dueFollowUps.isEmpty {
                         dueSection

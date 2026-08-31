@@ -38,10 +38,12 @@ enum Palette {
     static let surfaceRaised = Color(light: 0xFFFFFF, dark: 0x1E252E)
     static let hairline = Color(light: 0xE7E9EE, dark: 0x2A313B)
 
-    // Text
+    // Text. inkTertiary is still the lightest of the three but now clears WCAG
+    // AA (~4.7:1 on `canvas`) — it carries load-bearing copy (allowance counts,
+    // verification dates), so it can't be decorative-grey.
     static let ink = Color(light: 0x0B1B2E, dark: 0xF2F5F8)
-    static let inkSecondary = Color(light: 0x5B6672, dark: 0x9AA6B2)
-    static let inkTertiary = Color(light: 0x8B95A1, dark: 0x6C7784)
+    static let inkSecondary = Color(light: 0x53606D, dark: 0x9AA6B2)
+    static let inkTertiary = Color(light: 0x676D79, dark: 0x7E8894)
 
     // Confidence tiers (match strength) — teal → blue → slate.
     static func tier(_ tier: ConfidenceTier) -> Color {
