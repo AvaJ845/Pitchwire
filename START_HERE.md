@@ -16,10 +16,15 @@ on the iPhone 17 Pro simulator (Xcode 26). No manual Xcode wizard step is needed
 
 ## Open it
 
+The bundled MiniLM model (`Pitchwire/Resources/MiniLM.mlpackage`, ~16 MB) is stored in
+**Git LFS**. Run `git lfs install` once, then `git lfs pull` if a clone left you with a
+133-byte pointer file instead of the real weights (the build fails loudly if so).
+
 `Pitchwire.xcodeproj/` is **git-ignored** — it's generated from `project.yml` by
 [XcodeGen](https://github.com/yonyz/XcodeGen). On a fresh clone you must generate it first:
 
 ```
+git lfs install && git lfs pull       # once, for the bundled model
 brew install xcodegen                 # if you don't have it (or ~/bin/xcodegen)
 cd "~/Documents/AI Press Agent/Pitchwire"
 xcodegen generate
