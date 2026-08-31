@@ -1,5 +1,9 @@
 # Pitchwire — Slice 0 is built, running, and verified.
 
+[![CI](https://github.com/AvaJ845/Pitchwire/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/AvaJ845/Pitchwire/actions/workflows/ci.yml)
+— `.github/workflows/ci.yml` runs the unit **and** UI suites on every push
+(UI tests use the `-uitest-mock-ai` gateway, so nothing hits the live backend).
+
 **Brand: Pitchwire** (bundle `com.avaresearch.pitchwire`). "BeatMatch" is now an
 internal codename only — it lost a live App Store collision check (an incorporated
 "Beatmatch, Inc." holds the exact name, plus DJ-term dilution and a clash with our
