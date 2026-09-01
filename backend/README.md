@@ -19,7 +19,13 @@ Providers are prefixed in the model id: `openrouter:z-ai/glm-5.2:free`,
 
 - Provider keys live in Worker secrets, never in the app.
 - Identical requests are cached 6h (Cache API).
-- Per-IP rate limit (default 20/min) as light abuse protection.
+- Per-IP rate limit (default 20/min) as light abuse protection. **Caveat:** the
+  CF Cache API is per-colo, not global, and the check is best-effort — it slows a
+  single abuser, it does not hard-cap spend. The real backstops are the provider
+  free-tier daily caps and `PAID_FALLBACK_ENABLED=0`. Move to a Durable Object /
+  KV counter before opening this up to real volume.
+- Bearer-token check is a constant-time digest compare; request bodies are capped
+  at 64 KB; the failed-provider response no longer echoes upstream error bodies.
 - Task → model map + system prompts live in `src/worker.js` — change routing
   there, nothing in the app moves. `fast` tasks lead with gpt-oss-20b,
   `quality` tasks with gpt-oss-120b.
@@ -80,7 +86,9 @@ operator** — the app already promises that window in its UI.
 ### Debug
 
 `POST /v1/generate?only=nvidia:openai/gpt-oss-20b` forces one provider and skips
-the cache — for checking whether a model is actually reachable.
+the cache — for checking whether a model is actually reachable. `only` must be a
+model that already appears in `TASK_MODELS`; anything else (including the paid
+`OR_PAID`) is rejected, so a leaked client token can't force paid spend.
 
 ## Deploy A — Cloudflare dashboard (no local install)
 

@@ -77,6 +77,16 @@ const MAX_TOKENS = {
   verificationBrief: 320,
 };
 
+// Every model id the app can legitimately reach. `?only=` is validated against
+// this so a leaked client token can't force an off-list model — in particular
+// OR_PAID, which is never in TASK_MODELS and so is only ever appended server-side
+// when PAID_FALLBACK_ENABLED is set.
+const ALLOWED_MODELS = new Set(Object.values(TASK_MODELS).flat());
+
+// Cap the request body. The app sends a ~4k-char story; anything near this is
+// abuse (output is separately capped by MAX_TOKENS).
+const MAX_BODY_BYTES = 64 * 1024;
+
 // Give up on an upstream model after this and fail over to the next in the chain,
 // so one slow provider can't blow the whole request. The app's own timeout is
 // 25s, so keep this low enough that at least two models get a turn.
@@ -124,8 +134,9 @@ export default {
     const url = new URL(request.url);
 
     // Auth — a scoped, rotatable client token (NOT a provider key).
+    // Constant-time compare of SHA-256 digests so the check can't be timed.
     const auth = request.headers.get("Authorization") || "";
-    if (auth !== `Bearer ${env.PITCHWIRE_CLIENT_TOKEN}`) {
+    if (!(await tokenValid(auth, env.PITCHWIRE_CLIENT_TOKEN))) {
       return json({ error: "unauthorized" }, 401);
     }
 
@@ -138,7 +149,10 @@ export default {
     // A monitored inbox + 48h SLA is the operator's responsibility.
     if (url.pathname === "/v1/removal-request") {
       let r;
-      try { r = await request.json(); } catch { return json({ error: "bad json" }, 400); }
+      try { r = await readJson(request); } catch (e) {
+        return json({ error: e.message === "too large" ? "payload too large" : "bad json" },
+                    e.message === "too large" ? 413 : 400);
+      }
       const record = {
         kind: "removal-request",
         journalist: String(r.journalistName || "").slice(0, 200),
@@ -162,13 +176,18 @@ export default {
     if (url.pathname !== "/v1/generate") return json({ error: "not found" }, 404);
 
     let body;
-    try { body = await request.json(); } catch { return json({ error: "bad json" }, 400); }
+    try { body = await readJson(request); } catch (e) {
+      return json({ error: e.message === "too large" ? "payload too large" : "bad json" },
+                  e.message === "too large" ? 413 : 400);
+    }
     const { task, tier, input = {}, prompt = "" } = body;
     if (!TASK_MODELS[task]) return json({ error: `unknown task ${task}` }, 400);
 
     // ?only=<model> forces a single provider — for verifying a model works.
-    // Authed by the same client token; not cached.
+    // Must be a model the app can already reach: this stops a leaked token from
+    // forcing an off-list (e.g. paid) model.
     const only = url.searchParams.get("only");
+    if (only && !ALLOWED_MODELS.has(only)) return json({ error: "model not allowed" }, 400);
     const paidFallback = env.PAID_FALLBACK_ENABLED === "1" || env.PAID_FALLBACK_ENABLED === "true";
     const chain = only
       ? [only]
@@ -209,9 +228,31 @@ export default {
         if (e.status === 401 || e.status === 403) break;
       }
     }
-    return json({ error: "all providers failed", detail: errs }, 502);
+    // Full per-provider detail is in the logs (`wrangler tail`); don't echo raw
+    // upstream error bodies back to the caller.
+    console.log("all providers failed:", JSON.stringify(errs));
+    return json({ error: "all providers failed", tried: chain.length }, 502);
   },
 };
+
+/// Read + size-guard + parse a JSON body. Throws Error("too large") or Error("bad json").
+async function readJson(request) {
+  const raw = await request.text();
+  if (raw.length > MAX_BODY_BYTES) throw new Error("too large");
+  try { return JSON.parse(raw); } catch { throw new Error("bad json"); }
+}
+
+/// Constant-time bearer-token check: compare SHA-256 hex digests so a wrong
+/// token can't be recovered by timing the response.
+async function tokenValid(header, expected) {
+  const prefix = "Bearer ";
+  if (!expected || !header.startsWith(prefix)) return false;
+  const a = await hash(header.slice(prefix.length));
+  const b = await hash(expected);
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 async function callModel(model, messages, temperature, maxTokens, env) {
   let baseURL, apiKey, realModel;
