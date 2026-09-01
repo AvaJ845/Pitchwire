@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pitchwire — an AI press agent in your pocket</title>
+<meta name="description" content="Paste your launch story. Pitchwire tells you which journalists cover it, why their published work makes them relevant, and drafts a pitch you can send. Editorial-relevance research — not a contact database.">
+<meta property="og:title" content="Pitchwire — an AI press agent in your pocket">
+<meta property="og:description" content="Editorial-relevance research for technical founders doing their own launch PR. Every match explained and traceable to real editorial evidence. No personal contact data, ever.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --navy:#0B1B2E; --teal:#0C8072; --teal-bright:#12A08F;
+    --canvas:#F4F5F7; --surface:#ffffff; --hairline:#E7E9EE;
+    --ink:#0B1B2E; --ink-2:#53606D; --ink-3:#676D79;
+    --wash:linear-gradient(180deg, rgba(12,128,114,.10), rgba(12,128,114,0) 60%);
+    --card-shadow:0 3px 14px rgba(11,27,46,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --canvas:#0C1116; --surface:#171C23; --hairline:#2A313B;
+      --ink:#F2F5F8; --ink-2:#9AA6B2; --ink-3:#7E8894;
+      --wash:linear-gradient(180deg, rgba(44,211,190,.10), rgba(44,211,190,0) 60%);
+      --card-shadow:none;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--canvas); color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .serif{font-family:"New York",ui-serif,Georgia,"Times New Roman",serif}
+  a{color:var(--teal)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  header{padding:22px 0;border-bottom:1px solid var(--hairline)}
+  header .wrap{display:flex;align-items:baseline;gap:12px}
+  .mark{font-family:"New York",ui-serif,Georgia,serif;font-weight:700;font-size:22px;letter-spacing:.2px}
+  .mark-sub{color:var(--ink-3);font-size:13px}
+
+  .hero{background:var(--wash);padding:72px 0 40px}
+  .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+  h1{font-family:"New York",ui-serif,Georgia,serif;font-weight:700;font-size:clamp(34px,5vw,52px);line-height:1.08;margin:0 0 18px}
+  .lede{font-size:19px;color:var(--ink-2);margin:0 0 22px;max-width:34ch}
+  .meta{font-size:13px;color:var(--ink-3);letter-spacing:.2px}
+  .cta{display:inline-flex;gap:10px;align-items:center;margin:22px 0 0;padding:13px 20px;border-radius:12px;
+       background:linear-gradient(135deg,var(--teal-bright),var(--teal));color:#fff;font-weight:600;text-decoration:none;
+       box-shadow:0 8px 20px rgba(12,128,114,.28)}
+
+  .phone{border:1px solid var(--hairline);border-radius:38px;overflow:hidden;box-shadow:0 24px 60px rgba(11,27,46,.18);background:var(--surface)}
+  .phone img{display:block;width:100%;height:auto}
+  .phone-sm{max-width:260px}
+
+  section{padding:64px 0}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px}
+  h2{font-family:"New York",ui-serif,Georgia,serif;font-weight:700;font-size:clamp(26px,3.4vw,36px);margin:0 0 14px;line-height:1.15}
+  .sub{color:var(--ink-2);max-width:60ch;margin:0 0 34px}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .grid1{display:grid;gap:16px}
+  .split{display:grid;grid-template-columns:1fr 260px;gap:44px;align-items:center}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:22px;box-shadow:var(--card-shadow)}
+  .card h3{margin:0 0 8px;font-size:17px}
+  .card p{margin:0;color:var(--ink-2);font-size:15px}
+
+  .steps{display:flex;flex-direction:column;gap:56px;margin-top:20px}
+  .step{display:grid;grid-template-columns:280px 1fr;gap:44px;align-items:center}
+  .step:nth-child(even){grid-template-columns:1fr 280px}
+  .step:nth-child(even) .copy{order:2}
+  .step .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--teal);color:#fff;font-weight:700;font-size:14px;margin-bottom:12px}
+  .step h3{font-family:"New York",ui-serif,Georgia,serif;font-size:22px;margin:0 0 8px}
+  .step p{color:var(--ink-2);margin:0;max-width:44ch}
+
+  .band{background:var(--navy);color:#EAF1F0}
+  .band .kicker{color:rgba(234,241,240,.6)}
+  .band h2{color:#fff}
+  .band .sub{color:rgba(234,241,240,.75)}
+  .band a{color:var(--teal-bright)}
+  .band .card{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);box-shadow:none}
+  .band .card p{color:rgba(234,241,240,.75)}
+
+  .verticals{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:640px;margin-top:8px}
+  .vrow{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--hairline);border-radius:12px;background:var(--surface);font-size:14px}
+  .vrow b{font-weight:600}
+  .vrow.core{border-color:var(--teal)}
+  .tag{font-size:12px;color:var(--teal);font-weight:600}
+
+  footer{padding:44px 0;border-top:1px solid var(--hairline);color:var(--ink-3);font-size:13px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+  footer p{margin:0;max-width:52ch}
+
+  @media (max-width:860px){
+    .hero .wrap{grid-template-columns:1fr;gap:32px}
+    .hero .shot{max-width:280px;margin:0 auto}
+    .grid3{grid-template-columns:1fr}
+    .split{grid-template-columns:1fr}
+    .split .shot{max-width:260px;margin:0 auto}
+    .step,.step:nth-child(even){grid-template-columns:1fr}
+    .step .shot{max-width:260px;margin:0 auto}
+    .step:nth-child(even) .copy{order:0}
+    .verticals{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <span class="mark">Pitchwire</span>
+  <span class="mark-sub">an AI press agent in your pocket</span>
+</div></header>
+
+<div class="hero"><div class="wrap">
+  <div>
+    <h1>Who covers your story &mdash; and&nbsp;why.</h1>
+    <p class="lede">Paste a launch story. Pitchwire tells you which journalists cover the space,
+      shows the published work that makes them relevant, and drafts a pitch you can actually send.</p>
+    <p class="meta">iPhone &amp; iPad &middot; iOS&nbsp;17+ &middot; Story analysed on-device &middot; No account</p>
+  </div>
+  <div class="shot phone phone-sm">
+    <img src="screenshots/01-home-intake.png" width="1206" height="2622"
+         alt="Pitchwire's home screen: a large ‘What's your story?’ prompt above a text box to paste a launch story.">
+  </div>
+</div></div>
+
+<section><div class="wrap">
+  <p class="kicker">What it is &mdash; and isn't</p>
+  <h2 class="serif">Editorial-relevance research, not a contact database.</h2>
+  <p class="sub">The intelligence is the product: <em>who is relevant to this story, and why, traceable to
+    real editorial evidence.</em> Personal contact data is never modelled, collected, or inferred.</p>
+  <div class="split">
+    <div class="grid1">
+      <div class="card">
+        <h3>Research, not a mailing&nbsp;list</h3>
+        <p>No emails, phone numbers, or social handles &mdash; ever. No &ldquo;send to 500 journalists&rdquo; button.
+          The score is editorial relevance, never a prediction that someone will reply.</p>
+      </div>
+      <div class="card">
+        <h3>Every match, explained</h3>
+        <p>Who they are, where they publish, what they cover, and the dated articles that prove it.
+          Tap any piece of evidence through to the source and check it yourself.</p>
+      </div>
+      <div class="card">
+        <h3>The model never scores</h3>
+        <p>Relevance is a fixed, inspectable formula over structured editorial data plus on-device
+          semantic similarity. The language model only ever drafts words.</p>
+      </div>
+    </div>
+    <div class="shot phone phone-sm">
+      <img src="screenshots/04-journalist-detail.png" width="1206" height="2622"
+        alt="A match detail in Pitchwire: the reason, a 96 / 100 relevance score, and a ‘the model never scores’ note.">
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <p class="kicker">How it works</p>
+  <h2 class="serif">Story in, a plan you can act&nbsp;on out.</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="shot phone"><img src="screenshots/02-story-summary.png" width="1206" height="2622"
+        alt="Pitchwire's read of a pasted story: theme, audience, angle, timing, and editable topics."></div>
+      <div class="copy">
+        <span class="n">1</span>
+        <h3>Paste it, check the read</h3>
+        <p>A press release, a blog post, a paragraph of notes. Pitchwire shows what it understood &mdash;
+          theme, angle, audience, timing, topics &mdash; and lets you correct any of it before matching.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="copy">
+        <span class="n">2</span>
+        <h3>See who's relevant, in tiers</h3>
+        <p>Matches are grouped Excellent / Strong / Possible, each with a one-line reason grounded only
+          in that journalist's beat and published coverage. An honesty banner tells you whether the
+          profiles are verified, candidate, or demo.</p>
+      </div>
+      <div class="shot phone"><img src="screenshots/03-match-list.png" width="1206" height="2622"
+        alt="A tiered match list in Pitchwire with a reason under each journalist."></div>
+    </div>
+
+    <div class="step">
+      <div class="shot phone"><img src="screenshots/05-pitch-draft.png" width="1206" height="2622"
+        alt="A grounded first-draft pitch in Pitchwire, editable, with a short and long version."></div>
+      <div class="copy">
+        <span class="n">3</span>
+        <h3>Draft the pitch</h3>
+        <p>A grounded first draft &mdash; short and long versions &mdash; built from your story and the
+          specific overlap with that journalist's work. Edit it, copy it, send it from your own mail app.
+          There is no send button here on purpose.</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <p class="kicker">After you send</p>
+  <h2 class="serif">Campaign memory, so it doesn't go&nbsp;quiet.</h2>
+  <p class="sub">Mark a pitch as sent and Pitchwire offers a follow-up reminder. Every campaign keeps its
+    story, its matches, its drafts, and what you still owe &mdash; on your device.</p>
+  <div class="shot phone phone-sm"><img src="screenshots/08-follow-ups.png" width="1206" height="2622"
+    alt="Follow-up reminders for a campaign in Pitchwire."></div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <p class="kicker">Yours, on your device</p>
+  <h2 class="serif">No account. Nothing to lose.</h2>
+  <p class="sub">Your unpublished story is analysed on your phone. Everything &mdash; campaigns, matches,
+    drafts, follow-ups &mdash; is stored locally, and you can export a portable JSON of all of it any time.
+    AI drafting runs through a provider-independent gateway; no AI keys live in the app.</p>
+  <div class="grid3">
+    <div class="card"><h3>On-device analysis</h3><p>The story-understanding step runs locally. It leaves your phone only if you send a pitch.</p></div>
+    <div class="card"><h3>Local storage</h3><p>SwiftData on the device. No sync, no server copy, no sign-up.</p></div>
+    <div class="card"><h3>Export anytime</h3><p>One tap gives you a JSON of every campaign, match, draft, and follow-up.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <p class="kicker">Who it's for</p>
+  <h2 class="serif">Technical founders doing their own launch&nbsp;PR.</h2>
+  <p class="sub">The directory is niche-deep, not broad-shallow &mdash; density of relevance beats breadth.
+    Deepest in AI &amp; developer tools and privacy &amp; security; lighter, and honestly labelled so, elsewhere.</p>
+  <div class="verticals">
+    <div class="vrow core"><b>AI &amp; developer tools</b><span class="tag">core &mdash; growing</span></div>
+    <div class="vrow core"><b>Privacy &amp; security</b><span class="tag">core &mdash; growing</span></div>
+    <div class="vrow"><b>Indie iOS / consumer apps</b><span>supported</span></div>
+    <div class="vrow"><b>Fintech / personal finance</b><span>supported</span></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p><b>Pitchwire</b> is an independent project. It is not affiliated with, endorsed by, or partnered with
+    any publication or journalist. Screenshots use demo data.</p>
+  <p>The intelligence is the product; personal contact data is not.<br>
+    <a href="https://github.com/AvaJ845/Pitchwire">Source on GitHub</a></p>
+</div></footer>
+
+</body>
+</html>
