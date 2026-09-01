@@ -44,13 +44,18 @@ tools** and **privacy & security** toward 15–20 verified each. Fintech and ind
 iOS are "supported, stable" at ~5 — only add one there if you happen on an obvious
 fit. Don't start a new vertical without a decision.
 
-### 2. Export + commit
+### 2. Export + save locally
 
 When a batch is done: **Research Lab → Export → Export directory as
 editorial_seed.json**. It writes the file and copies the JSON to the clipboard.
-Replace `Pitchwire/Resources/editorial_seed.json` in the repo and commit — that
-makes your work the shipped default. (Without this step, verification lives only
-on your device.)
+Save it to `Pitchwire/Resources/editorial_seed.json` — your local build then
+bundles it.
+
+**Do not commit it.** The file is git-ignored on purpose: it is real people,
+real bylines, and your research notes, and the repo is public. It stays on the
+operator's machine and in the signed builds only; CI and fresh clones fall back
+to the fictional `SampleJournalists` pool. Schema template:
+`editorial_seed.example.json` (committed). Back the real file up outside the repo.
 
 ### 3. Removal requests
 

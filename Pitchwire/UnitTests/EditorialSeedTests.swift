@@ -3,12 +3,21 @@ import XCTest
 
 /// Guards the shipped `editorial_seed.json`: human-verified, no contact data,
 /// every claim traceable to a source, a curated set — not a database.
+///
+/// The real seed is git-ignored (real people, real notes — not for a public
+/// repo), so these skip on CI / a fresh clone and run on the operator's machine
+/// where the file is present.
 final class EditorialSeedTests: XCTestCase {
 
+    private func seedURL() throws -> URL {
+        guard let url = Bundle.main.url(forResource: "editorial_seed", withExtension: "json") else {
+            throw XCTSkip("editorial_seed.json not bundled — falls back to the fictional pool")
+        }
+        return url
+    }
+
     private func loadFile() throws -> SeedFile {
-        let url = try XCTUnwrap(Bundle.main.url(forResource: "editorial_seed", withExtension: "json"),
-                                "editorial_seed.json must be bundled")
-        return try JSONDecoder().decode(SeedFile.self, from: Data(contentsOf: url))
+        try JSONDecoder().decode(SeedFile.self, from: Data(contentsOf: seedURL()))
     }
 
     func testSeedIsACuratedSet_notADatabase() throws {
@@ -45,8 +54,7 @@ final class EditorialSeedTests: XCTestCase {
 
     /// The JSON must carry no field that looks like personal contact data.
     func testRawJSONContainsNoContactData() throws {
-        let url = try XCTUnwrap(Bundle.main.url(forResource: "editorial_seed", withExtension: "json"))
-        let raw = try String(contentsOf: url, encoding: .utf8).lowercased()
+        let raw = try String(contentsOf: seedURL(), encoding: .utf8).lowercased()
         for banned in ["\"email\":", "\"phone\":", "\"phonenumber\":", "\"mobile\":", "\"cell\":",
                        "\"signal\":", "\"telegram\":", "\"whatsapp\":", "\"twitter\":", "\"x\":",
                        "\"linkedin\":", "\"instagram\":", "\"mastodon\":", "\"bluesky\":",
@@ -62,6 +70,7 @@ final class EditorialSeedTests: XCTestCase {
     }
 
     func testLoaderBuildsVerifiedProfiles() throws {
+        _ = try seedURL()   // skip when the real seed isn't bundled
         let profiles = try EditorialSeedLoader.load()
         XCTAssertGreaterThanOrEqual(profiles.count, 15)
         for j in profiles {

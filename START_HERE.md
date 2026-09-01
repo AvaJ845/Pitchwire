@@ -79,13 +79,15 @@ Pitchwire/
 ## What's real vs. placeholder
 - **Pitchwire is an editorial-relevance research assistant, not a contact database.** No personal
   contact data is modelled, collected, or inferred — full spec `docs/EDITORIAL_RESEARCH_ENGINE.md`.
-- **The match pool is a 21-record *human-verified* seed set** — `Resources/editorial_seed.json`,
-  21 editorial professionals across 4 verticals, 53 real dated articles. Compiled from public author
-  pages, then verified in the Research Lab (articles opened, beat checked against the live page);
-  every record carries `verificationDate` + `verifiedBy`. AI can discover/draft but **never
-  verifies**. 4 candidates were rejected. `EditorialSeedLoader` falls back to 15 fictional
-  `FICTIONAL_SAMPLE` demo profiles when no file is bundled. `EditorialSeedTests` + `SampleDataTests`
-  enforce the honesty (and that no contact field ever enters the schema).
+- **The match pool is a human-verified seed set** — `Resources/editorial_seed.json`, ~21 editorial
+  professionals across 4 verticals with real dated articles. Compiled from public author pages, then
+  verified in the Research Lab (articles opened, beat checked against the live page); every record
+  carries `verificationDate` + `verifiedBy`. AI can discover/draft but **never verifies**.
+  **The file is git-ignored** (real people + research notes, public repo) — it lives on the
+  operator's machine and in signed builds only; CI and fresh clones fall back to 15 fictional
+  `FICTIONAL_SAMPLE` demo profiles (`editorial_seed.example.json` shows the schema).
+  `EditorialSeedTests` (skips without the file) + `SampleDataTests` enforce the honesty rules —
+  and that no contact field ever enters the schema.
 - **Matching quality is the milestone, not headcount.** `docs/EVAL.md` + `EditorialRelevanceEvalTests`
   are the living benchmark — every top match cites a real recent article by title + date; the
   eval's per-vertical checks pass on the verified seed.

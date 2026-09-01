@@ -15,6 +15,13 @@ xcuserdata/
 
 # Real backend config — the scoped client token. Template is AIConfig.example.plist.
 Pitchwire/Config/AIConfig.plist
+
+# The verified journalist directory — real people, real bylines, the operator's
+# research notes. Not for a public repo. Kept locally, bundled into DJ's builds;
+# CI and clones fall back to the fictional SampleJournalists pool.
+# Template / schema: editorial_seed.example.json
+Pitchwire/Resources/editorial_seed.json
+
 backend/node_modules/
 backend/.wrangler/
 backend/.dev.vars

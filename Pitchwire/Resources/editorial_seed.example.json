@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-01-01",
+  "method": "TEMPLATE — fictional records showing the shape of editorial_seed.json. The real file (git-ignored) is built in the Research Lab after a human verifies each candidate against their author page. No contact data, ever. Article dates are as published, never guessed.",
+  "verticals": ["ai-dev-tools", "privacy-security", "fintech-personal-finance", "indie-ios-consumer"],
+  "profiles": [
+    {
+      "name": "Dana Whitfield",
+      "outlet": "The Interface",
+      "outletURL": "https://example.com",
+      "outletVerticals": ["ai", "developer tools"],
+      "role": "Senior writer — AI tooling and developer platforms",
+      "beatTopics": ["developer tools", "apis", "cli", "sdk", "ai"],
+      "audiences": ["Developers", "Founders & investors"],
+      "regions": ["US", "Global"],
+      "coveredAngles": ["product launch", "funding", "general news"],
+      "doNotPitch": ["consumer gadgets"],
+      "vertical": "ai-dev-tools",
+      "provenance": "PUBLIC_EDITORIAL_SIGNAL",
+      "sourceURL": "https://example.com/author/dana-whitfield",
+      "evidenceSummary": "Author page compiled from public bylines. Covers developer platforms, API design and the AI tooling market; two on-topic pieces in the last month.",
+      "confidence": "high",
+      "verificationDate": "2026-01-01",
+      "verifiedBy": "XX",
+      "publishedPitchPreference": null,
+      "articles": [
+        {
+          "title": "The new shape of developer-first launches",
+          "url": "https://example.com/dev-first-launches",
+          "publishedAt": "2025-12-20",
+          "topics": ["developer tools", "product launch"]
+        },
+        {
+          "title": "Why every AI startup is shipping an SDK",
+          "url": "https://example.com/ai-startup-sdks",
+          "publishedAt": "2025-12-04",
+          "topics": ["ai", "sdk"]
+        }
+      ]
+    }
+  ]
+}
