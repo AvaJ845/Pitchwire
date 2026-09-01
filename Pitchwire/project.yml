@@ -77,6 +77,9 @@ targets:
         INFOPLIST_FILE: ShareExtension/Info.plist
         CODE_SIGN_ENTITLEMENTS: ShareExtension/PitchwireShareExtension.entitlements
         SKIP_INSTALL: YES
+        # Must track the host app exactly or App Store Connect rejects the upload.
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
 
   PitchwireUITests:
     type: bundle.ui-testing
