@@ -34,6 +34,8 @@ targets:
       - path: Resources
         buildPhase: resources
         optional: true
+        excludes:
+          - "*.example.json"   # schema template only — not bundled
     settings:
       base:
         PRODUCT_NAME: Pitchwire
@@ -49,6 +51,10 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Pitchwire
         INFOPLIST_KEY_UILaunchScreen_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.productivity"
+        # App uses only HTTPS + standard OS crypto → export-compliance exempt.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
     dependencies:
       - target: PitchwireShareExtension
         embed: true

@@ -74,8 +74,8 @@ Implemented in `Sources/AI/`:
   one call to `HTTPGateway` and the backend runs the chain, so a z.ai rate-limit is invisible to
   the user:
   `GLM-4.7-Flash (z.ai, free)` → `GLM-4.5-Flash (z.ai, free)` → `NVIDIA NIM (free, ~40 rpm)`.
-  `OpenAICompatibleGateway` is the shared client for z.ai and NVIDIA NIM (both OpenAI-compatible);
-  it holds a real key so it is **backend / keyed-dev only**, never shipped in the app.
+  The provider-key-holding OpenAI-compatible client lives **only in the backend**
+  (`backend/src/worker.js` → `callModel`); it is never in the app target.
   ⚠️ Verify NVIDIA's free-tier ToS permits commercial use before wiring it in the backend.
 - **Keys server-side only.** `AIConfiguration` holds `baseURL` + a scoped per-user `clientToken`.
   There is no field for a provider key. Ship with `baseURL: nil`.
@@ -163,9 +163,11 @@ across 4 verticals (AI & dev tools, privacy & security, fintech & personal finan
 consumer apps), 53 real dated articles. A **gold-standard eval set, not a database.** Compiled
 from public author pages, then verified in the Research Lab (articles opened, beat checked against
 the live page) — every record carries `verificationDate` + `verifiedBy`. 4 candidates were
-rejected in review. `EditorialSeedLoader` falls back to 15 fictional demo profiles
-(`FICTIONAL_SAMPLE` → `isFictional`) when no file is bundled. The UI labels every profile
-**Verified / Candidate / Demo** (honesty banner only when non-verified data is present).
+rejected in review. **The file is git-ignored** — real people, real bylines, the operator's
+research notes, and the repo is public; it ships in signed builds only. `EditorialSeedLoader`
+falls back to 15 fictional demo profiles (`FICTIONAL_SAMPLE` → `isFictional`) when no file is
+bundled (CI, fresh clones). Schema template: `editorial_seed.example.json`. The UI labels every
+profile **Verified / Candidate / Demo** (honesty banner only when non-verified data is present).
 Do not expand the dataset until matching quality holds — see `docs/EVAL.md`. Verified confidence
 decays to `.moderate` after 180 days.
 

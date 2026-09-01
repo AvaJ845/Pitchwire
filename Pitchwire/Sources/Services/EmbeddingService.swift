@@ -1,6 +1,5 @@
 import Foundation
 import CoreML
-import NaturalLanguage
 import Accelerate
 
 /// A unit-length semantic vector for a short piece of text, or nil when no model
@@ -90,19 +89,6 @@ final class MiniLMEmbeddingProvider: EmbeddingProvider, @unchecked Sendable {
         var result = [Float](repeating: 0, count: vec.count)
         for i in 0..<vec.count { result[i] = vec[i].floatValue }
         return Embedding.normalize(result)
-    }
-}
-
-/// Apple's on-device sentence embedding — the fallback. Weaker than MiniLM
-/// (reads most tech text as ~0.6 similar) but zero bundle cost and no download.
-struct NLEmbeddingProvider: EmbeddingProvider, @unchecked Sendable {
-    private let model = NLEmbedding.sentenceEmbedding(for: .english)
-    var isAvailable: Bool { model != nil }
-
-    func vector(for text: String) -> [Float]? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, let raw = model?.vector(for: trimmed) else { return nil }
-        return Embedding.normalize(raw.map(Float.init))
     }
 }
 

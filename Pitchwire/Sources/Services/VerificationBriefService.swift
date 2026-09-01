@@ -1,9 +1,10 @@
 import Foundation
 
-/// Research Lab helper. The model drafts **how to verify** a candidate — what to
-/// confirm on their author page, what to search for — so a researcher works
-/// faster. It has no web access and concludes nothing; this is guidance, never
-/// evidence, and it is not stored.
+#if DEBUG
+/// Research Lab helper (DEBUG-only — the Lab is `#if DEBUG`). The model drafts
+/// **how to verify** a candidate — what to confirm on their author page, what to
+/// search for — so a researcher works faster. It has no web access and concludes
+/// nothing; this is guidance, never evidence, and it is not stored.
 struct VerificationBrief: Equatable {
     var checks: [String]
     var searches: [String]
@@ -63,3 +64,4 @@ enum VerificationBriefService {
         return VerificationBrief(checks: Array(checks.prefix(4)), searches: Array(searches.prefix(4)))
     }
 }
+#endif

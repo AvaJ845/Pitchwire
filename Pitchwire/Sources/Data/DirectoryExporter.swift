@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Serialises the live `JournalistDirectory` back into `editorial_seed.json`
 /// shape, so a researcher's verify/edit work can be committed as the shipped
 /// seed instead of living only in one device's store.
@@ -56,3 +57,4 @@ enum DirectoryExporter {
         )
     }
 }
+#endif
