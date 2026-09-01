@@ -19,11 +19,14 @@ final class CoreLoopUITests: XCTestCase {
 
     func testAnalyzeToDraftLoop() {
         let app = XCUIApplication()
-        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai"]   // fresh store + entitlement counters
+        // fresh store + entitlement counters; fictional directory so the
+        // captured screenshots never show real journalists.
+        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai", "-uitest-demo-directory"]
         app.launch()
 
-        // Home intake
+        // Home intake — capture the composer at rest (no keyboard) for the shot.
         XCTAssertTrue(app.staticTexts["What's your story?"].waitForExistence(timeout: 5))
+        snap(app, "01-home-intake")
 
         let editor = app.textViews.firstMatch
         XCTAssertTrue(editor.waitForExistence(timeout: 5))
@@ -33,7 +36,6 @@ final class CoreLoopUITests: XCTestCase {
             + "ship machine learning features fast. Founder available for interviews."
         )
 
-        snap(app, "01-home-intake")
         app.buttons["Analyze"].tap()
 
         // Screen 2 — confirm understanding, then proceed

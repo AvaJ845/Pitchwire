@@ -12,7 +12,14 @@ enum EditorialSeedLoader {
     /// The pool the matcher scores against. Real candidates when present, else
     /// fictional demo profiles.
     static func seedPool() -> [JournalistProfile] {
-        (try? load()) ?? SampleJournalists.seedPool()
+        #if DEBUG
+        // Screenshot / demo builds force the fictional pool so captures and
+        // walkthroughs never show real journalists (`-uitest-demo-directory`).
+        if ProcessInfo.processInfo.arguments.contains("-uitest-demo-directory") {
+            return SampleJournalists.seedPool()
+        }
+        #endif
+        return (try? load()) ?? SampleJournalists.seedPool()
     }
 
     /// `true` when a real seed file is bundled (used to pick honest UI copy).
