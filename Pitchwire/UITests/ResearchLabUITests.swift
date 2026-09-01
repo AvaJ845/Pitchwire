@@ -10,7 +10,9 @@ final class ResearchLabUITests: XCTestCase {
 
     func testResearcherCanUnverifyAndReverify() {
         let app = XCUIApplication()
-        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai"]
+        // -uitest-lab-fixture seeds one verified fictional profile so this runs
+        // without the real (git-ignored) editorial_seed.json.
+        app.launchArguments = ["-uitest-reset", "-uitest-mock-ai", "-uitest-lab-fixture"]
         app.launch()
 
         app.buttons["Profile"].tap()

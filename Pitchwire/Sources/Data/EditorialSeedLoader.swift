@@ -13,9 +13,14 @@ enum EditorialSeedLoader {
     /// fictional demo profiles.
     static func seedPool() -> [JournalistProfile] {
         #if DEBUG
+        let args = ProcessInfo.processInfo.arguments
+        // ResearchLabUITests needs a verified row even without a real seed file.
+        if args.contains("-uitest-lab-fixture") {
+            return SampleJournalists.labFixture()
+        }
         // Screenshot / demo builds force the fictional pool so captures and
         // walkthroughs never show real journalists (`-uitest-demo-directory`).
-        if ProcessInfo.processInfo.arguments.contains("-uitest-demo-directory") {
+        if args.contains("-uitest-demo-directory") {
             return SampleJournalists.seedPool()
         }
         #endif

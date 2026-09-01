@@ -139,4 +139,24 @@ enum SampleJournalists {
             return journalist
         }
     }
+
+    #if DEBUG
+    /// The demo pool with the first profile shaped like a **verified** record
+    /// (real provenance, a source URL, a verification date). `ResearchLabUITests`
+    /// needs a verified row to un-verify / re-verify, and the real
+    /// `editorial_seed.json` isn't present on CI or a fresh clone.
+    /// Reached via the `-uitest-lab-fixture` launch argument.
+    static func labFixture() -> [JournalistProfile] {
+        let pool = seedPool()
+        if let record = pool.first?.primaryEvidence {
+            record.provenance = .publicEditorialSignal
+            record.evidenceSummary = "UI-test fixture — fictional, shaped like a human-verified record."
+            record.sourceURL = "https://example.com/author/demo"
+            record.verificationDate = Date()
+            record.verifiedBy = "SEED"
+            record.confidence = .high
+        }
+        return pool
+    }
+    #endif
 }
